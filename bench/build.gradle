@@ -1,0 +1,31 @@
+apply plugin: 'java'
+
+defaultTasks 'compileJava','jar'
+
+description = "Elias' research"
+sourceCompatibility = 1.7
+
+sourceSets {
+  main {
+    output.classesDir = 'build/classes'
+    output.resourcesDir = output.classesDir
+    java {
+      srcDir 'src'
+      exclude '**/new/**','**/old/**'
+    }
+  }
+}
+
+jar {
+  baseName 'ea'
+  manifest {
+    attributes 'Implementation-Title': project.description
+  }
+}
+
+repositories.mavenCentral() // for Scala jars
+dependencies {
+  compile fileTree('../../jtk/build/libs') // for edu_mines_jtk.jar
+  compile fileTree('../../jtk/libs') // jars provided with the Mines JTK
+  compile fileTree('libs') // jars used in research, not in the Mines JTK
+}
