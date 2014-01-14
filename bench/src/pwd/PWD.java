@@ -21,6 +21,7 @@ import javax.swing.*;
  */
 
 public class PWD {
+
   private static void go() {
     int n1 = 301;
     int n2 = 920;
@@ -34,15 +35,49 @@ public class PWD {
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
 
-    float[][] x1 = readImage(n1,n2,"src/pwd/gom.dat");
-    mul(x1,.001f,x1);
-    writeBinary(x1,"src/pwd/"+DATA_NAME);
-    float[][] x2 = readImage(n1,n2,"src/pwd/"+DATA_NAME);
+    float[][] orig_data = readImage(n1,n2,"src/pwd/gom.dat");
+    float[][] scaled_data = new float[n2][n1];
+    mul(orig_data,.001f,scaled_data);
+    writeBinary(scaled_data,"src/pwd/"+DATA_NAME);
 
     LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,4.0f,2);
     float[][] lsf_output2 = new float[n2][n1];
     float[][] filter_output2 = new float[n2][n1];
-    lsf.findSlopes(x2,lsf_output2);
+    lsf.findSlopes(scaled_data,lsf_output2);
+
+    Filter2 fil2 = new Filter2(n1,n2,1,1,lsf_output2);
+    fil2.destructor(false,orig_data,filter_output2);
+    mul(filter_output2,0.1f,filter_output2);
+
+    plot(s1,s2,sexp(scaled_data),"GOM Near Offset Data (Gained)");
+    plot(s1,s2,lsf_output2,"Slopes");
+    plot(s1,s2,(filter_output2),"Plane-wave Destruction 2D Filter");
+    //plot(s1,s2,(sub(orig_data,filter_output2)),"Cleaned Data");
+  }
+
+  private static void go3D() {
+    int n1 = 301;
+    int n2 = 920;
+    int n  = n1*n2;
+
+    float d1 = 0.004f;
+    float d2 = .02667f;
+    float f1 = 1.6f;
+    float f2 = 0;
+
+    Sampling s1 = new Sampling(n1,d1,f1);
+    Sampling s2 = new Sampling(n2,d2,f2);
+
+    float[][] orig_data = readImage(n1,n2,"src/pwd/gom.dat");
+    float[][] scaled_data = new float[n2][n1];
+    mul(orig_data,.001f,scaled_data);
+    writeBinary(scaled_data,"src/pwd/"+DATA_NAME);
+
+    LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,4.0f,2);
+    float[][] lsf_output2 = new float[n2][n1];
+    lsf.findSlopes(scaled_data,lsf_output2);
+
+    float[][] filter_output2 = new float[n2][n1];
 
     float[] x = new float[n];
     float[] lsf_output31 = new float[n];
@@ -52,17 +87,13 @@ public class PWD {
     for (int i2=0; i2<n2; ++i2) {
       for (int i1=0; i1<n1; ++i1) {
         lsf_output31[i1+i2*n1] = lsf_output2[i2][i1];
-        x[i1+i2*n1] = x2[i2][i1];
+        x[i1+i2*n1] = scaled_data[i2][i1];
       }
     }
 
-    Filter2 fil2 = new Filter2(n1,n2,2,1,lsf_output2);
-    fil2.destructor(false,x2,filter_output2);
-    //mul(filter_output2,0.1f,filter_output2);
-
-
     Filter3 fil3 = new Filter3(n1,n2,0,2,1,lsf_output31);
     fil3.inlineDestructor(true,false,x,filter_output31);
+    //fil3.crosslineDestructor(true,false,x,filter_output31);
     mul(filter_output31,0.1f,filter_output31);
 
     for (int i2=0; i2<n2; ++i2) {
@@ -72,12 +103,114 @@ public class PWD {
     }
     System.out.println("values= "+filter_output32[2][1]);
 
-    plot(s1,s2,sexp(x2),"GOM Near Offset Data");
+    plot(s1,s2,sexp(scaled_data),"GOM Near Offset Data (Gained)");
     plot(s1,s2,lsf_output2,"Slopes");
+    plot(s1,s2,filter_output32,"Plane-wave Destruction 3D Filter");
+  }
 
+  private static void goZero() {
+    int n1 = 301;
+    int n2 = 920;
+    int n  = n1*n2;
+
+    float d1 = 0.004f;
+    float d2 = .02667f;
+    float f1 = 1.6f;
+    float f2 = 0;
+
+    Sampling s1 = new Sampling(n1,d1,f1);
+    Sampling s2 = new Sampling(n2,d2,f2);
+
+    float[][] orig_data = readImage(n1,n2,"src/pwd/gom.dat");
+    float[][] filter_output2 = new float[n2][n1];
+
+    //madagascar pwd output
+    float[][] mad_output = readImage(n1,n2,"src/pwd/gompwd.dat");
+
+    Filter2 fil2 = new Filter2(n1,n2,1,1,zerofloat(n1,n2));
+    fil2.destructor(false,orig_data,filter_output2);
+    //mul(filter_output2,0.1f,filter_output2);
+
+    plot(s1,s2,(orig_data),"GOM Near Offset Data");
     plot(s1,s2,(filter_output2),"Plane-wave Destruction 2D Filter");
-    plot(s1,s2,(sub(x2,filter_output2)),"Cleaned Data");
+    plot(s1,s2,mad_output,"Madagascar PWD With Zero Values Slopes");
+    plot(s1,s2,(sub(filter_output2,mad_output)),"Subtraction");
     //plot(s1,s2,filter_output32,"Plane-wave Destruction 3D Filter");
+  }
+
+  private static void goHalf() {
+    int n1 = 301;
+    int n2 = 920;
+    int n  = n1*n2;
+
+    float d1 = 0.004f;
+    float d2 = .02667f;
+    float f1 = 1.6f;
+    float f2 = 0;
+
+    Sampling s1 = new Sampling(n1,d1,f1);
+    Sampling s2 = new Sampling(n2,d2,f2);
+
+    float[][] orig_data = readImage(n1,n2,"src/pwd/gom.dat");
+    float[][] half_slope = new float[n2][n1];
+
+    float[][] filter_output2 = new float[n2][n1];
+
+    for (int i2=0; i2<n2; ++i2) {
+      for (int i1=0; i1<n1; ++i1) {
+        half_slope[i2][i1] = 0.5f;
+      }
+    }
+
+    //madagascar pwd output
+    float[][] mad_output_half = readImage(n1,n2,"src/pwd/gompwd_half.dat");
+
+    Filter2 fil2 = new Filter2(n1,n2,1,1,half_slope);
+    fil2.destructor(false,orig_data,filter_output2);
+    //mul(filter_output2,0.1f,filter_output2);
+
+    plot(s1,s2,(orig_data),"GOM Near Offset Data");
+    plot(s1,s2,half_slope,"Half Valued Slopes");
+    plot(s1,s2,(filter_output2),"Plane-wave Destruction 2D Filter");
+    plot(s1,s2,mad_output_half,"Madagascar PWD With Half Valued Slopes");
+    plot(s1,s2,(sub(filter_output2,mad_output_half)),"Subtraction");
+  }
+
+  private static void goOne() {
+    int n1 = 301;
+    int n2 = 920;
+    int n  = n1*n2;
+
+    float d1 = 0.004f;
+    float d2 = .02667f;
+    float f1 = 1.6f;
+    float f2 = 0;
+
+    Sampling s1 = new Sampling(n1,d1,f1);
+    Sampling s2 = new Sampling(n2,d2,f2);
+
+    float[][] orig_data = readImage(n1,n2,"src/pwd/gom.dat");
+    float[][] one_slope = new float[n2][n1];
+    float[][] filter_output2 = new float[n2][n1];
+
+    for (int i2=0; i2<n2; ++i2) {
+      for (int i1=0; i1<n1; ++i1) {
+        one_slope[i2][i1] = 1.0f;
+      }
+    }
+
+    //madagascar pwd output
+    float[][] mad_output_one = readImage(n1,n2,"src/pwd/gompwd_one.dat");
+
+    Filter2 fil2 = new Filter2(n1,n2,1,1,one_slope);
+    fil2.destructor(false,orig_data,filter_output2);
+    //mul(filter_output2,0.1f,filter_output2);
+
+    plot(s1,s2,(orig_data),"GOM Near Offset Data");
+    plot(s1,s2,one_slope,"One Valued Slopes");
+    plot(s1,s2,(filter_output2),"Plane-wave Destruction 2D Filter");
+    plot(s1,s2,mad_output_one,"Madagascar PWD With One Valued Slopes");
+    plot(s1,s2,(sub(filter_output2,mad_output_one)),"Subtraction");
   }
 
   /**
@@ -106,7 +239,7 @@ public class PWD {
    * @return array[n2][n1] of floats read from file
    */
   private static float[][] readImage(int n1, int n2, String fileName) {
-    ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
+    ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
     try {
       ArrayInputStream ais = new ArrayInputStream(fileName,byteOrder);
       float[][] x = new float[n2][n1];
@@ -164,7 +297,11 @@ public class PWD {
   public static void main(String[] args) {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        go();
+        //goZero();
+        //goOne();
+        //goHalf();
+        //go();
+        go3D();
       }
     });
   }
