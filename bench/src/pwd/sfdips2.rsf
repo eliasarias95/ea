@@ -1,0 +1,187 @@
+No input header 
+
+Su2sep:   bob@kana   Wed Nov  1 16:39:18 2000
+		#sets next: in="/net/kana/data/SEG97_multiples/western_gulf/gulf.shots.H@"
+		sets next: in="/net/kana/data/2d_real/SEG97_multiples/western_gulf/gulf.shots.H@"
+		hff="gulf.shots.H@@"
+		same_record_number=1
+	n1=2404  o1=4e-06  d1=0.004  label1="none"  unit1="none"
+		gff="-1"
+		esize=4
+		data_format="xdr_float"
+		same_record_number=1
+	 	n2=180180 o2=1 d2=1 label2="trace number"
+	n1=2404  o1=4e-06  d1=0.004  label1="none"  unit1="none"
+		gff="-1"
+		esize=4
+
+
+Headermath:   antoine@kana   Thu Jan 25 18:42:28 2001
+		sets next: in="/net/kana/scr2/antoine/gulf.3d.math.H@"
+		eqn1="sx"
+		eqn2="gx"
+		eqn3="-offset"
+		eqn4="0.5*(gx+sx)"
+		eqn5="-offset/2."
+		hff="gulf.3d.math.H@@"
+		sets next: in="/net/kana/data/2d_real/SEG97_multiples/western_gulf/gulf.shots.H@"
+		data_format="xdr_float"
+
+
+
+Sort3d:   antoine@kana   Thu Jan 25 18:53:28 2001
+		sets next: in="/net/kana/scr2/antoine/gulf.sort.H@"
+		Read  from param: #max_memory=10
+		Read  from param: #synch=0
+		Read  from param: #compress_tr=1
+		Read  from param: #grid_fold=0
+		Read  from param: #nkeys=2
+		Read  from param: #verb=1
+		Read  from param: #debug=1
+		Read  from param: #just_grid=0
+		Read  from param: #preserve_nd=0
+		Read  from param: #plane="none"
+		hff="gulf.sort.H@@"
+		gff="gulf.sort.H@@@@"
+		sets next: in="/net/kana/data/2d_real/SEG97_multiples/western_gulf/gulf.shots.H@"
+		same_record_number=0
+	n3=1 n4=1 n5=1 n6=1 n7=1 n8=1
+		data_format="xdr_float"
+
+
+
+Infill3d:   antoine@kana   Thu Jan 25 18:53:57 2001
+		sets next: in="/net/koko/data/data_2d/SEG97_multiples/western_gulf/gulf.shots3.H@"
+		Read  from param: #maxsize=10
+		Read  from param: #verb=0
+	n2=180  o2=330  d2=87.5  label2="offset_x"  unit2="unit2"
+	n3=1001  o3=0  d3=87.5  label3="s_x"  unit3="unit3"
+		gff="-1"
+		hff="-1"
+	n1=2404  o1=4e-06  d1=0.004  label1="none"  unit1="none"
+		hff="-1"
+		gff="-1"
+		esize=4
+		data_format="xdr_float"
+
+in="/net/koko/data1/data_2d/SEG97_multiples/western_gulf/gulf.shots3.H@"
+
+
+Create3d:   antoine@koko   Wed Feb  4 16:40:07 2004
+		sets next: in="/net/koko/scr5/antoine/junk.H@"
+		hff="junk.H@@"
+		sets next: in="/net/koko/data1/data_2d/SEG97_multiples/western_gulf/gulf.shots3.H@"
+		data_format="xdr_float"
+
+
+
+Headermath:   antoine@koko   Wed Feb  4 16:40:09 2004
+		sets next: in="/net/koko/scr5/antoine/junk1.H@"
+		eqn1="s_x"
+		eqn2="-g_x+s_x"
+		eqn3="g_x"
+		eqn4="0.5*(-g_x+2*s_x)"
+		eqn5="g_x/2."
+		hff="junk1.H@@"
+		sets next: in="/net/koko/data1/data_2d/SEG97_multiples/western_gulf/gulf.shots3.H@"
+		data_format="xdr_float"
+
+
+
+Sort3d:   antoine@koko   Wed Feb  4 16:40:09 2004
+		sets next: in="/net/koko/scr5/antoine/gulf.cmps.sep3d.H@"
+		Read  from param: #synch=0
+		Read  from param: #compress_tr=1
+		From par: max_size max_memory=20
+		Read  from param: #nkeys=2
+		Read  from param: #verb=0
+		Read  from param: #debug=0
+		Read  from param: #just_grid=0
+		Read  from param: #preserve_nd=0
+		Read  from param: #plane="none"
+		hff="gulf.cmps.sep3d.H@@"
+		gff="gulf.cmps.sep3d.H@@@@"
+		sets next: in="/net/koko/data1/data_2d/SEG97_multiples/western_gulf/gulf.shots3.H@"
+		same_record_number=0
+	n3=1 n4=1 n5=1 n6=1 n7=1 n8=1
+		data_format="xdr_float"
+
+gff=/net/koko/data1/data_2d/SEG97_multiples/western_gulf/gulf.cmps.sep3d.H@@@@
+hff=/net/koko/data1/data_2d/SEG97_multiples/western_gulf/gulf.cmps.sep3d.H@@
+
+
+Infill3d:   antoine@koko   Wed Feb  4 16:40:29 2004
+		sets next: in="/net/koko/scr5/antoine/tmp.H@"
+		From par: maxsize=10
+		From par: normalize=yes
+		From par: verb=yes
+		From par: axes=1
+		junkME=1970167653
+	n2=87  o2=330  d2=175   label2="offset_x"   unit2="unit2"
+	n3=1840  o3=0  d3=43.75   label3="cmp_x"   unit3="unit3"
+		gff="-1"
+		hff="-1"
+hff=-1 gff=-1  n4=1  n5=1  n6=1  n7=1  n8=1  n9=1 
+	n1=2404  o1=4e-06  d1=0.004   label1="none"   unit1="none"
+		hff="-1"
+		gff="-1"
+		esize=4
+		data_format="xdr_float"
+
+
+
+Window3d:   antoine@koko   Wed Feb  4 16:59:51 2004
+		sets next: in="/net/koko/scr5/antoine/gulf.cmps.77.H@"
+	#Window f1=0  j1=1 n1=2404
+	#Window f2=0  j2=1 n2=87
+	#Window f3=0  j3=2 n3=920
+		junkME=1108544020
+	n2=87  o2=330  d2=175   label2="offset_x"   unit2="unit2"
+	n3=920  o3=0  d3=87.5   label3="cmp_x"   unit3="unit3"
+		gff="-1"
+		hff="-1"
+hff=-1 gff=-1  n4=1  n5=1  n6=1  n7=1  n8=1  n9=1 
+	n1=2404  o1=4e-06  d1=0.004   label1="none"   unit1="none"
+		hff="-1"
+		gff="-1"
+		esize=4
+		data_format="xdr_float"
+
+d2=53.33 o2=100.0 d3=26.67
+
+
+Window:   antoine@okok.Stanford.EDU   Thu Mar  4 14:49:35 2004
+		sets next: in="/net/okok/scr5/antoine/zof.H@"
+		In:	float	Fortran (2404,87,920,1)	C [1][920][87][2404]
+		Out:	float	Fortran (301,920,1,1)	C [1][1][920][301]
+	 From History:
+		 n4=1 n3=920 n2=87 n1=2404 esize=4
+	 From Par:
+		 n1=301  #f1=400  #j1=1  #min1=1.600004  #max1=2.8
+		 n2=1  #f2=0  #j2=1  #min2=100.000000  #max2=100
+		 n3=920  #f3=0  #j3=1  #min3=0.000000  #max3=24509.7
+		 n4=1  #f4=0  #j4=1  #min4=0  #max4=0
+	 Make header useful for further processing:
+		 n1=301 	 n2=920 	 n3=1 	 n4=1
+		 o1=1.600004 	 o2=0.000000 	 o3=100.000000 	 o4=0.000000
+		 d1=0.004 	 d2=26.67 	 d3=53.33 	 d4=1
+		 label1="none" 	 label2="cmp_x" 	 label3="offset_x" 	 label4=""
+		data_format="xdr_float"
+
+
+
+Cp:   antoine@koko   Thu Mar  4 14:50:59 2004
+		sepstr_ready_out() : sets next in="stdin"
+		copy_intag="zof.H"
+		data_format="xdr_float"
+
+1.5	sfdd	home/earias/Madagascar:	earias@backus.Mines.EDU	Thu Jan  9 15:25:32 2014
+
+	data_format="xdr_float"
+	esize=4
+	in="/var/tmp/gom.rsf@"
+1.5	sfdip	bench/src/pwd:	earias@backus.Mines.EDU	Fri Jan 17 09:02:18 2014
+
+	data_format="xdr_float"
+	esize=4
+	in="/var/tmp/sfdips2.rsf@"
