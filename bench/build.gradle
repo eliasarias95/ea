@@ -27,5 +27,6 @@ repositories.mavenCentral() // for Scala jars
 dependencies {
   compile fileTree('../../jtk/build/libs') // for edu_mines_jtk.jar
   compile fileTree('../../jtk/libs') // jars provided with the Mines JTK
+  compile fileTree('../../idh/bench/build/libs') // idh jar
   compile fileTree('libs') // jars used in research, not in the Mines JTK
 }

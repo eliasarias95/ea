@@ -35,10 +35,10 @@ public class PWD {
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
 
-    float[][] orig_data = readImage(n1,n2,"src/pwd/gom.dat");
+    float[][] orig_data = readImage(n1,n2,"data/gom.dat");
     float[][] scaled_data = new float[n2][n1];
     mul(orig_data,.001f,scaled_data);
-    writeBinary(scaled_data,"src/pwd/"+DATA_NAME);
+    writeBinary(scaled_data,"data/"+DATA_NAME);
 
     LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,4.0f,2);
     float[][] lsf_output2 = new float[n2][n1];
@@ -50,8 +50,9 @@ public class PWD {
     mul(filter_output2,0.1f,filter_output2);
 
     plot(s1,s2,sexp(scaled_data),"GOM Near Offset Data (Gained)");
-    plot(s1,s2,lsf_output2,"Slopes");
-    plot(s1,s2,(filter_output2),"Plane-wave Destruction 2D Filter");
+    plot(s1,s2,lsf_output2,"LSF Slopes");
+    plot(s1,s2,readImage(n1,n2,"data/sfdipstest.dat"),"Madagascar Slopes");
+    //plot(s1,s2,(filter_output2),"Plane-wave Destruction 2D Filter");
     //plot(s1,s2,(sub(orig_data,filter_output2)),"Cleaned Data");
   }
 
@@ -68,10 +69,10 @@ public class PWD {
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
 
-    float[][] orig_data = readImage(n1,n2,"src/pwd/gom.dat");
+    float[][] orig_data = readImage(n1,n2,"data/gom.dat");
     float[][] scaled_data = new float[n2][n1];
     mul(orig_data,.001f,scaled_data);
-    writeBinary(scaled_data,"src/pwd/"+DATA_NAME);
+    writeBinary(scaled_data,"data/"+DATA_NAME);
 
     LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,4.0f,2);
     float[][] lsf_output2 = new float[n2][n1];
@@ -121,11 +122,11 @@ public class PWD {
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
 
-    float[][] orig_data = readImage(n1,n2,"src/pwd/gom.dat");
+    float[][] orig_data = readImage(n1,n2,"data/gom.dat");
     float[][] filter_output2 = new float[n2][n1];
 
     //madagascar pwd output
-    float[][] mad_output = readImage(n1,n2,"src/pwd/gompwd.dat");
+    float[][] mad_output = readImage(n1,n2,"data/gompwd.dat");
 
     Filter2 fil2 = new Filter2(n1,n2,1,1,zerofloat(n1,n2));
     fil2.destructor(false,orig_data,filter_output2);
@@ -151,7 +152,7 @@ public class PWD {
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
 
-    float[][] orig_data = readImage(n1,n2,"src/pwd/gom.dat");
+    float[][] orig_data = readImage(n1,n2,"data/gom.dat");
     float[][] half_slope = new float[n2][n1];
 
     float[][] filter_output2 = new float[n2][n1];
@@ -163,7 +164,7 @@ public class PWD {
     }
 
     //madagascar pwd output
-    float[][] mad_output_half = readImage(n1,n2,"src/pwd/gompwd_half.dat");
+    float[][] mad_output_half = readImage(n1,n2,"data/gompwd_half.dat");
 
     Filter2 fil2 = new Filter2(n1,n2,1,1,half_slope);
     fil2.destructor(false,orig_data,filter_output2);
@@ -189,7 +190,7 @@ public class PWD {
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
 
-    float[][] orig_data = readImage(n1,n2,"src/pwd/gom.dat");
+    float[][] orig_data = readImage(n1,n2,"data/gom.dat");
     float[][] one_slope = new float[n2][n1];
     float[][] filter_output2 = new float[n2][n1];
 
@@ -200,7 +201,7 @@ public class PWD {
     }
 
     //madagascar pwd output
-    float[][] mad_output_one = readImage(n1,n2,"src/pwd/gompwd_one.dat");
+    float[][] mad_output_one = readImage(n1,n2,"data/gompwd_one.dat");
 
     Filter2 fil2 = new Filter2(n1,n2,1,1,one_slope);
     fil2.destructor(false,orig_data,filter_output2);
@@ -300,8 +301,8 @@ public class PWD {
         //goZero();
         //goOne();
         //goHalf();
-        //go();
-        go3D();
+        go();
+        //go3D();
       }
     });
   }
