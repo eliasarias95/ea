@@ -175,13 +175,63 @@ Cp:   antoine@koko   Thu Mar  4 14:50:59 2004
 		copy_intag="zof.H"
 		data_format="xdr_float"
 
-1.5	sfdd	home/earias/Madagascar:	earias@backus.Mines.EDU	Thu Jan  9 15:25:32 2014
+1.5	sfdd	src/pwd/data:	earias@wl-dhcp207-16.mines.edu	Tue Jan 21 13:33:25 2014
 
 	data_format="xdr_float"
 	esize=4
 	in="/var/tmp/gom.rsf@"
-1.5	sfdip	bench/src/pwd:	earias@backus.Mines.EDU	Fri Jan 17 08:56:31 2014
+1.5	sfspike	src/pwd/data:	earias@wl-dhcp195-139.mines.edu	Wed Jan 22 07:59:45 2014
+
+	unit4="km"
+	d2=26.67
+	o1=1.6
+	n2=920
+	unit5="km"
+	d3=53.33
+	o2=0
+	label1="none"
+	n3=1
+	data_format="xdr_float"
+	unit6="km"
+	d4=1
+	o3=100
+	label2="cmp_x"
+	n4=1
+	unit7="km"
+	d5=0.1
+	o4=0
+	label3="offset_x"
+	n5=1
+	unit8="km"
+	d6=0.1
+	o5=0
+	n6=1
+	esize=4
+	unit9="km"
+	d7=0.1
+	o6=0
+	label5="Distance"
+	n7=1
+	in="/var/tmp/new.rsf@"
+	d8=0.1
+	o7=0
+	label6="Distance"
+	n8=1
+	d9=0.1
+	o8=0
+	label7="Distance"
+	unit1="none"
+	n9=1
+	o9=0
+	label8="Distance"
+	unit2="unit2"
+	label9="Distance"
+	unit3="unit3"
+	d1=0.004
+	n1=301
+in=this_file_in.dat
+1.5	sfdip	src/pwd/data:	earias@wl-dhcp195-139.mines.edu	Wed Jan 22 07:59:45 2014
 
 	data_format="xdr_float"
 	esize=4
-	in="/var/tmp/sfdiprA1B9J"
+	in="/var/tmp/this_file_out.rsf@"

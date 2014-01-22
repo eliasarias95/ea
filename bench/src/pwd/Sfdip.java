@@ -1,4 +1,10 @@
+package pwd;
+
+import edu.mines.jtk.io.ArrayInputStream;
+import edu.mines.jtk.io.ArrayOutputStream;
+
 import java.io.*;
+import java.nio.ByteOrder;
 
 /**
  * Java class to allow for more java-like use of the sfdip code in Madagascar.
@@ -11,115 +17,17 @@ public class Sfdip {
    * Default constructor that initializes all fields to the default values 
    * used in Madagascar.
    */
-  public Sfdip() {
-    _both = "n";
-    _verb = "n";
-    _n4 = 2;
-    _nj1 = 1;
-    _nj2 = 1;
-    _rect1 = 1;
-    _rect2 = 1;
-    _rect3 = 1;
-    _order = 1;
-    _niter = 5;
-    _liter = 20;
-    _p0 = 0.0f;
-    _q0 = 0.0f;
-    _pmin = -100;
-    _pmax = 100;
-    _qmin = -100;
-    _qmax = 100;
-  }
-
-  /**
-   * Constructor when given only the amount of information necessary to
-   * run sfdip on a 2D data set.
-   * @param both string options "y" and "n", if "y" compute both left
-   * and right predictions
-   * @param verb string options "y" and "n", verbosity flag...?
-   * @param n4 what to compute in 3D, 0: in-line, 1: cross-line, 2: both
-   * @param nj1 in-line antialiasing
-   * @param rect1 dip smoothness in the 1st dimension
-   * @param rect2 dip smoothness in the 2nd dimension
-   * @param order accuracy order
-   * @param niter number of outer iterations
-   * @param liter number of linear iterations
-   * @param p0 initial in-line dip
-   * @param pmin minimum in-line dip
-   * @param pmax maximum in-line dip
-   */
-  public Sfdip(String both, String verb, int n4, int nj1, 
-      int rect1, int rect2, int order, int niter, int liter, 
-      float p0, float pmin, float pmax) {
-    _both = both;
-    _verb = verb;
-    _n4 = n4;
-    _nj1 = nj1;
-    _nj2 = 1;
-    _rect1 = rect1;
-    _rect2 = rect2;
-    _rect3 = 1;
-    _order = order;
-    _niter = niter;
-    _liter = liter;
-    _p0 = p0;
-    _q0 = 0.0f;
+  public Sfdip(float pmin, float pmax) {
     _pmin = pmin;
     _pmax = pmax;
-    _qmin = -100;
-    _qmax = 100;
-  }
-
-  /**
-   * Constructor when given all information.
-   * @param both string options "y" and "n", if "y" compute both left
-   * and right predictions
-   * @param verb string options "y" and "n", verbosity flag...?
-   * @param n4 what to compute in 3D, 0: in-line, 1: cross-line, 2: both
-   * @param nj1 in-line antialiasing value
-   * @param nj2 cross-line antialiasing value
-   * @param rect1 dip smoothness in the 1st dimension
-   * @param rect2 dip smoothness in the 2nd dimension
-   * @param rect3 dip smoothness in the 3rd dimension
-   * @param order accuracy order
-   * @param niter number of outer iterations
-   * @param liter number of linear iterations
-   * @param p0 initial in-line dip
-   * @param q0 initial cross-line dip
-   * @param pmin minimum in-line dip
-   * @param pmax maximum in-line dip
-   * @param qmin minimum cross-line dip
-   * @param qmax maximum cross-line dip
-   */
-  public Sfdip(String both, String verb, int n4, int nj1, int nj2, 
-      int rect1, int rect2, int rect3, int order, int niter, int liter, 
-      float p0, float q0, float pmin, float pmax, float qmin, float qmax) {
-    _both = both;
-    _verb = verb;
-    _n4 = n4;
-    _nj1 = nj1;
-    _nj2 = nj2;
-    _rect1 = rect1;
-    _rect2 = rect2;
-    _rect3 = rect3;
-    _order = order;
-    _niter = niter;
-    _liter = liter;
-    _p0 = p0;
-    _q0 = q0;
-    _pmin = pmin;
-    _pmax = pmax;
-    _qmin = qmin;
-    _qmax = qmax;
   }
 
   /**
    * Set the in-line antialiasing parameter value.
    * @param nj1 in-line antialiasing value
    */
-  public static void setNj(int nj1) {
-    _nj1 = nj1;
-    _nj2 = 1;
+  public void setNj(int nj1) {
+    setNj(nj1,1);
   }
 
   /**
@@ -127,7 +35,7 @@ public class Sfdip {
    * @param nj1 in-line antialiasing value
    * @param nj2 cross-line antialiasing value
    */
-  public static void setNj(int nj1, int nj2) {
+  public void setNj(int nj1, int nj2) {
     _nj1 = nj1;
     _nj2 = nj2;
   }
@@ -136,10 +44,8 @@ public class Sfdip {
    * Set the dip smoothness in the 1st dimension.
    * @param rect1 dip smoothness in the 1st dimension
    */
-  public static void setRect(int rect1) {
-    _rect1 = rect1;
-    _rect2 = 1;
-    _rect3 = 1;
+  public void setRect(int rect1) {
+    setRect(rect1,1,1);
   }
 
   /**
@@ -147,10 +53,8 @@ public class Sfdip {
    * @param rect1 dip smoothness in the 1st dimension
    * @param rect2 dip smoothness in the 2nd dimension
    */
-  public static void setRect(int rect1, int rect2) {
-    _rect1 = rect1;
-    _rect2 = rect2;
-    _rect3 = 1;
+  public void setRect(int rect1, int rect2) {
+    setRect(rect1,rect2,1);
   }
 
   /**
@@ -159,7 +63,7 @@ public class Sfdip {
    * @param rect2 dip smoothness in the 2nd dimension
    * @param rect3 dip smoothness in the 3rd dimension
    */
-  public static void setRect(int rect1, int rect2, int rect3) {
+  public void setRect(int rect1, int rect2, int rect3) {
     _rect1 = rect1;
     _rect2 = rect2;
     _rect3 = rect3;
@@ -169,7 +73,7 @@ public class Sfdip {
    * Set the order of accuracy parameter value.
    * @param order accuracy order
    */
-  public static void setOrder(int order) {
+  public void setOrder(int order) {
     _order = order;
   }
 
@@ -177,7 +81,7 @@ public class Sfdip {
    * Set the number of outer iterations.
    * @param niter number of outer iterations
    */
-  public static void setNiter(int niter) {
+  public void setNiter(int niter) {
     _niter = niter;
   }
 
@@ -185,7 +89,7 @@ public class Sfdip {
    * Set the number of linear iterations.
    * @param liter number of linear iterations
    */
-  public static void setLiter(int liter) {
+  public void setLiter(int liter) {
     _liter = liter;
   }
 
@@ -193,7 +97,7 @@ public class Sfdip {
    * Set the initial in-line dip value.
    * @param p0 initial in-line dip
    */
-  public static void setP0(float p0){
+  public void setP0(float p0){
     _p0 = p0;
   }
 
@@ -201,7 +105,7 @@ public class Sfdip {
    * Set the initial cross-line dip value.
    * @param q0 initial cross-line dip
    */
-  public static void setQ0(float q0){
+  public void setQ0(float q0){
     _q0 = q0;
   }
 
@@ -210,7 +114,7 @@ public class Sfdip {
    * @param pmin minimum in-line dip
    * @param pmax maximum in-line dip
    */
-  public static void setPBounds(float pmin, float pmax) {
+  public void setPBounds(float pmin, float pmax) {
     _pmin = pmin;
     _pmax = pmax;
   }
@@ -220,7 +124,7 @@ public class Sfdip {
    * @param qmin minimum cross-line dip
    * @param qmax maximum cross-line dip
    */
-  public static void setQBounds(float qmin, float qmax) {
+  public void setQBounds(float qmin, float qmax) {
     _qmin = qmin;
     _qmax = qmax;
   }
@@ -231,7 +135,7 @@ public class Sfdip {
    * @param both "y" or "n" flag to compute both left
    * and right predictions or not
    */
-  public static void setBoth(String both) {
+  public void setBoth(String both) {
     _both = both;
   }
 
@@ -239,33 +143,59 @@ public class Sfdip {
    * Set the verbosity flag (either "y" or "n").
    * @param verb verbosity flag
    */
-  public static void setVerb(String verb) {
+  public void setVerb(String verb) {
     _verb = verb;
   }
 
   /**
    * Uses Madagascar to run sfdip to find the slopes in seismic data.
-   * @param in the name of the input file
-   * @param out the name of the output file
+   * @param x the array[n2][n1] of inputs
+   * @param y the array[n2][n1] of outputs 
    */
-  public static void findSlopes(String in, String out) {
+  public void findSlopes(float[][] x, float[][] y) {
+    int n2 = x.length;
+    int n1 = x[0].length;
+
+    String in_dat = "this_file_in.dat";
+    String out_dat = "this_file_out.dat";
+    writeBinary(x,in_dat);
+
+    String new_rsf = "new.rsf";
+    String out_rsf = "this_file_out.rsf";
+    String gom_rsf = "gom.rsf";
+    String file_cmd1 = "sfspike < "+gom_rsf+" > "+new_rsf;
+    String file_cmd2 = "sfspike < "+gom_rsf+" > "+out_rsf;
+    String file_cmd3 = "echo in="+in_dat+" >> "+new_rsf;
+    String dip_cmd = "sfdip < "+new_rsf+" > "+out_rsf+" both="+_both+
+      " n4="+_n4+" niter="+_niter+" liter="+_liter+" rect1="+_rect1+
+      " rect2="+_rect2+" rect3="+_rect3+" p0="+_p0+" q0="+_q0+
+      " order="+_order+" nj1="+_nj1+" nj2="+_nj2+" verb="+_verb+
+      " pmin="+_pmin+" pmax="+_pmax+" qmin="+_qmin+" qmax="+_qmax;
+    String file2array_cmd = "mv /var/tmp/"+out_rsf+"@ "+out_dat;
+
+    String[] cmd1 = {"bash","-c",file_cmd1};
+    String[] cmd2 = {"bash","-c",file_cmd2};
+    String[] cmd3 = {"bash","-c",file_cmd3};
+    String[] cmd4 = {"bash","-c",dip_cmd};
+    String[] cmd5 = {"bash","-c",file2array_cmd};
+    pb(cmd1);
+    pb(cmd2);
+    pb(cmd3);
+    pb(cmd4);
+    pb(cmd5);
+    readImage(out_dat,y);
+  }
+
+  /*********************************Private*********************************/
+
+  /**
+   * A method that allows the user to call it multiple times when command line
+   * commands must be run one after the other.
+   * @param cmd the array of string commands to be run on the command line
+   */
+  private void pb(String[] cmd) {
     try {
-      String cmd = "sfdip < "+in+" > "+out+" both="+_both+" n4="+_n4+ 
-        " niter="+_niter+" liter="+_liter+" rect1="+_rect1+
-        " rect2="+_rect2+" rect3="+_rect3+" p0="+_p0+" q0="+_q0+
-        " order="+_order+" nj1="+_nj1+" nj2="+_nj2+" verb="+_verb+
-        " pmin="+_pmin+" pmax="+_pmax+" qmin="+_qmin+
-        " qmax="+_qmax;
-
-      /**String cmd = "sfdip < "+in+" > "+out+" both="+_both+" n4="+_n4+ 
-        " niter="+_niter+" liter="+_liter+" rect1="+_rect1+
-        " rect2="+_rect2+" p0="+_p0+
-        " order="+_order+" nj1="+_nj1+" verb="+_verb+
-        " pmin="+_pmin+" pmax="+_pmax;
-        */             
-      //String cmd = "sfdip < "+in+" > "+out;
-
-      Process pb = new ProcessBuilder("bash","-c",cmd).start();
+      Process pb = new ProcessBuilder(cmd).start();
       InputStreamReader isri = new InputStreamReader(pb.getInputStream());
       BufferedReader stdInput = new BufferedReader(isri);
 
@@ -284,17 +214,49 @@ public class Sfdip {
         System.out.println(s2);
 
       }
+      //pb.waitFor();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public static void main(String[] args) {
-    
-  } 
+  /**
+   * Reads a binary file.
+   * @param fileName the name of the file to be read
+   * @param x the array[n2][n1] of output data read from the file
+   */
+  private static void readImage(String fileName, float[][] x) {
+    try {
+      ArrayInputStream ais = new ArrayInputStream(fileName);
+      ais.readFloats(x);
+      ais.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-  /**Private Variables*/
-  private String _both, _verb;
-  private int _n4, _nj1, _nj2, _rect1, _rect2, _rect3, _order, _niter, _liter;
-  private float _p0, _q0, _pmin, _pmax, _qmin, _qmax;
+  /**
+   * Writes seismic data to binary file.
+   * @param x array[n2][n1] of data to write to the binary file
+   * @param fileName name of output binary file
+   */
+  private static void writeBinary(float[][] x, String fileName) {
+    ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
+    try {
+      ArrayOutputStream aos = new ArrayOutputStream(fileName,byteOrder);
+      aos.writeFloats(x);
+      aos.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /****************************Private Variables****************************/
+  private String _both="n";
+  private String _verb="n";
+  private int _n4=1,_nj1=1,_nj2=1,_rect1=1,_rect2=1,_rect3=1,_order=1;
+  private int _niter=5,_liter=20;
+  private float _p0=0.0f, _q0=0.0f;
+  private float _pmin, _pmax;
+  private float _qmin=-100.0f, _qmax=-100.0f;
 }

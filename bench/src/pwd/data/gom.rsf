@@ -175,7 +175,7 @@ Cp:   antoine@koko   Thu Mar  4 14:50:59 2004
 		copy_intag="zof.H"
 		data_format="xdr_float"
 
-1.5	sfdd	home/earias/Madagascar:	earias@backus.Mines.EDU	Thu Jan  9 15:25:32 2014
+1.5	sfdd	src/pwd/data:	earias@wl-dhcp207-16.mines.edu	Tue Jan 21 13:33:25 2014
 
 	data_format="xdr_float"
 	esize=4

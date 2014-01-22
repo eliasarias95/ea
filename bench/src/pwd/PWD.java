@@ -1,4 +1,4 @@
-import pwd.*;
+package pwd;
 
 import edu.mines.jtk.io.*;
 import edu.mines.jtk.dsp.*;
@@ -31,14 +31,15 @@ public class PWD {
     float d2 = .02667f;
     float f1 = 1.6f;
     float f2 = 0;
+    float pmax = 100;
 
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
 
-    float[][] orig_data = readImage(n1,n2,"data/gom.dat");
+    float[][] orig_data = readImage(n1,n2,"gom.dat");
     float[][] scaled_data = new float[n2][n1];
     mul(orig_data,.001f,scaled_data);
-    writeBinary(scaled_data,"data/"+DATA_NAME);
+    writeBinary(scaled_data,""+DATA_NAME);
 
     LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,4.0f,2);
     float[][] lsf_output2 = new float[n2][n1];
@@ -51,7 +52,45 @@ public class PWD {
 
     plot(s1,s2,sexp(scaled_data),"GOM Near Offset Data (Gained)");
     plot(s1,s2,lsf_output2,"LSF Slopes");
-    plot(s1,s2,readImage(n1,n2,"data/sfdipstest.dat"),"Madagascar Slopes");
+    plot(s1,s2,(filter_output2),"Plane-wave Destruction 2D Filter");
+    //plot(s1,s2,(sub(orig_data,filter_output2)),"Cleaned Data");
+  }
+
+  private static void goSfdip() {
+    int n1 = 301;
+    int n2 = 920;
+    int n  = n1*n2;
+
+    float d1 = 0.004f;
+    float d2 = .02667f;
+    float f1 = 1.6f;
+    float f2 = 0;
+    float pmax = 100.0f;
+
+    Sampling s1 = new Sampling(n1,d1,f1);
+    Sampling s2 = new Sampling(n2,d2,f2);
+
+    float[][] orig_data = readImage(n1,n2,"gom.dat");
+    float[][] scaled_data = new float[n2][n1];
+    mul(orig_data,.001f,scaled_data);
+    writeBinary(scaled_data,"gom_scaled.dat");
+
+    LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,4.0f,2);
+    float[][] lsf_output2 = new float[n2][n1];
+    float[][] filter_output2 = new float[n2][n1];
+    lsf.findSlopes(scaled_data,lsf_output2);
+
+    Sfdip sd = new Sfdip(-pmax,pmax);
+    float[][] sd_output = new float[n2][n1];
+    sd.findSlopes(orig_data,sd_output);
+
+    Filter2 fil2 = new Filter2(n1,n2,1,1,lsf_output2);
+    fil2.destructor(false,orig_data,filter_output2);
+    mul(filter_output2,0.1f,filter_output2);
+
+    plot(s1,s2,sexp(scaled_data),"GOM Near Offset Data (Gained)");
+    plot(s1,s2,lsf_output2,"LSF Slopes");
+    plot(s1,s2,sd_output,"Madagascar Slopes");
     //plot(s1,s2,(filter_output2),"Plane-wave Destruction 2D Filter");
     //plot(s1,s2,(sub(orig_data,filter_output2)),"Cleaned Data");
   }
@@ -240,9 +279,8 @@ public class PWD {
    * @return array[n2][n1] of floats read from file
    */
   private static float[][] readImage(int n1, int n2, String fileName) {
-    ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
     try {
-      ArrayInputStream ais = new ArrayInputStream(fileName,byteOrder);
+      ArrayInputStream ais = new ArrayInputStream(fileName);
       float[][] x = new float[n2][n1];
       ais.readFloats(x);
       ais.close();
@@ -254,11 +292,11 @@ public class PWD {
 
   /**
    * Writes seismic data to binary file.
-   * @param x1 array[n2][n1] of data to write to the binary file
+   * @param x array[n2][n1] of data to write to the binary file
    * @param fileName name of output binary file
    */
   private static void writeBinary(float[][] x, String fileName) {
-    ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
+    ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
     try {
       ArrayOutputStream aos = new ArrayOutputStream(fileName,byteOrder);
       aos.writeFloats(x);
@@ -301,7 +339,8 @@ public class PWD {
         //goZero();
         //goOne();
         //goHalf();
-        go();
+        //go();
+        goSfdip();
         //go3D();
       }
     });
