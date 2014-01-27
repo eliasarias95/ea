@@ -180,7 +180,7 @@ Cp:   antoine@koko   Thu Mar  4 14:50:59 2004
 	data_format="xdr_float"
 	esize=4
 	in="/var/tmp/gom.rsf@"
-1.5	sfspike	src/pwd/data:	earias@wl-dhcp195-139.mines.edu	Wed Jan 22 07:59:45 2014
+1.5	sfspike	src/pwd/data:	earias@wl-dhcp205-56.mines.edu	Thu Jan 23 13:32:25 2014
 
 	unit4="km"
 	d2=26.67
