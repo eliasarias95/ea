@@ -224,7 +224,7 @@ public class RsfFilter {
   // testing
 
   public static void main(String[] args) {
-    int n1 = 5;
+    int n1 = 7;
     int n2 = 6;
     float[][] x = cos(rampfloat(0.0f,0.1f,0.02f,n1,n2));
     RsfFilter rf = new RsfFilter("sfdip","pmin=-0.5","pmax=0.5");
