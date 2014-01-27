@@ -15,7 +15,7 @@ import java.nio.*;
 import javax.swing.*;
 
 /**
- * 3D plane-wave destruction.
+ * Plane-wave destruction.
  * @author Elias Arias, Colorado School of Mines, CWP
  * @version 18.12.2013
  */
@@ -36,7 +36,7 @@ public class PWD {
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
 
-    float[][] orig_data = readImage(n1,n2,"gom.dat");
+    float[][] orig_data = readImage(n1,n2,"data/gom.dat");
     float[][] scaled_data = new float[n2][n1];
     mul(orig_data,.001f,scaled_data);
     writeBinary(scaled_data,""+DATA_NAME);
@@ -56,16 +56,17 @@ public class PWD {
     //plot(s1,s2,(sub(orig_data,filter_output2)),"Cleaned Data");
   }
 
-  private static void goSfdip() {
+  private static void goSfdipGom() {
     int n1 = 301;
     int n2 = 920;
     int n  = n1*n2;
 
     float d1 = 0.004f;
     float d2 = .02667f;
+
     float f1 = 1.6f;
     float f2 = 0;
-    float pmax = 100.0f;
+    float pmax = 2.0f;
 
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
@@ -75,23 +76,52 @@ public class PWD {
     mul(orig_data,.001f,scaled_data);
     writeBinary(scaled_data,"gom_scaled.dat");
 
-    LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,4.0f,2);
+    LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,4.0f,pmax);
     float[][] lsf_output2 = new float[n2][n1];
-    float[][] filter_output2 = new float[n2][n1];
-    lsf.findSlopes(scaled_data,lsf_output2);
+    lsf.findSlopes(orig_data,lsf_output2);
 
     Sfdip sd = new Sfdip(-pmax,pmax);
+    sd.setRect(8,4);
     float[][] sd_output = new float[n2][n1];
-    sd.findSlopes(orig_data,sd_output);
-
-    Filter2 fil2 = new Filter2(n1,n2,1,1,lsf_output2);
-    fil2.destructor(false,orig_data,filter_output2);
-    mul(filter_output2,0.1f,filter_output2);
+    //sd.findSlopes(orig_data,sd_output);
+    sd.findSlopes(s1,s2,orig_data,sd_output);
 
     plot(s1,s2,sexp(scaled_data),"GOM Near Offset Data (Gained)");
     plot(s1,s2,lsf_output2,"LSF Slopes");
     plot(s1,s2,sd_output,"Madagascar Slopes");
-    //plot(s1,s2,(filter_output2),"Plane-wave Destruction 2D Filter");
+  }
+
+  private static void goSfdipSynth() {
+    int n1 = 1001;
+    int n2 = 101;
+
+    float d1 = 0.002f;
+    float d2 = 1.0f;
+
+    float f1 = 0;
+    float f2 = 0;
+    float pmax = 100.0f;
+
+    Sampling s1 = new Sampling(n1,d1,f1);
+    Sampling s2 = new Sampling(n2,d2,f2);
+
+    float[][] synth_data = readImage(n1,n2,"synth.dat");
+    float[][] synth1_data = readImage(n1,n2,"sythposium.dat");
+
+    LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,4.0f,2);
+    float[][] lsf_output_synth = new float[n2][n1];
+    lsf.findSlopes(synth_data,lsf_output_synth);
+
+    Sfdip sd = new Sfdip(-pmax,pmax);
+    //sd.setRect(8,4);
+    float[][] sd_output = new float[n2][n1];
+    sd.findSlopes(s1,s2,synth_data,sd_output);
+    //sd.findSlopes(synth_data,sd_output);
+
+    plot(s1,s2,synth_data,"Synthetic Seismic");
+    //plot(s1,s2,synth1_data,"Synthetic Seismic");
+    plot(s1,s2,lsf_output_synth,"LSF Slopes");
+    plot(s1,s2,sd_output,"Madagascar Slopes");
     //plot(s1,s2,(sub(orig_data,filter_output2)),"Cleaned Data");
   }
 
@@ -340,7 +370,8 @@ public class PWD {
         //goOne();
         //goHalf();
         //go();
-        goSfdip();
+        //goSfdipSynth();
+        goSfdipGom();
         //go3D();
       }
     });

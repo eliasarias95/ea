@@ -1,12 +1,16 @@
 package utils;
 
 import java.util.Random;
+import java.io.IOException;
+
 import javax.swing.*;
 
 import dnp.*;
 import edu.mines.jtk.dsp.*;
 import edu.mines.jtk.awt.*;
 import edu.mines.jtk.mosaic.*;
+import edu.mines.jtk.io.ArrayInputStream;
+import edu.mines.jtk.io.ArrayOutputStream;
 
 import static edu.mines.jtk.util.ArrayMath.*;
 
@@ -15,6 +19,21 @@ import static edu.mines.jtk.util.ArrayMath.*;
  * @edited by Elias Arias
  */
 public class Synthetic {
+
+  /**
+   * Writes seismic data to binary file.
+   * @param x array[n2][n1] of data to write to the binary file
+   * @param fileName name of output binary file
+   */
+  public static void writeBinary(float[][] x, String fileName) {
+    try {
+      ArrayOutputStream aos = new ArrayOutputStream(fileName);
+      aos.writeFloats(x);
+      aos.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   /**
    * Get a synthetic trace with the given Sampling and peak frequency.

@@ -2,9 +2,9 @@ package pwd;
 
 import edu.mines.jtk.io.ArrayInputStream;
 import edu.mines.jtk.io.ArrayOutputStream;
+import edu.mines.jtk.dsp.Sampling;
 
 import java.io.*;
-import java.nio.ByteOrder;
 
 /**
  * Java class to allow for more java-like use of the sfdip code in Madagascar.
@@ -150,40 +150,20 @@ public class Sfdip {
   /**
    * Uses Madagascar to run sfdip to find the slopes in seismic data.
    * @param x the array[n2][n1] of inputs
-   * @param y the array[n2][n1] of outputs 
+   * @param p the array[n2][n1] of output slopes 
    */
-  public void findSlopes(float[][] x, float[][] y) {
-    int n2 = x.length;
-    int n1 = x[0].length;
-
-    String in_dat = "this_file_in.dat";
-    String out_dat = "this_file_out.dat";
-    writeBinary(x,in_dat);
-
-    String new_rsf = "new.rsf";
-    String out_rsf = "this_file_out.rsf";
-    String gom_rsf = "gom.rsf";
-    String file_cmd1 = "sfspike < "+gom_rsf+" > "+new_rsf;
-    String file_cmd2 = "sfspike < "+gom_rsf+" > "+out_rsf;
-    String file_cmd3 = "echo in="+in_dat+" >> "+new_rsf;
-    String dip_cmd = "sfdip < "+new_rsf+" > "+out_rsf+" both="+_both+
+  public void findSlopes(Sampling s1, Sampling s2, float[][] x, float[][] p) {
+    String dip_cmd = "sfdip both="+_both+
       " n4="+_n4+" niter="+_niter+" liter="+_liter+" rect1="+_rect1+
       " rect2="+_rect2+" rect3="+_rect3+" p0="+_p0+" q0="+_q0+
       " order="+_order+" nj1="+_nj1+" nj2="+_nj2+" verb="+_verb+
       " pmin="+_pmin+" pmax="+_pmax+" qmin="+_qmin+" qmax="+_qmax;
-    String file2array_cmd = "mv /var/tmp/"+out_rsf+"@ "+out_dat;
-
-    String[] cmd1 = {"bash","-c",file_cmd1};
-    String[] cmd2 = {"bash","-c",file_cmd2};
-    String[] cmd3 = {"bash","-c",file_cmd3};
-    String[] cmd4 = {"bash","-c",dip_cmd};
-    String[] cmd5 = {"bash","-c",file2array_cmd};
-    pb(cmd1);
-    pb(cmd2);
-    pb(cmd3);
-    pb(cmd4);
-    pb(cmd5);
-    readImage(out_dat,y);
+    RsfFilter rf = new RsfFilter("sfdip","both="+_both,
+      "n4="+_n4,"niter="+_niter,"liter="+_liter,"rect1="+_rect1,
+      "rect2="+_rect2,"rect3="+_rect3,"p0="+_p0,"q0="+_q0,
+      "order="+_order,"nj1="+_nj1,"nj2="+_nj2,"verb="+_verb,
+      "pmin="+_pmin,"pmax="+_pmax,"qmin="+_qmin,"qmax="+_qmax);
+    rf.apply(s1,s2,x,p);
   }
 
   /*********************************Private*********************************/
@@ -241,9 +221,8 @@ public class Sfdip {
    * @param fileName name of output binary file
    */
   private static void writeBinary(float[][] x, String fileName) {
-    ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
     try {
-      ArrayOutputStream aos = new ArrayOutputStream(fileName,byteOrder);
+      ArrayOutputStream aos = new ArrayOutputStream(fileName);
       aos.writeFloats(x);
       aos.close();
     } catch (IOException e) {

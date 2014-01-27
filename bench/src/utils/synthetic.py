@@ -21,6 +21,7 @@ def test():
 
   trc   = Synthetic.getTrace(s,fpeak,seed)
   synth = Synthetic.make2D(trc,n_traces,shift_val)
+  Synthetic.writeBinary(synth,"synth.dat");
 
   lsf = LocalSlopeFinder(10.0);
   lsf.findSlopes(synth,lsf_output,lsf_output_lin);
