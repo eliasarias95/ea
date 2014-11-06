@@ -1,4 +1,4 @@
-package pwd;
+package slopes;
 
 import edu.mines.jtk.io.ArrayInputStream;
 import edu.mines.jtk.io.ArrayOutputStream;
@@ -153,17 +153,28 @@ public class Sfdip {
    * @param p the array[n2][n1] of output slopes 
    */
   public void findSlopes(Sampling s1, Sampling s2, float[][] x, float[][] p) {
-    String dip_cmd = "sfdip both="+_both+
-      " n4="+_n4+" niter="+_niter+" liter="+_liter+" rect1="+_rect1+
-      " rect2="+_rect2+" rect3="+_rect3+" p0="+_p0+" q0="+_q0+
-      " order="+_order+" nj1="+_nj1+" nj2="+_nj2+" verb="+_verb+
-      " pmin="+_pmin+" pmax="+_pmax+" qmin="+_qmin+" qmax="+_qmax;
     RsfFilter rf = new RsfFilter("sfdip","both="+_both,
       "n4="+_n4,"niter="+_niter,"liter="+_liter,"rect1="+_rect1,
       "rect2="+_rect2,"rect3="+_rect3,"p0="+_p0,"q0="+_q0,
       "order="+_order,"nj1="+_nj1,"nj2="+_nj2,"verb="+_verb,
       "pmin="+_pmin,"pmax="+_pmax,"qmin="+_qmin,"qmax="+_qmax);
     rf.apply(s1,s2,x,p);
+  }
+
+  /**
+   * Uses Madagascar to run sfdip to find the slopes in seismic data.
+   * @param x the array[n2][n1] of inputs
+   * @param y the initial slope values
+   * @param p the array[n2][n1] of output slopes 
+   */
+  public void findSlopes(Sampling s1, Sampling s2, float[][] x,
+     float[][] y, float[][] p) {
+    RsfFilter rf = new RsfFilter("sfdip","both="+_both,
+      "n4="+_n4,"niter="+_niter,"liter="+_liter,"rect1="+_rect1,
+      "rect2="+_rect2,"rect3="+_rect3,"p0="+_p0,"q0="+_q0,
+      "order="+_order,"nj1="+_nj1,"nj2="+_nj2,"verb="+_verb,
+      "pmin="+_pmin,"pmax="+_pmax,"qmin="+_qmin,"qmax="+_qmax);
+    rf.apply(s1,s2,x,p,y);
   }
 
   /*********************************Private*********************************/

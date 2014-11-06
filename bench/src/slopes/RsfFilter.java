@@ -4,7 +4,7 @@ This program and accompanying materials are made available under the terms of
 the Common Public License - v1.0, which accompanies this distribution, and is 
 available at http://www.eclipse.org/legal/cpl-v10.html
 ****************************************************************************/
-package pwd;
+package slopes;
 
 import java.io.*;
 import java.util.*;
@@ -121,6 +121,19 @@ public class RsfFilter {
     apply(new Sampling[]{s1,s2},x,y);
   }
 
+  /**
+   * Applies this filter for arrays with specified samplings.
+   * @param s1 the sampling for the 1st dimension.
+   * @param s2 the sampling for the 2nd dimension.
+   * @param x the input array.
+   * @param y the output array.
+   * @param z additional input array.
+   */
+  public void apply(Sampling s1, Sampling s2, float[][] x, float[][] y, 
+      float[][] z) {
+    apply(new Sampling[]{s1,s2},x,y,z);
+  }
+
   ///////////////////////////////////////////////////////////////////////////
   // private
 
@@ -171,6 +184,116 @@ public class RsfFilter {
       // Add the RSF output file to the command. Use of "out=" will
       // override the RSF datapath, if any, that may have been set.
       ArrayList<String> command = new ArrayList<String>(_argList);
+      command.add("out="+binOutFile);
+
+      // Build the process with redirected standard in,out,err.
+      ProcessBuilder pb = new ProcessBuilder(command);
+      pb.redirectInput(rsfInFile);
+      pb.redirectOutput(rsfOutFile);
+      pb.redirectError(rsfErrFile);
+
+      // Start the process and wait for it to finish. If the RSF program fails
+      // for any reason, print standard error, and throw a RuntimeException.
+      try {
+        int result = pb.start().waitFor();
+        if (result!=0) {
+          Scanner s = new Scanner(rsfErrFile);
+          while (s.hasNextLine()) {
+            String line = s.nextLine();
+            System.err.println(line);
+          }
+          s.close();
+          throw new RuntimeException("RSF command failed");
+        }
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+
+      // Read floats from the RSF output file.
+      ArrayInputStream ais = new ArrayInputStream(binOutFile);
+      if (y instanceof float[]) {
+        ais.readFloats((float[])y);
+      } else if (y instanceof float[][]) {
+        ais.readFloats((float[][])y);
+      } else if (y instanceof float[][][]) {
+        ais.readFloats((float[][][])y);
+      }
+      ais.close();
+
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      if (!_tempKeep) {
+        if (rsfInFile!=null) rsfInFile.delete();
+        if (rsfOutFile!=null) rsfOutFile.delete();
+        if (rsfErrFile!=null) rsfErrFile.delete();
+        if (binInFile!=null) binInFile.delete();
+        if (binOutFile!=null) binOutFile.delete();
+      }
+    }
+  }
+
+  private void apply(Sampling[] ss, Object x, Object y, Object z) {
+    File rsfInFile = null;
+    File rsfInFile2 = null;
+    File rsfOutFile = null;
+    File rsfErrFile = null;
+    File binInFile = null;
+    File binInFile2 = null;
+    File binOutFile = null;
+
+    // If any exceptions, rethrow them as RuntimeExceptions.
+    try {
+
+      // Make temporary RSF files.
+      rsfInFile = File.createTempFile("rsfi",".rsf",_tempDir);
+      rsfInFile2 = File.createTempFile("rsfi2",".rsf",_tempDir);
+      rsfOutFile = File.createTempFile("rsfo",".rsf",_tempDir);
+      rsfErrFile = File.createTempFile("rsfe",".txt",_tempDir);
+      binInFile = new File(rsfInFile+"@");
+      binInFile2 = new File(rsfInFile2+"@");
+      binOutFile = new File(rsfOutFile+"@");
+
+      // Write floats to RSF input file.
+      ArrayOutputStream aos = new ArrayOutputStream(binInFile);
+      ArrayOutputStream aos2 = new ArrayOutputStream(binInFile2);
+      if (x instanceof float[]) {
+        aos.writeFloats((float[])x);
+        aos2.writeFloats((float[])z);
+      } else if (x instanceof float[][]) {
+        aos.writeFloats((float[][])x);
+        aos2.writeFloats((float[][])z);
+      } else if (x instanceof float[][][]) {
+        aos.writeFloats((float[][][])x);
+        aos2.writeFloats((float[][][])z);
+      }
+      aos.close();
+      aos2.close();
+      PrintWriter pw = new PrintWriter(rsfInFile);
+      PrintWriter pw2 = new PrintWriter(rsfInFile2);
+      pw.println("in=\""+binInFile+"\"");
+      pw2.println("in=\""+binInFile2+"\"");
+      for (int is=0; is<ss.length; ++is) {
+        Sampling si = ss[is];
+        int js = is+1;
+        pw.print(" n"+js+"="+si.getCount());
+        pw.print(" d"+js+"="+si.getDelta());
+        pw.print(" o"+js+"="+si.getFirst());
+        pw.println();
+        pw2.print(" n"+js+"="+si.getCount());
+        pw2.print(" d"+js+"="+si.getDelta());
+        pw2.print(" o"+js+"="+si.getFirst());
+        pw2.println();
+      }
+      pw.println("esize=4 type=float data_format=\"xdr_float\"");
+      pw.close();
+      pw2.println("esize=4 type=float data_format=\"xdr_float\"");
+      pw2.close();
+
+      // Add the RSF output file to the command. Use of "out=" will
+      // override the RSF datapath, if any, that may have been set.
+      ArrayList<String> command = new ArrayList<String>(_argList);
+      command.add("idip="+rsfInFile2);
       command.add("out="+binOutFile);
 
       // Build the process with redirected standard in,out,err.

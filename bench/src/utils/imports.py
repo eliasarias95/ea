@@ -23,5 +23,6 @@ from edu.mines.jtk.util.ArrayMath import *
 from edu.mines.jtk.awt.ColorMap import *
 
 from dnp import LocalSlopeFinder
+from util import FakeData
 from utils import Synthetic
 

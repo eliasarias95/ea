@@ -1,3 +1,4 @@
+package junk;
 import java.util.Scanner;
 
 public class Grades {

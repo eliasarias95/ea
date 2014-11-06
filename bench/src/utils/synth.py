@@ -200,13 +200,13 @@ def interpolate2(f,r):
 def interpolate(trc,r):
   n1 = len(trc)
   si = SincInterpolator()
-  si.setUniformSampling(n1,1.0,0.0)
-  si.setUniformSamples(trc)
+  #si.setUniformSampling(n1,1.0,0.0)
+  #si.setUniformSamples(trc)
   nx = n1*r
   dx = 1.0/r
   x = rampfloat(0.0,dx,nx)
   y = zerofloat(nx)
-  si.interpolate(nx,x,y)
+  si.interpolate(n1,1.0,0.0,input array,nx,x,y)
   return y
 
 def resample(f,dx):
