@@ -110,10 +110,10 @@ public class SlopeAlgorithmEval {
     //"Absolute differences with optimized "+ 
     //    "rect,sigma pmax= "+pmax+" and noise= "+noise,fw,fh,T);
     //Plot.plot(s1,s2,exact_slope,"Exact Slopes",fw,fh,-4.0f,4.0f,F,T,T,T);
-    Plot.plot(s1,s2,lsf_slope,"LOF Slopes noise= "+noise,fw,fh,-4,4,T,F,T,T);
+    Plot.plot(s1,s2,lsf_slope,"LOF Slopes noise= "+noise,fw,fh,-4,4,F,F,T,T);
     //Plot.plot(s1,s2,mad_slope_init,"PWD Slopes with initial values noise= "
     //    +noise+"iter= "+niter,fw,fh,-4,4,T,F,T,T);
-    //Plot.plot(s1,s2,mad_slope,"PWD Slopes noise= "+noise,fw,fh,-4,4,F,F,T,T);
+    Plot.plot(s1,s2,mad_slope,"PWD Slopes noise= "+noise,fw,fh,-4,4,F,F,T,T);
     //Plot.plot(s1,s2,mad_slope,"test PWD Slopes noise= "+noise,fw,fh,-4,4,F,T,T,T);
     //Plot.plot(s1,s2,exact_slope,lsf_slope,mad_slope,"Slopes noise= "+noise,fw,fh,T);
   }
@@ -207,13 +207,11 @@ public class SlopeAlgorithmEval {
   }
 
   /**
-   * 5 trace idea with averages maybe. Weighting with nearest trace having
-   * most weight. The last value in the accum matrix gives single distance/cost
-   * value for warping. Gather these values for the 5 traces and 
-   *
-   * Have weight times the trace dist value summed for the 5 traces and divide
-   * by the sum of the weights (if not using normalized weights).
-   * May want to incorporate clustering for help with noise suppression.
+   * need to compute errors compared to exact answer (std dev and rms).
+   * need to compute optimal smoothing (and possible other) parameters 
+   * similar to how I did for PWD and ST.
+   * Need to make sure I can produce correct units for different values for 
+   * different sampling values (try the GOM example)
    */
   private static void goDynamicWarpingSlopesCluster() {
     int n1 = 501;
@@ -225,7 +223,7 @@ public class SlopeAlgorithmEval {
 
     float f1 = 0;
     float f2 = 0;
-    float noise = 0.0f;
+    float noise = 1.0f;
 
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
@@ -276,8 +274,8 @@ public class SlopeAlgorithmEval {
         opt_shift[it] = dw.findShifts(cluster[it],synth_data[i2]);
         med_val[it] = dw.sumErrors(errors,opt_shift[it]);
       }
-      //Plot.plot(s1,st,opt_shift,"opt shifts",.75f,.9f,-4f,4f,T,F,T,T);
-
+      
+      /**
       for (int i1=0; i1<n1; ++i1) {
         float sum=0.0f;
         for (int it=0; it<ntraces; ++it) {
@@ -287,7 +285,8 @@ public class SlopeAlgorithmEval {
         //quickSort(med_val);
         //avg_shift[i1] = med_val[ntraces/2];
         avg_shift[i1] = sum/ntraces;
-      }
+      } */
+
       min(med_val,index);
       dw_slope[i2] = opt_shift[index[0]];
       //dw_slope[i2] = avg_shift;
@@ -305,19 +304,18 @@ public class SlopeAlgorithmEval {
         cluster[it] = dw.applyShifts(shift_intermed[it],
                                          synth_data[i2+it-(ntraces-1)]);
       }
-      //System.out.println("real slope value= "+exact_slope[i2][i2]);
-      //System.out.println("dw slope value= "+dw_slope[i2][i2]);
     }
 
     for (int i=0; i<ntraces; ++i)
       dw_slope[i] = dw.findShifts(synth_data[i],synth_data[i+1]);
 
 
+    //dw_slope = mul(dw_slope,d1/d2);
     float fw = 0.75f; //fraction width for slide
     float fh = 0.9f; //fraction height for slide
     // title, paint, colorbar, color
-    Plot.plot(s1,s2,dw_slope,"clDW Slopes noise= "+noise,fw,fh,-4f,4f,T,F,T,T);
-    Plot.plot(s1,s2,exact_slope,"Exact Slopes",fw,fh,-4f,4f,T,F,T,T);
+    Plot.plot(s1,s2,dw_slope,"DW Slopes noise= "+noise,fw,fh,-4f,4f,F,F,T,T);
+    Plot.plot(s1,s2,exact_slope,"Exact Slopes",fw,fh,-4f,4f,F,F,T,T);
   }
 
   private static void goDynamicWarpingSlopesLong() {
