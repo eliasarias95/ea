@@ -102,9 +102,43 @@ public class Plot {
     pv1.setLineColor(java.awt.Color.RED);
     pv1.setLineWidth(5);
     pv2.setLineWidth(5);
+    pv1.setOrientation(PointsView.Orientation.X1DOWN_X2RIGHT);
+    pv2.setOrientation(PointsView.Orientation.X1DOWN_X2RIGHT);
+    PlotPanel pp1 = new PlotPanel();
+    PlotPanel pp2 = new PlotPanel();
+    pp1.addTiledView(pv1);
+    pp2.addTiledView(pv2);
+    //pp.setTitle(title);
+    pp1.setHLabel(hl);
+    pp1.setVLabel(vl);
+    pp1.setColorBarWidthMinimum(70);
+    pp2.setHLabel(hl);
+    pp2.setVLabel(vl);
+    pp2.setColorBarWidthMinimum(70);
+    //pp.setHInterval(0.5);
+    //pp.setVInterval(0.2);
+    //pp.setVLimits(0,1);
+    PlotFrame pf = new PlotFrame(pp1,pp2,PlotFrame.Split.HORIZONTAL);
+    pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    pf.setFontSizeForSlide(fw,fh,ratio);
+    pf.setVisible(true);
+    if (print) {
+      int dpi = 720;
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
+          "/Users/earias/Documents/latex/figures/presentation/"+title+".png");
+    }
+  }
+
+  public static void plot(float[] f1, String title, String hl,
+      String vl, float fw, float fh, boolean print) {
+    int fwi = round(1920*fw/2+1);
+    int fhi = round(1080*fh/2+1);
+    PointsView pv = new PointsView(f1);
+    pv.setLineColor(java.awt.Color.RED);
+    pv.setLineWidth(5);
+    pv.setOrientation(PointsView.Orientation.X1DOWN_X2RIGHT);
     PlotPanel pp = new PlotPanel();
-    pp.addTiledView(pv1);
-    pp.addTiledView(pv2);
+    pp.addTiledView(pv);
     //pp.setTitle(title);
     pp.setHLabel(hl);
     pp.setVLabel(vl);
