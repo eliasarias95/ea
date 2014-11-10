@@ -23,7 +23,7 @@ import javax.swing.*;
  * containing structural features that may be encountered in real seismic 
  * images. 
  * @author Elias Arias, Colorado School of Mines, CWP
- * @version 18.12.2013
+ * @version 09.11.2014
  */
 
 public class SlopeAlgorithmEval {
