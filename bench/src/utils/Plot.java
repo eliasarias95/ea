@@ -310,7 +310,7 @@ public class Plot {
    * @param f array[n2][n1] of floats to be plotted
    * @param title the title of the image generated
    */
-  private static void plot(Sampling s1, Sampling s2, 
+  public static void plot(Sampling s1, Sampling s2, 
       float[][] f1, float[][] f2, String title, float fw, float fh, 
       boolean print) {
     int fwi = round(1920*fw/2+1);
@@ -348,7 +348,7 @@ public class Plot {
    * @param f array[n2][n1] of floats to be plotted
    * @param title the title of the image generated
    */
-  private static void plot(Sampling s1, Sampling s2, 
+  public static void plot(Sampling s1, Sampling s2, 
       float[][] f1, float[][] f2, float[][] f3, String title, 
       float fw, float fh, boolean print) {
     int fwi = round(1920*fw/2+1);
@@ -384,18 +384,23 @@ public class Plot {
     }
   }
 
-  public static void plot(float[] f1, float[] f2, float[] f3, String title,
-      float fw, float fh, boolean print) {
+  public static void plot(float[] f1, float[] f2, float[] f3, float[] f4, 
+      String title, float fw, float fh, boolean print) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
     PointsView pv1 = new PointsView(f1,f2);
     PointsView pv2 = new PointsView(f1,f3);
+    PointsView pv3 = new PointsView(f1,f4);
     pv1.setLineColor(java.awt.Color.RED);
     pv1.setLineWidth(5);
+    pv2.setLineColor(java.awt.Color.BLUE);
     pv2.setLineWidth(5);
+    pv3.setLineColor(java.awt.Color.GREEN);
+    pv3.setLineWidth(5);
     PlotPanel pp = new PlotPanel();
     pp.addTiledView(pv1);
     pp.addTiledView(pv2);
+    pp.addTiledView(pv3);
     //pp.setTitle(title);
     pp.setHLabel("Noise/signal");
     pp.setVLabel("RMS error");
