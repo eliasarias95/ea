@@ -48,7 +48,7 @@ public class Plot {
     pf.setVisible(true);
     pv.setInterpolation(PixelsView.Interpolation.NEAREST);
     pv.setColorModel(ColorMap.JET);
-    pv.setClips(0f,50f);
+    //pv.setClips(0f,50f);
     pp.setTitle(title);
     pp.addColorBar("Distance (samples)");
     if (paint) { 
@@ -83,7 +83,7 @@ public class Plot {
     pf.setVisible(true);
     pv.setInterpolation(PixelsView.Interpolation.NEAREST);
     pv.setColorModel(ColorMap.JET);
-    pv.setClips(0f,50f);
+    //pv.setClips(0f,50f);
     pp.setTitle(title);
     pp.addColorBar("Distance (samples)");
     if (paint) { 
