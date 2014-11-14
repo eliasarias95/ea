@@ -21,30 +21,38 @@ import javax.swing.*;
  * This software acts as a machine for testing slope estimation algorithms.
  * Using other pieces of software, I generate and save a synthetic image 
  * containing structural features that may be encountered in real seismic 
- * images. 
+ * images. Since I generated the synthetic image, I know the exact slopes
+ * at every sample in that image. This allows me to test how well different
+ * slope estimating algorithms work. The three methods tested in this software
+ * are the plane-wave destruction filter method, structure tensor method, and
+ * dynamic warping method. 
  * @author Elias Arias, Colorado School of Mines, CWP
- * @version 12.11.2014
+ * @version 13.11.2014
  */
 
 public class SlopeAlgorithmEval {
 
   /**
-   * figure out how to use the 2D findShifts() so we can have sig2 smoothing 
+   * Need to change code to use traces in front and back.
+   * Also need to retry using avg value.
    */
-  private static float[][] DWSlopesCluster(DynamicWarping dw, 
+  private static float[][] DWSlopesCluster(DynamicWarping dw, int shiftmax,
       float[][] synth_data, int ntraces) {
 
     int n1 = synth_data[0].length;
     int n2 = synth_data.length;
+    int nl = shiftmax*2;
 
     int[] index = new int[ntraces];
 
     float[][] dw_slope = new float[n2][n1];
-    float[][] errors = new float[n2][n1];
+
+    float[][][] errors = new float[ntraces][n1][nl];
 
     float[][] intermed_shifts = new float[ntraces][n1];
     float[][] cluster = new float[ntraces][n1];
     float[][] cluster_shifts = new float[ntraces][n1];
+    float[][] trace_group = new float[ntraces][n1];
 
     float[] error_sum = new float[ntraces];
 
@@ -59,14 +67,90 @@ public class SlopeAlgorithmEval {
     //to the (n+1)th trace 
     for (int i2=ntraces; i2<n2; ++i2) {
       for (int it=0; it<ntraces; ++it) {
-        errors = dw.computeErrors(cluster[it],synth_data[i2]);
-        cluster_shifts[it] = dw.findShifts(cluster[it],synth_data[i2]);
-        error_sum[it] = dw.sumErrors(errors,cluster_shifts[it]);
+        trace_group[it] = synth_data[i2];
       }
 
+      errors = dw.computeErrors(cluster,trace_group);
+      cluster_shifts = dw.findShifts(cluster,trace_group);
+
+      //generate an array[ntraces] of error sum values
+      for (int it=0; it<ntraces; ++it) {
+        error_sum[it] = dw.sumErrors(errors[it],cluster_shifts[it]);
+      }
+
+      //choose the slope trace with the lowest minimum error sum value
       min(error_sum,index);
       dw_slope[i2] = cluster_shifts[index[0]];
 
+      //move one trace to the right and recompute the trace cluster
+      for (int it=ntraces-1; it>0; --it) {
+        intermed_shifts[it] = dw.findShifts(synth_data[i2],
+                                        synth_data[i2+it-ntraces]);
+        cluster[it] = dw.applyShifts(intermed_shifts[it],
+                                         synth_data[i2+it-ntraces]);
+      }
+    }
+
+    for (int i=0; i<ntraces; ++i)
+      dw_slope[i] = dw.findShifts(synth_data[i],synth_data[i+1]);
+
+    return dw_slope;
+  }
+
+  private static float[][] DWSlopesClusterTest(DynamicWarping dw, int shiftmax,
+      float[][] synth_data, int ntraces) {
+
+    int n1 = synth_data[0].length;
+    int n2 = synth_data.length;
+    int nl = shiftmax*2;
+    int n  = ntraces/2+1;
+
+    int[] index = new int[ntraces];
+
+    float[][] dw_slope = new float[n2][n1];
+
+    float[][][] errors = new float[ntraces][n1][nl];
+
+    float[][] intermed_shifts = new float[ntraces][n1];
+    float[][] cluster = new float[ntraces][n1];
+    float[][] cluster_shifts = new float[ntraces][n1];
+    float[][] trace_group = new float[ntraces][n1];
+
+    float[] error_sum = new float[ntraces];
+
+    //shift n traces to the same position which is the nth traces position
+    for (int it=ntraces-1; it>0; --it) {
+      intermed_shifts[it] = dw.findShifts(synth_data[it],
+                                         synth_data[it-1]);
+      cluster[it] = dw.applyShifts(intermed_shifts[it],synth_data[it-1]);
+    }
+
+    //now have n traces at the same level and attempting to shift each trace
+    //to the (n+1)th trace 
+    for (int i2=ntraces; i2<n2; ++i2) {
+      for (int it=0; it<ntraces; ++it) {
+        trace_group[it] = synth_data[i2];
+      }
+
+      errors = dw.computeErrors(cluster,trace_group);
+      cluster_shifts = dw.findShifts(cluster,trace_group);
+
+      //generate an array[ntraces] of error sum values
+      for (int it=0; it<ntraces; ++it) {
+        error_sum[it] = dw.sumErrors(errors[it],cluster_shifts[it]);
+      }
+
+      quickIndexSort(error_sum,index);
+
+      float[] dw_slope_avg = new float[n1];
+      for (int i=0; i<n; ++i) {
+        dw_slope_avg = add(cluster_shifts[index[i]],dw_slope_avg);
+      }
+      dw_slope_avg = div(dw_slope_avg,n);
+      //choose the slope trace with the lowest minimum error sum value
+      dw_slope[i2] = dw_slope_avg;
+
+      //move one trace to the right and recompute the trace cluster
       for (int it=ntraces-1; it>0; --it) {
         intermed_shifts[it] = dw.findShifts(synth_data[i2],
                                         synth_data[i2+it-ntraces]);
@@ -124,9 +208,9 @@ public class SlopeAlgorithmEval {
     int shiftmax = 8;
     int ntraces = 10;
     DynamicWarping dw = new DynamicWarping(-shiftmax,shiftmax);
-    dw.setShiftSmoothing(15.0,1.0);
+    dw.setShiftSmoothing(53.0,1.0);
     dw.setStrainMax(0.5,0.5); //only allow a max 50% stretch or squeeze
-    float[][] dw_slope = DWSlopesCluster(dw,synth_data,ntraces);
+    float[][] dw_slope = DWSlopesCluster(dw,shiftmax,synth_data,ntraces);
 
     lsf_slope = mul(lsf_slope,d1/d2);
     mad_slope = mul(mad_slope,d1/d2);
@@ -154,15 +238,41 @@ public class SlopeAlgorithmEval {
     //Plot.plot(s1,s2,synth_data,
     //    "Synthetic seismic noise= "+noise,fw,fh,F,T,T,F);
     //Plot.plot(s1,s2,lsf_diff,dw_diff,
-    //"Absolute differences with optimized "+ 
-    //    "rect,sigma pmax= "+pmax+" and noise= "+noise,fw,fh,T);
+    //"Absolute differences pmax= "+pmax+" and noise= "+noise,fw,fh,T);
     //Plot.plot(s1,s2,exact_slope,"Exact Slopes",fw,fh,-4.0f,4.0f,F,T,T,T);
     //Plot.plot(s1,s2,lsf_slope,"LOF Slopes noise= "+noise,fw,fh,-4,4,F,F,T,T);
-    //Plot.plot(s1,s2,mad_slope_init,"PWD Slopes with initial values noise= "
+    //Plot.plot(s1,s2,mad_slope_init,"PWD Slopes w/init vals=exact noise= "
     //    +noise+"iter= "+niter,fw,fh,-4,4,T,F,T,T);
     //Plot.plot(s1,s2,mad_slope,"PWD Slopes noise= "+noise,fw,fh,-4,4,F,F,T,T);
-    //Plot.plot(s1,s2,mad_slope,"test PWD Slopes noise= "+noise,fw,fh,-4,4,F,T,T,T);
-    //Plot.plot(s1,s2,exact_slope,lsf_slope,mad_slope,"Slopes noise= "+noise,fw,fh,T);
+    Plot.plot(s1,s2,exact_slope,lsf_slope,mad_slope,
+        "Slopes noise= "+noise,fw,fh,T);
+  }
+
+  private static float[][] DWSlopesAvg(DynamicWarping dw, 
+      float[][] synth_data) {
+    int n1 = synth_data[0].length;
+    int n2 = synth_data.length;
+
+    int shiftmax = 10;
+
+    float[][] dw_slope_plus = new float[n2][n1];
+    float[][] dw_slope_minus = new float[n2][n1];
+    float[][] dw_slope_avg = new float[n2][n1];
+    float[][] synth_data_plus = new float[n2][n1];
+    float[][] synth_data_minus = new float[n2][n1];
+    synth_data_plus[0] = synth_data[1];
+    synth_data_plus[n2-1] = synth_data[n2-1];
+    synth_data_minus[0] = synth_data[0];
+    synth_data_minus[n2-1] = synth_data[n2-2];
+    for (int i2=1; i2<n2-1; ++i2) {
+      synth_data_plus[i2] = synth_data[i2+1];
+      synth_data_minus[i2] = synth_data[i2-1];
+    }
+    dw_slope_plus = dw.findShifts(synth_data,synth_data_plus);
+    dw_slope_minus = dw.findShifts(synth_data_minus,synth_data);
+    dw_slope_avg = add(dw_slope_plus,dw_slope_minus);
+    dw_slope_avg = div(dw_slope_avg,2.0f);
+    return dw_slope_avg;
   }
 
  /**
@@ -182,7 +292,7 @@ public class SlopeAlgorithmEval {
 
     float f1 = 0;
     float f2 = 0;
-    float noise = 0.5f;
+    float noise = 1.0f;
 
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
@@ -197,25 +307,7 @@ public class SlopeAlgorithmEval {
     dw.setShiftSmoothing(15.0,1.0);
     dw.setStrainMax(0.5,0.5);
 
-    float[][] dw_slope2D_plus = new float[n2][n1];
-    float[][] dw_slope2D_minus = new float[n2][n1];
-    float[][] dw_slope2D_avg = new float[n2][n1];
-    float[][] dw_slope1D = new float[n2][n1];
-    float[][] synth_data_plus = new float[n2][n1];
-    float[][] synth_data_minus = new float[n2][n1];
-    synth_data_plus[0] = synth_data[1];
-    synth_data_plus[n2-1] = synth_data[n2-1];
-    synth_data_minus[0] = synth_data[0];
-    synth_data_minus[n2-1] = synth_data[n2-2];
-    for (int i2=1; i2<n2-1; ++i2) {
-      dw_slope1D[i2] = dw.findShifts(synth_data[i2],synth_data[i2+1]);
-      synth_data_plus[i2] = synth_data[i2+1];
-      synth_data_minus[i2] = synth_data[i2-1];
-    }
-    dw_slope2D_plus = dw.findShifts(synth_data,synth_data_plus);
-    dw_slope2D_minus = dw.findShifts(synth_data_minus,synth_data);
-    dw_slope2D_avg = add(dw_slope2D_plus,dw_slope2D_minus);
-    dw_slope2D_avg = div(dw_slope2D_avg,2.0f);
+    float[][] dw_slope2D_avg = DWSlopesAvg(dw,synth_data);
 
     float fw = 0.75f; //fraction width for slide
     float fh = 0.9f; //fraction height for slide
@@ -229,7 +321,7 @@ public class SlopeAlgorithmEval {
     //Plot.plot(s1,s2,dw_slope2D_minus,"2D DW Slopes minus noise= "+noise,fw,fh,
     //-4f,4f,F,T,T,T);
     Plot.plot(s1,s2,dw_slope2D_avg,"2D DW Slopes avg noise= "+noise,fw,fh,
-    -4f,4f,F,T,T,T);
+    -4f,4f,F,F,T,T);
   }
 
   /**
@@ -248,7 +340,7 @@ public class SlopeAlgorithmEval {
 
     float f1 = 0;
     float f2 = 0;
-    float noise = 0.5f;
+    float noise = 1.0f;
 
     Sampling s1 = new Sampling(n1,d1,f1);
     Sampling s2 = new Sampling(n2,d2,f2);
@@ -261,16 +353,16 @@ public class SlopeAlgorithmEval {
     int shiftmax = 8;
     int ntraces = 10;
     DynamicWarping dw = new DynamicWarping(-shiftmax,shiftmax);
-    dw.setShiftSmoothing(15.0,1.0);
+    dw.setShiftSmoothing(53.0,1.0);
     dw.setStrainMax(0.5,0.5); //only allow a max 50% stretch or squeeze
-    float[][] dw_slope = DWSlopesCluster(dw,synth_data,ntraces);
+    float[][] dw_slope = DWSlopesClusterTest(dw,shiftmax,synth_data,ntraces);
 
     //dw_slope = mul(dw_slope,d1/d2);
     float fw = 0.75f; //fraction width for slide
     float fh = 0.9f; //fraction height for slide
     // title, paint, colorbar, color
-    Plot.plot(s1,s2,dw_slope,"DW Slopes noise= "+noise,fw,fh,-4f,4f,F,F,T,T);
-    Plot.plot(s1,s2,exact_slope,"Exact Slopes",fw,fh,-4f,4f,F,F,T,T);
+    Plot.plot(s1,s2,dw_slope,"DW Slopes noise= "+noise,fw,fh,-4f,4f,F,T,T,T);
+    //Plot.plot(s1,s2,exact_slope,"Exact Slopes",fw,fh,-4f,4f,F,F,T,T);
   }
 
   private static void goGom() {
@@ -305,19 +397,26 @@ public class SlopeAlgorithmEval {
     int shiftmax = 8;
     int ntraces = 10;
     DynamicWarping dw = new DynamicWarping(-shiftmax,shiftmax);
-    dw.setShiftSmoothing(15.0,1.0);
+    dw.setShiftSmoothing(53.0,1.0);
     dw.setStrainMax(0.5,0.5); //only allow a max 50% stretch or squeeze
-    float[][] dw_slope = DWSlopesCluster(dw,orig_data,ntraces);
+    float[][] dw_slope = DWSlopesCluster(dw,shiftmax,orig_data,ntraces);
     
     lsf_slope = mul(lsf_slope,d1/d2);
     mad_slope = mul(mad_slope,d1/d2);
     dw_slope = mul(dw_slope,d1/d2);
 
+    System.out.println("lsf slope= "+lsf_slope[234][54]);
+    System.out.println("mad slope= "+mad_slope[234][54]);
+    System.out.println("dw slope= "+dw_slope[234][54]);
+
+    float fw = 0.75f; //fraction width for slide
+    float fh = 0.9f; //fraction height for slide
     // title, paint, colorbar, color
-    //Plot.plot(s1,s2,sexp(scaled_data),"GOM Near Offset Data (Gained)",T,F,F,F);
-    //Plot.plot(s1,s2,lsf_slope,"LSF Slopes",T,F,F,F);
-    //Plot.plot(s1,s2,mad_slope,"Madagascar Slopes",T,F,F,F);
-    //Plot.plot(s1,s2,dw_slope,"DW Slopes",T,F,F,F);
+    Plot.plot(s1,s2,sexp(scaled_data),
+        "GOM Near Offset Data (Gained)",fw,fh,T,F,F,F);
+    Plot.plot(s1,s2,lsf_slope,"LSF Slopes",fw,fh,T,F,T,T);
+    Plot.plot(s1,s2,mad_slope,"Madagascar Slopes",fw,fh,T,F,T,T);
+    Plot.plot(s1,s2,dw_slope,"DW Slopes",fw,fh,T,F,T,T);
     //Plot.plot(s1,s2,sexp(scaled_data),lsf_slope,mad_slope,"teaser",F);
   }
 
@@ -329,7 +428,7 @@ public class SlopeAlgorithmEval {
     float lsigma = 80.0f; // last sigma
     float fsigma = 1.0f;
     int nsigma1 = (int)((lsigma-fsigma+1)/dsigma); // # of sigma vals to test
-    int nsigma2 = 1;
+    int nsigma2 = 10;
 
     Sampling ssigma1 = new Sampling(nsigma1,dsigma,fsigma);
     Sampling ssigma2 = new Sampling(nsigma2,dsigma,fsigma);
@@ -363,7 +462,7 @@ public class SlopeAlgorithmEval {
     float[][] dw_slope = new float[n2][n1];
 
     int shiftmax = 8;
-    int ntraces = 15;
+    int ntraces = 5;
     DynamicWarping dw = new DynamicWarping(-shiftmax,shiftmax);
     dw.setStrainMax(0.5,0.5); //only allow a max 50% stretch or squeeze
     float[][] dw_diff;
@@ -371,7 +470,7 @@ public class SlopeAlgorithmEval {
     for(int i2=0; i2<nsigma2; ++i2) {
       for(int i1=0; i1<nsigma1; ++i1) {
         dw.setShiftSmoothing(sigma1[i1],sigma2[i2]);
-        dw_slope = DWSlopesCluster(dw,synth_data,ntraces);
+        dw_slope = DWSlopesCluster(dw,shiftmax,synth_data,ntraces);
         dw_slope = mul(dw_slope,d1/d2);
         dw_diff = sub(dw_slope,exact_slope);
         float[][] temp = pow(dw_diff,2);
@@ -379,7 +478,7 @@ public class SlopeAlgorithmEval {
       }
     }
     writeBinary(err,
-          "/Users/earias/Home/git/ea/bench/src/slopes/data/sigmaErrValsDW.dat");
+      "/Users/earias/Home/git/ea/bench/src/slopes/data/sigmaErrValsDW05tr.dat");
   }
 
   private static void goPlotSigmaValuesDW() {
@@ -387,7 +486,7 @@ public class SlopeAlgorithmEval {
     float lsigma = 80.0f; // last sigma
     float fsigma = 1.0f;
     int nsigma1 = (int)((lsigma-fsigma+1)/dsigma); // # of sigma vals to test
-    int nsigma2 = 1;
+    int nsigma2 = 10;
     int[] err_index = new int[2];
 
     float[] sigma1 = new float[nsigma1];
@@ -403,7 +502,7 @@ public class SlopeAlgorithmEval {
     Sampling ssigma2 = new Sampling(nsigma2,dsigma,fsigma);
 
     float[][] err = readImage(nsigma1,nsigma2,
-          "/Users/earias/Home/git/ea/bench/src/slopes/data/sigmaErrValsDW.dat");
+      "/Users/earias/Home/git/ea/bench/src/slopes/data/sigmaErrValsDW05tr.dat");
     float min_err = min(err,err_index);
     System.out.println("Sigma1= "+sigma1[err_index[0]]+
                       " Sigma2= "+sigma2[err_index[1]]+
@@ -636,7 +735,7 @@ public class SlopeAlgorithmEval {
     float[][] mad_slope = new float[n2][n1];
 
     int shiftmax = 8;
-    int ntraces = 10;
+    int ntraces = 5;
     DynamicWarping dw = new DynamicWarping(-shiftmax,shiftmax);
     dw.setShiftSmoothing(53.0,1.0);
     dw.setStrainMax(0.5,0.5); //only allow a max 50% stretch or squeeze
@@ -654,7 +753,8 @@ public class SlopeAlgorithmEval {
       exact_slope = synthAndSlope[1];
       lsf.findSlopes(synth_data,lsf_slope);
       sd.findSlopes(s1,s2,synth_data,mad_slope);
-      dw_slope = DWSlopesCluster(dw,synth_data,ntraces);
+      dw_slope = DWSlopesClusterTest(dw,shiftmax,synth_data,ntraces);
+      //dw_slope = DWSlopesAvg(dw,synth_data);
       lsf_slope = mul(lsf_slope,d1/d2);
       mad_slope = mul(mad_slope,d1/d2);
       dw_slope = mul(dw_slope,d1/d2);
@@ -673,7 +773,7 @@ public class SlopeAlgorithmEval {
     float fh = 0.9f; //fraction height for slide
     // paint
     Plot.plot(noise,rmserr_mad,rmserr_lsf,rmserr_dw,
-        "PWD, LOF, and DW RMS error vs NS ratio",fw,fh,T);
+        "PWD, LOF, and DW avg ("+ntraces+") RMS error vs NS ratio",fw,fh,T);
   }
 
   /*
@@ -1028,8 +1128,8 @@ public class SlopeAlgorithmEval {
         // e.g. 1 for synthetic 
         //      2 for std dev....
         //goSynth();
-        goDynamicWarpingSlopes();
-        //goDynamicWarpingSlopesCluster();
+        //goDynamicWarpingSlopes();
+        goDynamicWarpingSlopesCluster();
         //goDpImages();
         //goTestSlopeVsError();
         //goRmsErrorCurves();
