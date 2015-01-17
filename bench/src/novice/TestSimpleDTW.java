@@ -6,50 +6,18 @@ import edu.mines.jtk.util.Stopwatch;
 
 import static edu.mines.jtk.util.ArrayMath.*;
 
-import utils.Plot;
-import slopes.SlopeAlgorithmEval;
+import util.*;
 
 import java.util.Random;
 import javax.swing.*;
 
 public class TestSimpleDTW {
 
-  private static float[] addNoise(double nrms, float[] f) {
-    int n1 = f.length;
-    Random r = new Random(1);
-    float[] g = mul(2.0f,sub(randfloat(r,n1),0.5f));
-    RecursiveGaussianFilter rgf = new RecursiveGaussianFilter(2.0);
-    rgf.apply1(g,g); // 1st derivative enhances high-frequencies
-    g = mul(g,(float)nrms*rms(f)/rms(g));
-    return add(f,g);
-  }
-
-  private static float rms(float[] f) {
-    int n1 = f.length;
-    double sum = 0.0;
-    for (int i1=0; i1<n1; ++i1) {
-      float fi = f[i1];
-      sum += fi*fi;
-    }
-    return (float)sqrt(sum/n1);
-  }
-
-  private static void newCurve(int n) {
-    RandomFloat rf = new RandomFloat();
-    float[] a = new float[n];
-    float[] b = new float[n];
-    for (int i=0; i<n; ++i) {
-      a[i] = rf.normal();
-    }
-    SlopeAlgorithmEval.writeBinary(a,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/dtw_test.dat");
-  }
-
   private static void daveDW() {
-    int n1 = 301;
+    int n1 = 101;
     int shift = 10;
-    float[] a = SlopeAlgorithmEval.readImage(n1,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/chris.dat");
+    float[] a = Util.readImage(n1,
+        "/Users/earias/Home/git/ea/bench/src/novice/data/chris.dat");
     float[] b = new float[n1];
     for (int i=0; i<n1-shift; ++i)
       b[i] = a[i+shift];
@@ -61,7 +29,7 @@ public class TestSimpleDTW {
     }
 
     float[] c = new float[n1];
-    c = addNoise(0.1,a);
+    c = Util.addNoise(0.1,a);
 
     int shiftmax = 50;
     DynamicWarping dw = new DynamicWarping(-shiftmax,shiftmax);
@@ -73,15 +41,15 @@ public class TestSimpleDTW {
 
     float fw = 0.75f; //fraction width for slide
     float fh = 0.9f; //fraction height for slide
-    Plot.plot(a,c,"Curves","Index","Value",fw,fh,false);
-    Plot.plot(dw_slope,"Slope","Index","Value",fw,fh,false);
+    //Plot.plot(a,c,"Curves","Index","Value",fw,fh,false);
+    //Plot.plot(dw_slope,"Slope","Index","Value",fw,fh,false);
   }
 
   private static void goDTW(boolean bounded) {
-    int n1 = 301;
+    int n1 = 101;
     int shift = 10;
-    float[] a = SlopeAlgorithmEval.readImage(n1,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/chris.dat");
+    float[] a = Util.readImage(n1,
+        "/Users/earias/Home/git/ea/bench/src/novice/data/chris.dat");
     float[] b = new float[n1];
     for (int i=0; i<n1-shift; ++i)
       b[i] = a[i+shift];
@@ -93,7 +61,7 @@ public class TestSimpleDTW {
     }
 
     float[] c = new float[n1];
-    c = addNoise(0.1,a);
+    c = Util.addNoise(0.1,a);
 
     int na = a.length;
     int nb = b.length; 
@@ -134,7 +102,7 @@ public class TestSimpleDTW {
 
     float fw = 0.70f; //fraction width for slide
     float fh = 0.9f; //fraction height for slide
-    Plot.plot(a,c,"Curves","Index","Value",fw,fh,false);
+    //Plot.plot(a,c,"Curves","Index","Value",fw,fh,false);
 
     if (bounded) {
       Plot.plot(sd1,sd2,"distances (bounded)",dist,fw,fh,false);

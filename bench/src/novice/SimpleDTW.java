@@ -1,15 +1,5 @@
 package novice;
-
-import edu.mines.jtk.io.*;
-import edu.mines.jtk.mosaic.*;
-import edu.mines.jtk.awt.ColorMap;
-
 import static edu.mines.jtk.util.ArrayMath.*;
-
-import utils.Plot;
-
-import java.io.*;
-import java.nio.*;
 
 /**
  * This software very simply shows the uses and applicability of dynamic time 
