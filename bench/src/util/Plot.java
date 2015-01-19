@@ -338,8 +338,8 @@ public class Plot {
    * @param f the 2D array of floats to be plotted.
    * @param title the title of the image generated.
    */
-  public static void plot(Sampling s1, Sampling s2, String title, float[][] f,
-      float[] f1, float[] f2, float fw, float fh, boolean paint) {
+  public static void plot(Sampling s1, Sampling s2, float[][] f, float[] f1, 
+      float[] f2, String title, float fw, float fh, boolean paint) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
     PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);

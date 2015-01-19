@@ -80,7 +80,8 @@ public class Util {
    * For optimal Dave's PWD parameters,       method = 4
    */
   public static void testOptimalParameters(Sampling s1_param, Sampling s2_param, 
-      Sampling s1, Sampling s2, int m, String method) {
+      Sampling s1, Sampling s2, float[] param1, float[] param2, 
+      int m, String method) {
     Check.argument(m==1 || m==2 || m==3 || m== 4,"valid method");
     
     int n1_param = s1_param.getCount();
@@ -88,23 +89,8 @@ public class Util {
     int n1 = s1.getCount();
     int n2 = s2.getCount();
 
-    float d_param = (float)s1_param.getDelta();
-    float f_param = (float)s1_param.getFirst();
     float d1 = (float)s1.getDelta();
     float d2 = (float)s2.getDelta();
-    float f1 = (float)s1.getFirst();
-    float f2 = (float)s2.getFirst();
-
-    int[] error_index = new int[2];
-
-    float[] param1 = new float[n1_param];
-    float[] param2 = new float[n2_param];
-    for(int i=0; i<n1_param; ++i) {
-      param1[i] = i*d_param+f_param;
-    }
-    for(int i=0; i<n2_param; ++i) {
-      param2[i] = i*d_param+f_param;
-    }
     
     float noise = 0.5f;
     float[][][] fandpk = FakeData.seismicAndSlopes2d2014B(noise,false);
@@ -123,7 +109,7 @@ public class Util {
           rmserror[i2][i1] = rmsError(pe,pk,d1,d2,false);
         }
       }
-      Util.writeBinary(rmserror,
+      writeBinary(rmserror,
         "/Users/earias/Home/git/ea/bench/src/slopes/data/"+method+"_errors.dat");
     }
 
@@ -138,7 +124,7 @@ public class Util {
           rmserror[i2][i1] = rmsError(pe,pk,d1,d2,false);
         }
       }
-      Util.writeBinary(rmserror,
+      writeBinary(rmserror,
         "/Users/earias/Home/git/ea/bench/src/slopes/data/"+method+"_errors.dat");
     }
 
@@ -154,7 +140,7 @@ public class Util {
           rmserror[i2][i1] = rmsError(pe,pk,d1,d2,false);
         }
       }
-      Util.writeBinary(rmserror,
+      writeBinary(rmserror,
         "/Users/earias/Home/git/ea/bench/src/slopes/data/"+method+"_errors.dat");
     }
 
@@ -168,9 +154,28 @@ public class Util {
           rmserror[i2][i1] = rmsError(pe,pk,d1,d2,false);
         }
       }
-      Util.writeBinary(rmserror,
+      writeBinary(rmserror,
         "/Users/earias/Home/git/ea/bench/src/slopes/data/"+method+"_errors.dat");
     }
+  }
+
+  public static void plotOptimalParameters(Sampling s1_param, Sampling s2_param,
+      Sampling s1, Sampling s2, float[] param1, float[] param2, String method) {
+    int n1_param = s1_param.getCount();
+    int n2_param = s2_param.getCount();
+
+    int[] error_index = new int[2];    
+    float[][] rmserror = readImage(n1_param,n2_param,
+      "/Users/earias/Home/git/ea/bench/src/slopes/data/"+method+"_errors.dat");
+    float min_error = min(rmserror,error_index);
+    System.out.println("Parameter1= "+param1[error_index[0]]+
+                      " Parameter2= "+param2[error_index[1]]+
+                      " Minimum Error Value= "+min_error);    
+    float fw = 0.75f; //fraction width for slide
+    float fh = 0.9f; //fraction height for slide
+    // sigma, interp, title, paint, colorbar, color
+    Plot.plot(s1_param,s2_param,rmserror,"RMS Error "+method,fw,fh,true,true,false,
+        true,true,true);
   }
 
   public static float[] addNoise(double nrms, float[] f) {
