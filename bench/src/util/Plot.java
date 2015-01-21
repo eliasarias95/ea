@@ -11,7 +11,7 @@ import javax.swing.*;
 /**
  * Plotting class to hold various plot methods.
  * @author Elias Arias, Colorado School of Mines, CWP
- * @version 02.11.2014
+ * @version 19.01.2015
  */
 public class Plot {
 
@@ -261,7 +261,7 @@ public class Plot {
    * @param title the title of the image generated.
    */
   public static void plot(Sampling s1, Sampling s2, float[][] f, String title,
-      float fw, float fh, boolean sig,
+      String hl, String vl, float fw, float fh,
       boolean interp, boolean ttl, boolean paint, boolean cb, boolean color) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
@@ -269,16 +269,9 @@ public class Plot {
     PixelsView pv = pp.addPixels(s1,s2,f);
     pv.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
     pp.addTiledView(pv);
-    if (sig) {
-      pp.setHLabel("Sigma2");
-      pp.setVLabel("Sigma1");
-      //pv.setClips(0.7f,0.90f);
-    } 
-    else {
-      pp.setHLabel("Rect2");
-      pp.setVLabel("Rect1");
-      pv.setClips(0.665f,0.70f);
-    }
+    pp.setHLabel(hl);
+    pp.setVLabel(vl);
+    //pv.setClips(0.665f,0.70f);
     pp.setColorBarWidthMinimum(120);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -304,14 +297,14 @@ public class Plot {
    * @param title the title of the image generated.
    */
   public static void plot(Sampling s1, Sampling s2, float[][] f, String title,
-      float fw, float fh, float cmin, float cmax,
+      float fw, float fh, float clipMin, float clipMax,
       boolean ttl, boolean paint, boolean cb, boolean color) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
     PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
     PixelsView pv = pp.addPixels(s1,s2,f);
     pv.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
-    pv.setClips(cmin,cmax);
+    //pv.setClips(clipMin,clipMax);
     pp.addTiledView(pv);
     pp.setVLabel("Samples");
     pp.setHLabel("Traces");

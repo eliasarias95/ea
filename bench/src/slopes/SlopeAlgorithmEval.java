@@ -1,6 +1,7 @@
 package slopes;
 
 import edu.mines.jtk.dsp.*;
+import edu.mines.jtk.mosaic.*;
 import edu.mines.jtk.util.Stopwatch;
 
 import static edu.mines.jtk.util.ArrayMath.*;
@@ -22,151 +23,39 @@ import javax.swing.*;
  * are the plane-wave destruction filter method, structure tensor method, and
  * dynamic warping method. 
  * @author Elias Arias, Colorado School of Mines, CWP
- * @version 15.1.2015
+ * @version 19.1.2015
  */
 
 public class SlopeAlgorithmEval {
 
-  private static void timeAndPlotLSF() {
+  private static void timeAndPlotLSF(boolean error) {
     sw.start();
-    Slopes.goLSF(s1,s2,f,pk,error);
+    Slopes.goLSF(error);
     sw.stop();
     System.out.println("Structure tensor time = "+sw.time());
   }
 
-  private static void timeAndPlotPWDM() {
+  private static void timeAndPlotPWDM(boolean error) {
     sw.restart();
-    Slopes.goPWDM(s1,s2,f,pk,error);
+    Slopes.goPWDM(error);
     sw.stop();
     System.out.println("Madagascar PWD time = "+sw.time());
   }
 
-  private static void timeAndPlotDW() {
+  private static void timeAndPlotDW(boolean error) {
     sw.restart();
-    Slopes.goDW(s1,s2,f,pk,error);
+    Slopes.goDW(error);
     sw.stop();
     System.out.println("Dynamic warping time = "+sw.time());
   }
 
-  private static void timeAndPlotPWDD() {
+  private static void timeAndPlotPWDD(boolean error) {
     sw.restart();
-    Slopes.goPWDD(s1,s2,f,pk,error);
+    Slopes.goPWDD(error);
     sw.stop();
     System.out.println("Dave's PWD time = "+sw.time());
   }
-
-  private static void setSynthParameters() {
-    n1 = 501;
-    n2 = 501;
-
-    d1 = 1.0f;
-    d2 = 1.0f;
-    f1 = 0.0f;
-    f2 = 0.0f;
-
-    s1 = new Sampling(n1,d1,f1);
-    s2 = new Sampling(n2,d2,f2);
-
-    //Synth data
-    float[][][] fandpk = FakeData.seismicAndSlopes2d2014B(noise,F);
-    f = fandpk[0];  //synthetic seismic data
-    pk = fandpk[1]; //exact slope values
-  }
-
-  private static void setGOMParameters() {
-    n1 = 301;
-    n2 = 920;
-
-    d1 = 0.004f;
-    d2 = .02667f;
-    f1 = 1.6f;
-    f2 = 0;
-
-    s1 = new Sampling(n1,d1,f1);
-    s2 = new Sampling(n2,d2,f2);
-
-    f = Util.readImage(n1,n2,"data/gom.dat");
-    float[][] fs = new float[n2][n1];
-    mul(f,.001f,fs);
-    Util.writeBinary(fs,"data/gom_scaled.dat");
-  }
 /////////////////////////////NOT REFACTORED////////////////////////////  
-  private static void goTestStrainValuesDW(Sampling s1, Sampling s2, 
-      float[][] f, float[][] pk) {
-
-    int n1 = s1.getCount();
-    int n2 = s2.getCount();
-    float d1 = (float)s1.getDelta();
-    float d2 = (float)s2.getDelta();
-
-    float dstrain = 0.1f; // strain sampling rate
-    float lstrain = 1.0f; // last strain 
-    float fstrain = 0.1f;
-    int nstrain1 = (int)((lstrain-fstrain)/dstrain); //# strain vals to test
-    int nstrain2 = nstrain1;
-    Sampling sstrain1 = new Sampling(nstrain1,dstrain,fstrain);
-    Sampling sstrain2 = new Sampling(nstrain2,dstrain,fstrain);
-
-    float[][] rmserror = new float[nstrain2][nstrain1]; // RMS error
-
-    float[] strain1 = new float[nstrain1];
-    float[] strain2 = new float[nstrain2];
-    for(int i=0; i<nstrain1; ++i) {
-      strain1[i] = i*dstrain+fstrain;
-      strain2[i] = i*dstrain+fstrain;
-    }
-    
-    float[][] pe = new float[n2][n1];
-
-    int pmax = 5;
-    DynamicWarping dw = new DynamicWarping(-pmax,pmax);
-    dw.setShiftSmoothing(15.0,1.0);
-    dw.setErrorSmoothing(2);
-    
-    for(int i2=0; i2<nstrain2; ++i2) {
-      for(int i1=0; i1<nstrain1; ++i1) {
-        dw.setStrainMax(strain1[i1],strain2[i2]);
-        pe = Util.DWSlopesAvg(dw,f);
-        rmserror[i2][i1] = Util.rmsError(pe,pk,d1,d2,true);
-      }
-    }
-    Util.writeBinary(rmserror,
-      "/Users/earias/Home/git/ea/bench/src/slopes/data/strainErrValsDWavg.dat");
-  }
-
-  private static void goPlotStrainValuesDW() {
-    float dstrain= 0.1f; // strain sampling rate
-    float lstrain= 1.0f; // last strain
-    float fstrain= 0.1f;
-    int nstrain1 = (int)((lstrain-fstrain)/dstrain); // # strain vals to test
-    int nstrain2 = nstrain1;
-    int[] err_index = new int[2];
-
-    float[] strain1= new float[nstrain1];
-    float[] strain2= new float[nstrain2];
-    for(int i=0; i<nstrain1; ++i) {
-      strain1[i] = i*dstrain+fstrain;
-    }
-
-    for(int i=0; i<nstrain2; ++i) {
-      strain2[i] = i*dstrain+fstrain;
-    }
-
-    Sampling sstrain1 = new Sampling(nstrain1,dstrain,fstrain);
-    Sampling sstrain2 = new Sampling(nstrain2,dstrain,fstrain);
-
-    float[][] err = Util.readImage(nstrain1,nstrain2,
-     "/Users/earias/Home/git/ea/bench/src/slopes/data/strainErrValsDWavg.dat");
-    float min_err = min(err,err_index);
-    System.out.println("Strain1= "+strain1[err_index[0]]+
-                      " Strain2= "+strain2[err_index[1]]+
-                      " Minimum Error Value= "+min_err);
-
-    float fw = 0.75f; //fraction width for slide
-    float fh = 0.9f; //fraction height for slide
-    // strain, interp, title, paint, colorbar, color
-    Plot.plot(sstrain1,sstrain2,err,"RMS Error Strain DW",fw,fh,T,T,F,T,T,T);
-  }
 
   private static void goRmsErrorCurves() {
     int n1 = 501;
@@ -534,81 +423,48 @@ public class SlopeAlgorithmEval {
     Plot.plot(s1,s2,mad_rmsdiff,"RMS Diff MAD w noise"+i,fw,fh,-2,2,F,F,T,T);
   }
 
-///////////////////VARIABLES///////////////////////
-  private static final boolean T = true;
-  private static final boolean F = false;
-  private static final boolean title = true;
-  private static final boolean paint = true;
-  private static final boolean error = false;
-  private static final float pi = FLT_PI;
-  private static final float noise = 0.5f;
   private static Stopwatch sw = new Stopwatch();
-
-  private static int n1,n2;
-  private static float d1,d2,f1,f2;
-  private static Sampling s1 = new Sampling(1,1,1);
-  private static Sampling s2 = new Sampling(1,1,1);
-  private static float[][] f = new float[n2][n1];  //synthetic seismic data
-  private static float[][] pk = new float[n2][n1]; //exact slope values
-
+  private static final boolean T = true;
+  private static final boolean F = false;    
   public static void main(String[] args) {
     SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        float d_param= 1.0f;
-        float l_param = 20.0f;
-        float f_param = 1.0f;
-        int n1_param = (int)((l_param-f_param+1)/d_param);
-        int n2_param = 10;
-        Sampling s1_param = new Sampling(n1_param,d_param,f_param);
-        Sampling s2_param = new Sampling(n2_param,d_param,f_param);
+      public void run() {     
+        float pk = 0.7f;
+        float noise = 0.0f;
+        float l_param = 10.0f;
+        boolean error = true;
 
-        float[] param1 = new float[n1_param];
-        float[] param2 = new float[n2_param];
-        for(int i=0; i<n1_param; ++i) {
-          param1[i] = i*d_param+f_param;
-        }
-        for(int i=0; i<n2_param; ++i) {
-          param2[i] = i*d_param+f_param;
-        }
-
-////////////////////////////////PLOTTING////////////////////////////////////
-        /*
-        //Testing for optimal parameters
-        Util.testOptimalParameters(s1_param,s2_param,s1,s2,param1,param2,1,
-            "Structure tensor");
-        Util.testOptimalParameters(s1_param,s2_param,s1,s2,param1,param2,2,
-            "Madagascar PWD");
-        Util.testOptimalParameters(s1_param,s2_param,s1,s2,param1,param2,3,
-            "Dynamic warping");
-        Util.testOptimalParameters(s1_param,s2_param,s1,s2,param1,param2,4,
-            "Dave's PWD");
-        */
-        //setSynthParameters();
-        setGOMParameters();
-
-        timeAndPlotLSF();
-        timeAndPlotPWDM();
-        timeAndPlotDW();
-        timeAndPlotPWDD();
-
-        setSynthParameters();
-        Slopes.goFandPk(s1,s2);
+        //set parameters for testing
+        //Slopes.setSynthParameters(noise);
+        Slopes.setChickenTestParameters(pk);
+        //Slopes.setGOMParameters();
         
-        /*
+        //time methods and plot estimated slopes
+        timeAndPlotLSF(error);
+        timeAndPlotPWDM(error);
+        timeAndPlotDW(error);
+        timeAndPlotPWDD(error);
+        Slopes.plotFandPk(); //plot synthetic seismic and exact slopes
+
+        //Testing for optimal parameters
+        //Slopes.setSmoothingParameters(l_param);
+        //Slopes.testOptimalParameters(1,"Structure tensor");
+        //Slopes.testOptimalParameters(2,"Madagascar PWD");
+        //Slopes.testOptimalParameters(3,"Dynamic warping smooth");
+        //Slopes.testOptimalParameters(5,"Dave's PWD");
+        //Slopes.setStrainParameters();
+        //Slopes.testOptimalParameters(4,"Dynamic warping strain");
+
         //Plotting for optimal parameters
-        System.out.println("Optimal sigma");
-        Util.plotOptimalParameters(s1_param,s2_param,s1,s2,
-            param1,param2,"Structure tensor");
-        System.out.println("Optimal rect");
-        Util.plotOptimalParameters(s1_param,s2_param,s1,s2,
-            param1,param2,"Madagascar PWD");
-        System.out.println("Optimal shift smoothing");
-        Util.plotOptimalParameters(s1_param,s2_param,s1,s2,
-            param1,param2,"Dynamic warping");
-        System.out.println("Optimal smoothing");
-        Util.plotOptimalParameters(s1_param,s2_param,s1,s2,
-            param1,param2,"Dave's PWD");
-        */
+        //Slopes.setSmoothingParameters(l_param);
+        //Slopes.plotOptimalParameters("Structure tensor","Sigma2","Sigma1");
+        //Slopes.plotOptimalParameters("Madagascar PWD","Rect2","Rect1");
+        //Slopes.plotOptimalParameters("Dynamic warping smooth","Usmooth2",
+        //    "Usmooth1");
+        //Slopes.plotOptimalParameters("Dave's PWD","Smooth2","Smooth1");
+        //Slopes.setStrainParameters();
+        //Slopes.plotOptimalParameters("Dynamic warping strain","Strain2",
+        //    "Strain1");
 
         //goDpImages();
         //goTestSlopeVsError();
@@ -616,8 +472,6 @@ public class SlopeAlgorithmEval {
         //goTestSampleMeanSD();
         //goPlotSampleMeanSD();
         //goErrorLocation();
-        //goTestStrainValuesDW();
-        //goPlotStrainValuesDW();
         //goTestPmaxValues();
       }
     });

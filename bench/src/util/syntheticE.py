@@ -1,5 +1,5 @@
 from imports import *
-from utils import *
+from util import *
 from math import pi
 
 T = True
@@ -21,7 +21,7 @@ def sweep(f_start, f_end, interval, n_steps):
 def test():  
   #shift_val = 0.01
   A         = 0.25
-  nx        = 1000
+  nx        = 501 
   nt        = 501
   dx        = 0.0016
   dt        = 0.002
@@ -42,7 +42,8 @@ def test():
   lsf_output     = zerofloat(nt,nx)
   lsf_output_lin = zerofloat(nt,nx)
 
-  trc   = Synthetic.getTrace(strc,fpeak,seed)
+  trc   = Synthetic.getTrace(strc,0.1,seed)
+  #trc   = Synthetic.getTrace(strc,fpeak,seed)
   synth = Synthetic.sineData(st,sx,ft,trc,A,slope)
   const_synth = Synthetic.make2D(st,sx,ft,trc,shift,const_slope)
   #const_synth = Synthetic.make2D(trc,nx,1)
@@ -66,9 +67,9 @@ def test():
           "/Users/earias/Home/git/ea/bench/src/slopes/data/exact_slope.dat");
   lsf = LocalSlopeFinder(8.0,4.0,3)
   lsf.findSlopes(synth,lsf_output,lsf_output_lin)
-  Synthetic.plot(st,sx,synth,"Synthetic Seismic",F,F,F,F)
+  Synthetic.plot(st,sx,const_synth,"Synthetic Seismic",F,F,F,F)
   #Synthetic.plot(st,sx,const_synth,"Constant Slope",F,F,F,F)
-  Synthetic.plot(st,sx,slope,"Exact Slope Values",F,F,T,T)
+  Synthetic.plot(st,sx,const_slope,"Exact Slope Values",F,F,T,T)
   #Synthetic.plot(st,sx,synth,"Sythetic Seismic (Slope=2 samples/trace)",
   #  F,F,F,F)
   #Synthetic.plot(st,sx,lsf_output,"Plot of the slope values",F,F,T,T)
