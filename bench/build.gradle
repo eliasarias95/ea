@@ -2,7 +2,7 @@ apply plugin: 'java'
 
 defaultTasks 'compileJava','jar'
 
-description = "Elias' research"
+description = "Elias's research"
 sourceCompatibility = 1.7
 
 sourceSets {

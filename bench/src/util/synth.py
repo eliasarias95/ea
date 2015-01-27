@@ -1,5 +1,5 @@
 from imports import *
-from util import *
+from utils import *
 
 n1 = 1001
 ri = (n1-1)/2

@@ -29,31 +29,38 @@ import javax.swing.*;
 public class SlopeAlgorithmEval {
 
   private static void timeAndPlotLSF(boolean error) {
-    sw.start();
-    Slopes.goLSF(error);
-    sw.stop();
-    System.out.println("Structure tensor time = "+sw.time());
+    _sw.start();
+    Slopes.plotLSF(error);
+    _sw.stop();
+    System.out.println("Structure tensor time = "+_sw.time());
   }
 
   private static void timeAndPlotPWDM(boolean error) {
-    sw.restart();
-    Slopes.goPWDM(error);
-    sw.stop();
-    System.out.println("Madagascar PWD time = "+sw.time());
+    _sw.restart();
+    Slopes.plotPWDM(error);
+    _sw.stop();
+    System.out.println("Madagascar PWD time = "+_sw.time());
   }
 
   private static void timeAndPlotDW(boolean error) {
-    sw.restart();
-    Slopes.goDW(error);
-    sw.stop();
-    System.out.println("Dynamic warping time = "+sw.time());
+    _sw.restart();
+    Slopes.plotDW(error);
+    _sw.stop();
+    System.out.println("Dynamic warping time = "+_sw.time());
+  }
+
+  private static void timeAndPlotSDW(boolean error) {
+    _sw.restart();
+    Slopes.plotSDW(error);
+    _sw.stop();
+    System.out.println("Smooth dynamic warping time = "+_sw.time());
   }
 
   private static void timeAndPlotPWDD(boolean error) {
-    sw.restart();
-    Slopes.goPWDD(error);
-    sw.stop();
-    System.out.println("Dave's PWD time = "+sw.time());
+    _sw.restart();
+    Slopes.plotPWDD(error);
+    _sw.stop();
+    System.out.println("Dave's PWD time = "+_sw.time());
   }
 /////////////////////////////NOT REFACTORED////////////////////////////  
 
@@ -114,7 +121,7 @@ public class SlopeAlgorithmEval {
       exact_slope = synthAndSlope[1];
       lsf.findSlopes(synth_data,lsf_slope);
       sd.findSlopes(s1,s2,synth_data,mad_slope);
-      dw_slope = Util.DWSlopesAvg(dw,synth_data);
+      dw_slope = Slopes.DWSlopesAvg(dw);
       lsf_slope = mul(lsf_slope,d1/d2);
       mad_slope = mul(mad_slope,d1/d2);
       dw_slope = mul(dw_slope,d1/d2);
@@ -184,13 +191,13 @@ public class SlopeAlgorithmEval {
     float[][][] synthAndSlope = FakeData.seismicAndSlopes2d2014B(noise,F);
     float[][] exact_slope = synthAndSlope[1];
     float[][] lsf_mean = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/pwd/data/lsf_mean.dat");
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/lsf_mean.dat");
     float[][] mad_mean = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/pwd/data/mad_mean.dat");
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/mad_mean.dat");
     float[][] lsf_sd = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/pwd/data/lsf_sd.dat");
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/lsf_sd.dat");
     float[][] mad_sd = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/pwd/data/mad_sd.dat");
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/mad_sd.dat");
 
     float[][] mad_abs = sub(mad_mean,exact_slope); 
     float[][] lsf_abs = sub(lsf_mean,exact_slope); 
@@ -210,11 +217,11 @@ public class SlopeAlgorithmEval {
       }
     }
     Util.writeBinary(exact_1Dslope,
-        "/Users/earias/Home/git/ea/bench/src/pwd/data/exact_slope1D.dat");
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/exact_slope1D.dat");
     Util.writeBinary(lsf_1Dslope,
-        "/Users/earias/Home/git/ea/bench/src/pwd/data/struct_tens1D.dat");
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/struct_tens1D.dat");
     Util.writeBinary(mad_1Dslope,
-        "/Users/earias/Home/git/ea/bench/src/pwd/data/plane_wave1D.dat");
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/plane_wave1D.dat");
     float fw = 0.75f; //fraction width for slide
     float fh = 0.8f; //fraction height for slide
     //Plot.plotHistogram(exact_1Dslope, lsf_1Dslope, mad_1Dslope,
@@ -231,199 +238,7 @@ public class SlopeAlgorithmEval {
     "Slope (samples/trace)","(samples/trace)",fw,fh,T);
   }
 
-  private static void goTestSampleMeanSD() {
-    int n1 = 501;
-    int n2 = 501;
-
-    float d1 = 1.0f;
-    float d2 = 1.0f;
-
-    float f1 = 0;
-    float f2 = 0;
-    float pmax = 5.0f;
-    float noise = 0.5f;
-
-    Sampling s1 = new Sampling(n1,d1,f1);
-    Sampling s2 = new Sampling(n2,d2,f2);
-
-    float[][][] synthAndSlope = new float[2][n2][n1];
-    float[][] synth_data = new float[n2][n1];
-    float[][] exact_slope = new float[n2][n1];
-
-    int N = 100;
-    float[][] lsf_sum = new float[n2][n1];
-    float[][] mad_sum = new float[n2][n1];
-    float[][] dw_sum = new float[n2][n1];
-    float[][][] lsf_p = new float[N][n2][n1];
-    float[][][] mad_p = new float[N][n2][n1];
-    float[][][] dw_p = new float[N][n2][n1];
-    for (int i=0; i<N; ++i) {
-      synthAndSlope = FakeData.seismicAndSlopes2d2014B(noise,T);
-      synth_data = synthAndSlope[0];
-      System.out.println("i= "+i);
-
-      LocalSlopeFinder lsf = new LocalSlopeFinder(24.0f,1.0f,pmax);
-      float[][] lsf_slope = new float[n2][n1];
-      lsf.findSlopes(synth_data,lsf_slope);
-
-      Sfdip sd = new Sfdip(-pmax,pmax);
-      sd.setRect(76,6);
-      sd.setOrder(2);
-      float[][] mad_slope = new float[n2][n1];
-      sd.findSlopes(s1,s2,synth_data,mad_slope);
-
-      DynamicWarping dw = new DynamicWarping((int)-pmax,(int)pmax);
-      dw.setShiftSmoothing(15.0,1.0);
-      dw.setStrainMax(0.3,1.0); //only allow a max 50% stretch or squeeze
-      float[][] dw_slope = new float[n2][n1];
-      dw_slope = Util.DWSlopesAvg(dw,synth_data);
-
-      lsf_slope = mul(lsf_slope,d1/d2);
-      mad_slope = mul(mad_slope,d1/d2);
-      dw_slope = mul(dw_slope,d1/d2);
-
-      lsf_p[i] = lsf_slope;
-      mad_p[i] = mad_slope;
-      dw_p[i] = dw_slope;
-      
-      lsf_sum = add(lsf_sum,lsf_slope);
-      mad_sum = add(mad_sum,mad_slope);
-      dw_sum = add(dw_sum,dw_slope);
-    }
-    exact_slope = synthAndSlope[1];
-
-    float[][] lsf_mean = div(lsf_sum,N);
-    float[][] mad_mean = div(mad_sum,N);
-    float[][] dw_mean = div(dw_sum,N);
-
-    float[][] lsf_sumdiffsq = new float[n2][n1]; //sum of differences squared
-    float[][] mad_sumdiffsq = new float[n2][n1]; //sum of differences squared
-    float[][] dw_sumdiffsq = new float[n2][n1]; //sum of differences squared
-    for (int i=0; i<N; ++i) {
-      lsf_sumdiffsq = add(lsf_sumdiffsq,pow(sub(lsf_p[i],exact_slope),2));
-      mad_sumdiffsq = add(mad_sumdiffsq,pow(sub(mad_p[i],exact_slope),2));
-      dw_sumdiffsq = add(dw_sumdiffsq,pow(sub(dw_p[i],exact_slope),2));
-      System.out.println("i= "+i);
-    }
-    float[][] lsf_sd= sqrt(div(lsf_sumdiffsq,N));
-    float[][] mad_sd= sqrt(div(mad_sumdiffsq,N));
-    float[][] dw_sd= sqrt(div(dw_sumdiffsq,N));
-    Util.writeBinary(lsf_mean,
-          "/Users/earias/Home/git/ea/bench/src/slopes/data/lsf_mean.dat");
-    Util.writeBinary(mad_mean,
-          "/Users/earias/Home/git/ea/bench/src/slopes/data/mad_mean.dat");
-    Util.writeBinary(dw_mean,
-          "/Users/earias/Home/git/ea/bench/src/slopes/data/dw_mean.dat");
-    Util.writeBinary(lsf_sd,
-          "/Users/earias/Home/git/ea/bench/src/slopes/data/lsf_sd.dat");
-    Util.writeBinary(mad_sd,
-          "/Users/earias/Home/git/ea/bench/src/slopes/data/mad_sd.dat");
-    Util.writeBinary(dw_sd,
-          "/Users/earias/Home/git/ea/bench/src/slopes/data/dw_sd.dat");
-  }
-
-  private static void goPlotSampleMeanSD() {
-    int n1 = 501;
-    int n2 = 501;
-
-    float d1 = 1.0f;
-    float d2 = 1.0f;
-
-    float f1 = 0;
-    float f2 = 0;
-
-    Sampling s1 = new Sampling(n1,d1,f1);
-    Sampling s2 = new Sampling(n2,d2,f2);
-
-    float[][] lsf_mean = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/lsf_mean.dat");
-    float[][] mad_mean = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/mad_mean.dat");
-    float[][] dw_mean = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/dw_mean.dat");
-    float[][] lsf_sd = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/lsf_sd.dat");
-    float[][] mad_sd = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/mad_sd.dat");
-    float[][] dw_sd = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/dw_sd.dat");
-    float fw = 0.75f; //fraction width for slide
-    float fh = 0.9f; //fraction height for slide
-    // title, paint, colorbar, color
-    //Plot.plot(s1,s2,lsf_mean,"Sample mean LOF",fw,fh,-4,4,F,T,T,T);
-    //Plot.plot(s1,s2,mad_mean,"Sample mean PWD",fw,fh,-4,4,F,T,T,T);
-    //Plot.plot(s1,s2,lsf_sd,"Sample variance LOF 03 max",fw,fh,0,0.3f,F,F,T,T);
-    //Plot.plot(s1,s2,mad_sd,"Sample variance PWD",fw,fh,0,0.5f,F,F,T,T);
-    Plot.plot(s1,s2,lsf_sd,"Sample standard deviation LOF",fw,fh,0,1,F,T,T,T);
-    Plot.plot(s1,s2,mad_sd,"Sample standard deviation PWD",fw,fh,0,1,F,T,T,T);
-    Plot.plot(s1,s2,dw_sd,"Sample standard deviation DW",fw,fh,0,1,F,T,T,T);
-  }
-
-  private static void goErrorLocation() {
-    int n1 = 501;
-    int n2 = 501;
-
-    float d1 = 1.0f;
-    float d2 = 1.0f;
-
-    float f1 = 0;
-    float f2 = 0;
-    float pmax = 5.0f;
-    float noise = 0.5f;
-
-    Sampling s1 = new Sampling(n1,d1,f1);
-    Sampling s2 = new Sampling(n2,d2,f2);
-
-    int i = 5;
-    float[][][] synthAndSlope = FakeData.seismicAndSlopes2d2014B(noise,T);
-
-    float[][] synth_data = synthAndSlope[0];
-    float[][] exact_slope = synthAndSlope[1];
-    System.out.println("max slope= "+max(exact_slope));
-
-    LocalSlopeFinder lsf = new LocalSlopeFinder(24.0f,1.0f,pmax);
-    float[][] lsf_slope = new float[n2][n1];
-    lsf.findSlopes(synth_data,lsf_slope);
-
-    Sfdip sd = new Sfdip(-pmax,pmax);
-    sd.setRect(76,6);
-    sd.setOrder(2);
-    float[][] mad_slope = new float[n2][n1];
-    sd.findSlopes(s1,s2,synth_data,mad_slope);
-
-    lsf_slope = mul(lsf_slope,d1/d2);
-    mad_slope = mul(mad_slope,d1/d2);
-    
-    float[][] exact_grad = new float[n2][n1];
-    float[][] lsf_grad = new float[n2][n1];
-    float[][] mad_grad = new float[n2][n1];
-    double rgf_sig = 2.0;
-    RecursiveGaussianFilter rgf = new RecursiveGaussianFilter(rgf_sig);
-    rgf.apply11(exact_slope,exact_grad);
-    rgf.apply11(lsf_slope,lsf_grad);
-    rgf.apply11(mad_slope,mad_grad);
-
-    float exact_mag = sqrt(sum(pow(exact_grad,2))); 
-    float lsf_mag = sqrt(sum(pow(lsf_grad,2))); 
-    float mad_mag = sqrt(sum(pow(mad_grad,2))); 
-
-    float[][] exact_rmsdiff = new float[n2][n1]; 
-    float[][] lsf_rmsdiff = new float[n2][n1]; 
-    float[][] mad_rmsdiff = new float[n2][n1]; 
-
-    sub(lsf_slope,exact_slope,lsf_rmsdiff);
-    sub(mad_slope,exact_slope,mad_rmsdiff);
-    
-
-    float fw = 0.9f; //fraction width for slide
-    float fh = 0.7f; //fraction height for slide
-    // title, paint, colorbar, color
-    //Plot.plot(s1,s2,exact_rmsdiff,"RMS Diff Exact",fw,fh,F,F,T,T);
-    Plot.plot(s1,s2,lsf_rmsdiff,"RMS Diff LOF w noise"+i,fw,fh,-2,2,F,F,T,T);
-    Plot.plot(s1,s2,mad_rmsdiff,"RMS Diff MAD w noise"+i,fw,fh,-2,2,F,F,T,T);
-  }
-
-  private static Stopwatch sw = new Stopwatch();
+  private static Stopwatch _sw = new Stopwatch();
   private static final boolean T = true;
   private static final boolean F = false;    
   public static void main(String[] args) {
@@ -433,6 +248,7 @@ public class SlopeAlgorithmEval {
         float noise = 0.0f;
         float l_param = 10.0f;
         boolean error = true;
+        int norder = 10;
 
         //set parameters for testing
         //Slopes.setSynthParameters(noise);
@@ -440,38 +256,38 @@ public class SlopeAlgorithmEval {
         //Slopes.setGOMParameters();
         
         //time methods and plot estimated slopes
-        timeAndPlotLSF(error);
-        timeAndPlotPWDM(error);
+        //timeAndPlotLSF(error);
+        //timeAndPlotPWDM(error);
         timeAndPlotDW(error);
-        timeAndPlotPWDD(error);
+        timeAndPlotSDW(error);
+        //timeAndPlotPWDD(error);
+        //Slopes.testOrderVsTime(norder);
+        //Slopes.plotOrderVsTime(norder);
         Slopes.plotFandPk(); //plot synthetic seismic and exact slopes
 
-        //Testing for optimal parameters
+        //Testing and plot optimal parameters
         //Slopes.setSmoothingParameters(l_param);
         //Slopes.testOptimalParameters(1,"Structure tensor");
-        //Slopes.testOptimalParameters(2,"Madagascar PWD");
-        //Slopes.testOptimalParameters(3,"Dynamic warping smooth");
-        //Slopes.testOptimalParameters(5,"Dave's PWD");
-        //Slopes.setStrainParameters();
-        //Slopes.testOptimalParameters(4,"Dynamic warping strain");
-
-        //Plotting for optimal parameters
-        //Slopes.setSmoothingParameters(l_param);
         //Slopes.plotOptimalParameters("Structure tensor","Sigma2","Sigma1");
+
+        //Slopes.testOptimalParameters(2,"Madagascar PWD");
         //Slopes.plotOptimalParameters("Madagascar PWD","Rect2","Rect1");
+
+        //Slopes.testOptimalParameters(3,"Dynamic warping smooth");
         //Slopes.plotOptimalParameters("Dynamic warping smooth","Usmooth2",
         //    "Usmooth1");
+
+        //Slopes.testOptimalParameters(5,"Dave's PWD");
         //Slopes.plotOptimalParameters("Dave's PWD","Smooth2","Smooth1");
+
         //Slopes.setStrainParameters();
+        //Slopes.testOptimalParameters(4,"Dynamic warping strain");
         //Slopes.plotOptimalParameters("Dynamic warping strain","Strain2",
         //    "Strain1");
 
         //goDpImages();
         //goTestSlopeVsError();
         //goRmsErrorCurves();
-        //goTestSampleMeanSD();
-        //goPlotSampleMeanSD();
-        //goErrorLocation();
         //goTestPmaxValues();
       }
     });

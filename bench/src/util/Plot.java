@@ -11,23 +11,35 @@ import javax.swing.*;
 /**
  * Plotting class to hold various plot methods.
  * @author Elias Arias, Colorado School of Mines, CWP
- * @version 19.01.2015
+ * @version 26.01.2015
  */
 public class Plot {
 
-  private static final double ratio = 16.0/9.0;
+  private static final double _ratio = 16.0/9.0;
+  private static final String _path = 
+    "/Users/earias/Documents/research/figures/presentation/";
 
-  public static void plot(float[] f1, String title, String hl,
-      String vl, float fw, float fh, boolean print) {
+  /**
+   * A plot method for a single 1D float array.
+   * @param f array[n1] of values to be plotted.
+   * @param title title of plot.
+   * @param hl horizontal label for plot.
+   * @param vl vertical label for plot.
+   * @param fw width percentage to be used for presentations.
+   * @param fh height percentage to be used for presentations.
+   * @param paint if true, paints image to png.
+   */
+  public static void plot(float[] f, String title, String hl,
+      String vl, float fw, float fh, boolean paint) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
-    PointsView pv = new PointsView(f1);
+    PointsView pv = new PointsView(f);
     pv.setLineColor(java.awt.Color.RED);
     pv.setLineWidth(5);
-    pv.setOrientation(PointsView.Orientation.X1DOWN_X2RIGHT);
+    pv.setOrientation(PointsView.Orientation.X1RIGHT_X2UP);
     PlotPanel pp = new PlotPanel();
     pp.addTiledView(pv);
-    //pp.setTitle(title);
+    pp.setTitle(title);
     pp.setHLabel(hl);
     pp.setVLabel(vl);
     pp.setColorBarWidthMinimum(70);
@@ -36,17 +48,28 @@ public class Plot {
     //pp.setVLimits(0,1);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    pf.setFontSizeForSlide(fw,fh,ratio);
+    pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
-    if (print) {
+    if (paint) {
       int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,_path+title+".png");
     }
   }
 
+  /**
+   * A plot method for two 1D float arrays.
+   * @param f1 array[n1] of values to be plotted.
+   * @param f2 array[n1] of values to be plotted.
+   * @param title title of plot.
+   * @param hl horizontal label for plot.
+   * @param vl vertical label for plot.
+   * @param fw width percentage to be used for presentations.
+   * @param fh height percentage to be used for presentations.
+   * @param paint if true, paints image to png.
+   */
+  //TODO FIX THIS!!!!
   public static void plot(float[] f1, float[] f2, String title, String hl,
-      String vl, float fw, float fh, boolean print) {
+      String vl, float fw, float fh, boolean paint) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
     PointsView pv1 = new PointsView(f1);
@@ -72,16 +95,16 @@ public class Plot {
     //pp.setVLimits(0,1);
     PlotFrame pf = new PlotFrame(pp1,pp2,PlotFrame.Split.HORIZONTAL);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    pf.setFontSizeForSlide(fw,fh,ratio);
+    pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
-    if (print) {
+    if (paint) {
       int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,_path+title+".png");
     }
   }
 
-  public static void plotHistogram(float[] f1, float[] f2, float[] f3,
+  //TODO CHECK IF THIS IS NECESSARY
+  /*public static void plotHistogram(float[] f1, float[] f2, float[] f3,
       String title, float fw, float fh, boolean print) {
     int n = f1.length;
     int fwi = round(1920*fw/2+1);
@@ -110,10 +133,9 @@ public class Plot {
     pf.setVisible(true);
     if (print) {
       int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,_path+title+".png");
     }
-  }
+  }*/
 
   public static void plot(float[] f1, float[] f2, float[] f3, float[] f4, 
       String title, float fw, float fh, boolean print) {
@@ -141,12 +163,11 @@ public class Plot {
     pp.setVLimits(0,1);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    pf.setFontSizeForSlide(fw,fh,ratio);
+    pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
     if (print) {
       int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,_path+title+".png");
     }
   }
 
@@ -157,7 +178,7 @@ public class Plot {
    * @param f the 2D array of floats to be plotted.
    * @param title the title of the image generated.
    */
-  public static void plot(float[][] f, String title, float fw, float fh,
+  /*public static void plot(float[][] f, String title, float fw, float fh,
       boolean ttl, boolean paint, boolean cb, boolean color) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
@@ -172,52 +193,16 @@ public class Plot {
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     pf.setSize(fwi,fhi);
-    pf.setFontSizeForSlide(fw,fh,ratio);
+    pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
     if (color) pv.setColorModel(ColorMap.JET);
     if (ttl) pp.setTitle(title);
     if (cb) pp.addColorBar();
     if (paint) { 
       int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,_path+title+".png");
     }
-  }
-
-  /**
-   * Plots a 2D array of floats with specified title.
-   * @param s1 the sampling in the 1st-dimension
-   * @param s2 the sampling in the 2nd-dimension
-   * @param f the 2D array of floats to be plotted.
-   * @param title the title of the image generated.
-   */
-  public static void plot(Sampling s1, Sampling s2, String title, float[][] f,
-      float fw, float fh, boolean paint) {
-    int fwi = round(1920*fw/2+1);
-    int fhi = round(1080*fh/2+1);
-    PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
-    PixelsView pv = pp.addPixels(s1,s2,f);
-    pv.setOrientation(PixelsView.Orientation.X1RIGHT_X2UP);
-    pp.addTiledView(pv);
-    pp.setColorBarWidthMinimum(100);
-    pp.setHLabel("a");
-    pp.setVLabel("b");
-    PlotFrame pf = new PlotFrame(pp);
-    pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    pf.setSize(fwi,fhi);
-    pf.setFontSizeForSlide(fw,fh,ratio);
-    pf.setVisible(true);
-    pv.setInterpolation(PixelsView.Interpolation.NEAREST);
-    pv.setColorModel(ColorMap.JET);
-    pv.setClips(0f,7000f);
-    pp.setTitle(title);
-    pp.addColorBar("Distance (samples)");
-    if (paint) { 
-      int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
-    }
-  }
+  }*/
 
   /**
    * Plots a 2D array of floats with specified title.
@@ -227,41 +212,8 @@ public class Plot {
    * @param title the title of the image generated.
    */
   public static void plot(Sampling s1, Sampling s2, float[][] f, String title,
-      float fw, float fh,
-      boolean ttl, boolean paint, boolean cb, boolean color) {
-    int fwi = round(1920*fw/2+1);
-    int fhi = round(1080*fh/2+1);
-    PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
-    PixelsView pv = pp.addPixels(s1,s2,f);
-    pv.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
-    pp.addTiledView(pv);
-    pp.setVLabel("Samples");
-    pp.setHLabel("Traces");
-    pp.setColorBarWidthMinimum(90);
-    PlotFrame pf = new PlotFrame(pp);
-    pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    pf.setSize(fwi,fhi);
-    pf.setFontSizeForSlide(fw,fh,ratio);
-    pf.setVisible(true);
-    if (color) pv.setColorModel(ColorMap.JET);
-    if (ttl) pp.setTitle(title);
-    if (cb) pp.addColorBar("slope (samples/trace)");
-    if (paint) { 
-      int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
-    }
-  }
-
-  /**
-   * Plots a 2D array of floats with specified title.
-   * @param s1 the sampling in the 1st-dimension
-   * @param s2 the sampling in the 2nd-dimension
-   * @param f the 2D array of floats to be plotted.
-   * @param title the title of the image generated.
-   */
-  public static void plot(Sampling s1, Sampling s2, float[][] f, String title,
-      String hl, String vl, float fw, float fh,
+      String hl, String vl, String cbl, float fw, float fh, 
+      float clipMin, float clipMax, boolean clip,
       boolean interp, boolean ttl, boolean paint, boolean cb, boolean color) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
@@ -271,99 +223,25 @@ public class Plot {
     pp.addTiledView(pv);
     pp.setHLabel(hl);
     pp.setVLabel(vl);
-    //pv.setClips(0.665f,0.70f);
     pp.setColorBarWidthMinimum(120);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     pf.setSize(fwi,fhi);
-    pf.setFontSizeForSlide(fw,fh,ratio);
+    pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
+    if (clip) pv.setClips(clipMin,clipMax);
     if (interp) pv.setInterpolation(PixelsView.Interpolation.NEAREST);
     if (color) pv.setColorModel(ColorMap.JET);
     if (ttl) pp.setTitle(title);
-    if (cb) pp.addColorBar("rms error (samples/trace)");
+    if (cb) pp.addColorBar(cbl);
     if (paint) { 
       int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,_path+title+".png");
     }
   }
 
   /**
-   * Plots a 2D array of floats with specified title.
-   * @param s1 the sampling in the 1st-dimension
-   * @param s2 the sampling in the 2nd-dimension
-   * @param f the 2D array of floats to be plotted.
-   * @param title the title of the image generated.
-   */
-  public static void plot(Sampling s1, Sampling s2, float[][] f, String title,
-      float fw, float fh, float clipMin, float clipMax,
-      boolean ttl, boolean paint, boolean cb, boolean color) {
-    int fwi = round(1920*fw/2+1);
-    int fhi = round(1080*fh/2+1);
-    PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
-    PixelsView pv = pp.addPixels(s1,s2,f);
-    pv.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
-    //pv.setClips(clipMin,clipMax);
-    pp.addTiledView(pv);
-    pp.setVLabel("Samples");
-    pp.setHLabel("Traces");
-    pp.setColorBarWidthMinimum(90);
-    PlotFrame pf = new PlotFrame(pp);
-    pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    pf.setSize(fwi,fhi);
-    pf.setFontSizeForSlide(fw,fh,ratio);
-    pf.setVisible(true);
-    if (color) pv.setColorModel(ColorMap.JET);
-    if (ttl) pp.setTitle(title);
-    if (cb) pp.addColorBar("slope (samples/trace)");
-    if (paint) { 
-      int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
-    }
-  }
-
-  /**
-   * Plots a 2D array of floats with specified title.
-   * @param s1 the sampling in the 1st-dimension
-   * @param s2 the sampling in the 2nd-dimension
-   * @param f the 2D array of floats to be plotted.
-   * @param title the title of the image generated.
-   */
-  public static void plot(Sampling s1, Sampling s2, float[][] f, float[] f1, 
-      float[] f2, String title, float fw, float fh, boolean paint) {
-    int fwi = round(1920*fw/2+1);
-    int fhi = round(1080*fh/2+1);
-    PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
-    PixelsView pv = pp.addPixels(s1,s2,f);
-    PointsView pvl = new PointsView(f1,f2);
-    pvl.setLineWidth(3);
-    pv.setOrientation(PixelsView.Orientation.X1RIGHT_X2UP);
-    pp.addTiledView(pv);
-    pp.addTiledView(pvl);
-    pp.setColorBarWidthMinimum(100);
-    pp.setHLabel("a");
-    pp.setVLabel("b");
-    PlotFrame pf = new PlotFrame(pp);
-    pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    pf.setSize(fwi,fhi);
-    pf.setFontSizeForSlide(fw,fh,ratio);
-    pf.setVisible(true);
-    pv.setInterpolation(PixelsView.Interpolation.NEAREST);
-    pv.setColorModel(ColorMap.JET);
-    //pv.setClips(0f,50f);
-    pp.setTitle(title);
-    pp.addColorBar("Distance (samples)");
-    if (paint) { 
-      int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
-    }
-  }
-
-  /**
-   * Plots a 2D array of floats with specified title.
+   * For absolute difference images.
    * @param s1 the sampling in the 1st-dimension
    * @param s2 the sampling in the 2nd-dimension
    * @param f array[n2][n1] of floats to be plotted
@@ -391,12 +269,11 @@ public class Plot {
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     pf.setSize(fwi,fhi);
-    pf.setFontSizeForSlide(fw,fh,ratio);
+    pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
     if (print) {
       int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,_path+title+".png");
     }
   }
 
@@ -434,12 +311,11 @@ public class Plot {
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     pf.setSize(fwi,fhi);
-    pf.setFontSizeForSlide(fw,fh,ratio);
+    pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
     if (print) {
       int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,
-          "/Users/earias/Documents/research/figures/presentation/"+title+".png");
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,_path+title+".png");
     }
   }
 }

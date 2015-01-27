@@ -24,45 +24,6 @@ import java.util.Random;
 
 public class Util {
 
-  public static float[][] DWSlopesAvg(DynamicWarping dw, 
-      float[][] f) {
-    int n1 = f[0].length;
-    int n2 = f.length;
-
-    float[][] pp = new float[n2][n1];
-    float[][] pm = new float[n2][n1];
-    float[][] pa = new float[n2][n1];
-    float[][] fp = new float[n2][n1];
-    float[][] fm = new float[n2][n1];
-
-    fp[0]    = f[1];
-    fm[0]    = f[0];
-    fp[n2-1] = f[n2-1];
-    fm[n2-1] = f[n2-2];
-
-    for (int i2=1; i2<n2-1; ++i2) {
-      fp[i2] = f[i2+1];
-      fm[i2] = f[i2-1];
-    }
-
-    pp = dw.findShifts(f,fp);
-    pm = dw.findShifts(f,fm);
-    pa = sub(pp,pm);
-    pa = mul(pa,0.5f);
-    return pa;
-  }
-
-  public static float[][] DWSlopes1D(DynamicWarping dw, 
-      float[][] f) {
-    int n1 = f[0].length;
-    int n2 = f.length;
-    float[][] p = new float[n2][n1];
-    for (int i2=1; i2<n2-1; ++i2)
-      p[i2] = dw.findShifts(f[i2-1],f[i2]);
-    p[0] = p[1];
-    return p;
-  }
-
   public static float[] addNoise(double nrms, float[] f) {
     int n1 = f.length;
     Random r = new Random(1);
@@ -87,13 +48,18 @@ public class Util {
       boolean print_error) {
     int n1 = pe[0].length;
     int n2 = pe.length;
-    pe = mul(pe,d1/d2);
     pe = sub(pe,pk);
     pe = pow(pe,2);
-    float rmserror = sqrt(sum(pe)/(n2*n1));
+    float rmserror = sqrt(sum(pe)/(float)(n2*n1));
     if (print_error == true)
       System.out.println("Error = "+rmserror);
     return rmserror;
+  }
+
+  public static float[] reSampleSinc(Sampling sf, float[] f, Sampling sg) {
+    float[] g = new float[sg.getCount()];
+    _si.interpolate(sf,f,sg,g);
+    return g;
   }
 
   public static void newCurve(int n) {
@@ -187,4 +153,7 @@ public class Util {
       throw new RuntimeException(e);
     }
   }
+
+  private static SincInterpolator _s = new SincInterpolator();
+  private static SincInterpolator _si = _s.fromErrorAndFrequency(0.003,0.4);
 }

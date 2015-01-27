@@ -1,8 +1,10 @@
 package novice;
 
 import edu.mines.jtk.dsp.*;
-import edu.mines.jtk.util.RandomFloat;
+import edu.mines.jtk.mosaic.*;
+import edu.mines.jtk.awt.ColorMap;
 import edu.mines.jtk.util.Stopwatch;
+import edu.mines.jtk.util.RandomFloat;
 
 import static edu.mines.jtk.util.ArrayMath.*;
 
@@ -105,15 +107,15 @@ public class TestSimpleDTW {
     //Plot.plot(a,c,"Curves","Index","Value",fw,fh,false);
 
     if (bounded) {
-      Plot.plot(sd1,sd2,"distances (bounded)",dist,fw,fh,false);
-      Plot.plot(sd1,sd2,"accumulated cost (bounded)",accum,fw,fh,false);
-      //Plot.plot(sd1,sd2,"accumulated cost (bounded)",accum,xf,yf,fw,fh,
+      plot(sd1,sd2,"distances (bounded)",dist,fw,fh,false);
+      plot(sd1,sd2,"accumulated cost (bounded)",accum,fw,fh,false);
+      //plot(sd1,sd2,"accumulated cost (bounded)",accum,xf,yf,fw,fh,
       //    false); // this plot to show path
     }
     else {
-      Plot.plot(sd1,sd2,"distances (unbounded)",dist,fw,fh,false);
-      Plot.plot(sd1,sd2,"accumulated cost (unbounded)",accum,fw,fh,false);
-      //Plot.plot(sd1,sd2,"accumulated cost (unbounded)",accum,xf,yf,fw,fh,
+      plot(sd1,sd2,"distances (unbounded)",dist,fw,fh,false);
+      plot(sd1,sd2,"accumulated cost (unbounded)",accum,fw,fh,false);
+      //plot(sd1,sd2,"accumulated cost (unbounded)",accum,xf,yf,fw,fh,
       //    false); // this plot to show path
 
     }
@@ -123,6 +125,80 @@ public class TestSimpleDTW {
     //System.out.println("cost[3][6]"+accum[350][n-1]);
   }
 
+  /**
+   * Plots a 2D array of floats with specified title.
+   * @param s1 the sampling in the 1st-dimension
+   * @param s2 the sampling in the 2nd-dimension
+   * @param title the title of the image generated.
+   * @param f the 2D array of floats to be plotted.
+   */
+  public static void plot(Sampling s1, Sampling s2, String title, float[][] f,
+      float fw, float fh, boolean paint) {
+    int fwi = round(1920*fw/2+1);
+    int fhi = round(1080*fh/2+1);
+    PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
+    PixelsView pv = pp.addPixels(s1,s2,f);
+    pv.setOrientation(PixelsView.Orientation.X1RIGHT_X2UP);
+    pp.addTiledView(pv);
+    pp.setColorBarWidthMinimum(100);
+    pp.setHLabel("a");
+    pp.setVLabel("b");
+    PlotFrame pf = new PlotFrame(pp);
+    pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    pf.setSize(fwi,fhi);
+    pf.setFontSizeForSlide(fw,fh,ratio);
+    pf.setVisible(true);
+    pv.setInterpolation(PixelsView.Interpolation.NEAREST);
+    pv.setColorModel(ColorMap.JET);
+    pv.setClips(0f,7000f);
+    pp.setTitle(title);
+    pp.addColorBar("Distance (samples)");
+    if (paint) { 
+      int dpi = 720;
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,path+title+".png");
+    }
+  }
+
+  /**
+   * Plots a 2D array of floats with specified title.
+   * @param s1 the sampling in the 1st-dimension
+   * @param s2 the sampling in the 2nd-dimension
+   * @param f the 2D array of floats to be plotted.
+   * @param title the title of the image generated.
+   */
+  public static void plot(Sampling s1, Sampling s2, float[][] f, float[] f1, 
+      float[] f2, String title, float fw, float fh, boolean paint) {
+    int fwi = round(1920*fw/2+1);
+    int fhi = round(1080*fh/2+1);
+    PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
+    PixelsView pv = pp.addPixels(s1,s2,f);
+    PointsView pvl = new PointsView(f1,f2);
+    pvl.setLineWidth(3);
+    pv.setOrientation(PixelsView.Orientation.X1RIGHT_X2UP);
+    pp.addTiledView(pv);
+    pp.addTiledView(pvl);
+    pp.setColorBarWidthMinimum(100);
+    pp.setHLabel("a");
+    pp.setVLabel("b");
+    PlotFrame pf = new PlotFrame(pp);
+    pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    pf.setSize(fwi,fhi);
+    pf.setFontSizeForSlide(fw,fh,ratio);
+    pf.setVisible(true);
+    pv.setInterpolation(PixelsView.Interpolation.NEAREST);
+    pv.setColorModel(ColorMap.JET);
+    //pv.setClips(0f,50f);
+    pp.setTitle(title);
+    pp.addColorBar("Distance (samples)");
+    if (paint) { 
+      int dpi = 720;
+      pf.paintToPng(dpi,(1920f*fw-1)/dpi,path+title+".png");
+    }
+  }
+
+  private static final double ratio = 16.0/9.0;  
+  private static final String path = 
+    "/Users/earias/Documents/junk_figures/";  
   public static void main(String[] args) {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
