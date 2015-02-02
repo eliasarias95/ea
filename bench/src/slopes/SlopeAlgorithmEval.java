@@ -42,9 +42,9 @@ public class SlopeAlgorithmEval {
     System.out.println("Madagascar PWD time = "+_sw.time());
   }
 
-  private static void timeAndPlotDW(boolean error) {
+  private static void timeAndPlotDW(boolean error, int k) {
     _sw.restart();
-    Slopes.plotDW(error);
+    Slopes.plotDW(error,k);
     _sw.stop();
     System.out.println("Dynamic warping time = "+_sw.time());
   }
@@ -245,21 +245,22 @@ public class SlopeAlgorithmEval {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {     
         float pk = 0.7f;
-        float noise = 0.0f;
+        float noise = 0.5f;
         float l_param = 10.0f;
         boolean error = true;
         int norder = 10;
+        int k = 05;
 
         //set parameters for testing
-        //Slopes.setSynthParameters(noise);
-        Slopes.setChickenTestParameters(pk);
+        Slopes.setSynthParameters(noise);
+        //Slopes.setChickenTestParameters(pk);
         //Slopes.setGOMParameters();
         
         //time methods and plot estimated slopes
         //timeAndPlotLSF(error);
         //timeAndPlotPWDM(error);
-        timeAndPlotDW(error);
-        timeAndPlotSDW(error);
+        timeAndPlotDW(error,k);
+        //timeAndPlotSDW(error);
         //timeAndPlotPWDD(error);
         //Slopes.testOrderVsTime(norder);
         //Slopes.plotOrderVsTime(norder);

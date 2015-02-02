@@ -19,7 +19,15 @@ import javax.swing.*;
 /**
  *  
  * @author Elias Arias, Colorado School of Mines, CWP
- * @version 19.1.2015
+ * @version 27.1.2015
+ */
+
+/**
+ * float[][][] makeConstantSlope(float freq, float p2, int n1, int n2)
+ * float[][][][] makeConstantSlope(float freq, float p2, float p3, 
+ *                                 int n1, int n2, int n3)
+ *
+ * float[][][] superSample(int k, float[][][] f)
  */
 
 public class Slopes{
@@ -43,7 +51,7 @@ public class Slopes{
     _pk = new float[_n2][_n1];
     for (int i2=0; i2<_n2; ++i2){
       for (int i1=0; i1<_n1; ++i1){
-        _f[i2][i1] = cos(pk*w*i2-w*i1);
+        _f[i2][i1] = cos(2.0f*pi*(pk*w*i2-w*i1));
         _pk[i2][i1] = pk;
       }
     }
@@ -184,13 +192,41 @@ public class Slopes{
   /**
    * Dynamic warping: plots the estimated slopes and RMS error.
    */
-  public static void plotDW(boolean error) {
+  /*public static void plotDW(boolean error) {
     DynamicWarping dw = new DynamicWarping((int)-_pmax,(int)_pmax);
     dw.setShiftSmoothing(18.0,1.0);
     dw.setStrainMax(0.1,0.1);
     dw.setErrorSmoothing(2);
     float[][] p_dw = DWSlopesAvg(dw);
     p_dw = mul(p_dw,_dg/_d2);
+
+    if (error) {
+      System.out.println("Dynamic warping:");
+      float error_dw = Util.rmsError(p_dw,_pk,_dg,_d2,T);
+    }
+    System.out.println("slopes: "+p_dw[230][225]);
+
+    // interp, title, paint, colorbar, color
+    String hl = "Traces"; //horizontal label
+    String vl = "Samples"; //vertical label
+    String cbl = "slope (samples/trace)"; //colorbar label
+    Plot.plot(_sg,_s2,p_dw,"DW noise= "+_noise,hl,vl,cbl,
+        _fw,_fh,-_clipMax,_clipMax,
+        _clip,F,_title,_paint,T,T);
+  }*/
+
+  /**
+   * Dynamic warping: plots the estimated slopes and RMS error.
+   */
+  public static void plotDW(boolean error, int k) {
+    float usmooth1 = 18.0f;
+    float usmooth2 = 0.0f;
+    float strainMax1 = 0.2f;
+    float strainMax2 = 1.0f;
+    int esmooth = 1;
+    DynamicWarpingSlopes dws = new DynamicWarpingSlopes((int)_pmax*k,
+        usmooth1,usmooth2,strainMax1,strainMax2,esmooth);
+    float[][] p_dw = dws.findSlopes(k,_f);
 
     if (error) {
       System.out.println("Dynamic warping:");
@@ -215,9 +251,12 @@ public class Slopes{
     double r1max = 1.00;
     double r2min = 0.0;
     double r2max = 1.00;
+    double h1 = 50;
+    double h2 = 20;
+    //try setting up for smooth dynamic warping
     DynamicWarpingR dwr = new DynamicWarpingR(-_pmax,_pmax,_sg,_s2);
     dwr.setStrainLimits(r1min,r1max,r2min,r2max);
-    dwr.setSmoothness(50,50); //default values are each 10
+    dwr.setSmoothness(h1,h2); //default values are each 10
     float[][] p_dwr = SDWSlopesAvg(dwr);
     p_dwr = mul(p_dwr,_dg/_d2);
 
@@ -602,8 +641,8 @@ public class Slopes{
       fm[i2] = _f[i2-1];
     }
 
-    pp = dwr.findShifts(_s1,_f,_s1,fp);
-    pm = dwr.findShifts(_s1,_f,_s1,fm);
+    pp = dwr.findShifts(_sg,_f,_sg,fp);
+    pm = dwr.findShifts(_sg,_f,_sg,fm);
     pa = sub(pp,pm);
     pa = mul(pa,0.5f);
     return pa;
@@ -628,13 +667,14 @@ public class Slopes{
   private static final int _niter = 5;
   private static final float _fw = 0.75f; //fraction width for slide
   private static final float _fh = 0.9f; //fraction height for slide
-  private static final float _pmax = 5.0f;
+  private static final float _pmax = 1.0f;
   private static final float _clipMax = 4.0f;
+  private static final float pi = FLT_PI;
   private static final boolean T = true;
   private static final boolean F = false;  
-  private static final boolean _title = true;
-  private static final boolean _paint = false;  
-  private static final boolean _clip = false;  
+  private static final boolean _title = false;
+  private static final boolean _paint = true;  
+  private static final boolean _clip = true;  
   private static Sampling _s1 = new Sampling(1,1,1);  
   private static Sampling _s2 = new Sampling(1,1,1);
   private static Sampling _sg = new Sampling(1,1,1);
