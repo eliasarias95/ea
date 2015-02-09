@@ -245,11 +245,11 @@ public class SlopeAlgorithmEval {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {     
         float pk = -0.7f;
-        float noise = 0.0f;
+        float noise = 0.5f;
         float l_param = 10.0f;
         boolean error = true;
         int norder = 10;
-        int k =  5;
+        int k = 5;
 
         //set parameters for testing
         Slopes.setSynthParameters(noise);
@@ -260,7 +260,7 @@ public class SlopeAlgorithmEval {
         //timeAndPlotLSF(error);
         //timeAndPlotPWDM(error);
         timeAndPlotDW(error,k);
-        timeAndPlotSDW(error,k);
+        //timeAndPlotSDW(error,k);
         //timeAndPlotPWDD(error);
         //Slopes.testOrderVsTime(norder);
         //Slopes.plotOrderVsTime(norder);

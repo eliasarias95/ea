@@ -250,8 +250,8 @@ public class Slopes{
     double r1max = 0.2;
     double r2min = -0.4;
     double r2max = 0.4;
-    double h1 = 20.0;
-    double h2 =  9.0;
+    double h1 = 40.0;
+    double h2 = 12.0;
     Sampling s1 = new Sampling(_n1); //shift sampling in 1st dimension
     Sampling s2 = new Sampling(_n2); //shift sampling in 2nd dimension
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,

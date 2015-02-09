@@ -33,9 +33,9 @@ public class DynamicWarpingSlopes {
 
   public void setK(int k) {
     _k = k;
-    _dwk = new DynamicWarpingK(k,-_pmax,_pmax,_s1,_s2);
-    _dwk.setSmoothness(_h1,_h2);
-    _dwk.setStrainLimits(_r1min,_r1max,_r2min,_r2max);
+    //_dwk = new DynamicWarpingK(k,-_pmax,_pmax,_s1,_s2);
+    //_dwk.setSmoothness(_h1,_h2);
+    //_dwk.setStrainLimits(_r1min,_r1max,_r2min,_r2max);
   }
 
   public float[][] findSlopes(float[][] f) {
@@ -65,6 +65,7 @@ public class DynamicWarpingSlopes {
     float[][] pa = sub(pp,pm);
     pa = mul(pa,0.5f);
     pa = mul(pa,1.0f/(float)_k);
+    trace("pa[0].length= "+pa[0].length);
     float[][] qa = subSample(pa);
     return qa;
   }
@@ -107,6 +108,9 @@ public class DynamicWarpingSlopes {
     int n2 = f.length;
     int n1f = f[0].length;
     int n1g = (n1f-1)/_k+1;
+    trace("n1g= "+n1g+" n1f= "+n1f);
+    trace("n1= "+copy(n1g,n2,0,0,_k,1,f)[0].length);
+    trace("n2= "+copy(n1g,n2,0,0,_k,1,f).length);
     return copy(n1g,n2,0,0,_k,1,f);
   }
 
@@ -120,6 +124,7 @@ public class DynamicWarpingSlopes {
     Sampling s1f = new Sampling(n1f,d1f,f1f);
 
     int n1g = (n1f-1)*_k+1;
+    trace("super n1g= "+n1g+" super n1f= "+n1f);
     float d2g = d2f;
     float d1g = 1.0f/(float)_k;
     float f2g = f2f;
