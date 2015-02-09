@@ -49,9 +49,9 @@ public class SlopeAlgorithmEval {
     System.out.println("Dynamic warping time = "+_sw.time());
   }
 
-  private static void timeAndPlotSDW(boolean error) {
+  private static void timeAndPlotSDW(boolean error, int k) {
     _sw.restart();
-    Slopes.plotSDW(error);
+    Slopes.plotSDW(error,k);
     _sw.stop();
     System.out.println("Smooth dynamic warping time = "+_sw.time());
   }
@@ -121,19 +121,19 @@ public class SlopeAlgorithmEval {
       exact_slope = synthAndSlope[1];
       lsf.findSlopes(synth_data,lsf_slope);
       sd.findSlopes(s1,s2,synth_data,mad_slope);
-      dw_slope = Slopes.DWSlopesAvg(dw);
+      //dw_slope = Slopes.DWSlopesAvg(dw);
       lsf_slope = mul(lsf_slope,d1/d2);
       mad_slope = mul(mad_slope,d1/d2);
-      dw_slope = mul(dw_slope,d1/d2);
+      //dw_slope = mul(dw_slope,d1/d2);
       lsf_diff = sub(lsf_slope,exact_slope);
       mad_diff = sub(mad_slope,exact_slope);
-      dw_diff = sub(dw_slope,exact_slope);
+      //dw_diff = sub(dw_slope,exact_slope);
       temp_lsf = pow(lsf_diff,2);
       temp_mad = pow(mad_diff,2);
-      temp_dw = pow(dw_diff,2);
+      //temp_dw = pow(dw_diff,2);
       rmserr_lsf[i] = sqrt(sum(temp_lsf)/(n2*n1));
       rmserr_mad[i] = sqrt(sum(temp_mad)/(n2*n1));
-      rmserr_dw[i] = sqrt(sum(temp_dw)/(n2*n1));
+      //rmserr_dw[i] = sqrt(sum(temp_dw)/(n2*n1));
     }
 
     float fw = 0.75f; //fraction width for slide
@@ -244,12 +244,12 @@ public class SlopeAlgorithmEval {
   public static void main(String[] args) {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {     
-        float pk = 0.7f;
-        float noise = 0.5f;
+        float pk = -0.7f;
+        float noise = 0.0f;
         float l_param = 10.0f;
         boolean error = true;
         int norder = 10;
-        int k = 05;
+        int k =  5;
 
         //set parameters for testing
         Slopes.setSynthParameters(noise);
@@ -260,11 +260,11 @@ public class SlopeAlgorithmEval {
         //timeAndPlotLSF(error);
         //timeAndPlotPWDM(error);
         timeAndPlotDW(error,k);
-        //timeAndPlotSDW(error);
+        timeAndPlotSDW(error,k);
         //timeAndPlotPWDD(error);
         //Slopes.testOrderVsTime(norder);
         //Slopes.plotOrderVsTime(norder);
-        Slopes.plotFandPk(); //plot synthetic seismic and exact slopes
+        //Slopes.plotFandPk(); //plot synthetic seismic and exact slopes
 
         //Testing and plot optimal parameters
         //Slopes.setSmoothingParameters(l_param);

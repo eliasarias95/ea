@@ -219,14 +219,13 @@ public class Slopes{
    * Dynamic warping: plots the estimated slopes and RMS error.
    */
   public static void plotDW(boolean error, int k) {
-    float usmooth1 = 18.0f;
-    float usmooth2 = 0.0f;
     float strainMax1 = 0.2f;
     float strainMax2 = 1.0f;
-    int esmooth = 1;
-    DynamicWarpingSlopes dws = new DynamicWarpingSlopes((int)_pmax*k,
-        usmooth1,usmooth2,strainMax1,strainMax2,esmooth);
-    float[][] p_dw = dws.findSlopes(k,_f);
+    Sampling s1 = new Sampling(_n1);
+    Sampling s2 = new Sampling(_n2);
+    DynamicWarpingSlopes dws = new DynamicWarpingSlopes((int)_pmax*k,s1,s2);
+    dws.setK(k);
+    float[][] p_dw = dws.findSlopes(_f);
 
     if (error) {
       System.out.println("Dynamic warping:");
@@ -246,31 +245,36 @@ public class Slopes{
   /**
    * Smooth dynamic warping: plots the estimated slopes and RMS error.
    */
-  public static void plotSDW(boolean error) {
-    double r1min = 0.0;
-    double r1max = 1.00;
-    double r2min = 0.0;
-    double r2max = 1.00;
-    double h1 = 50;
-    double h2 = 20;
-    //try setting up for smooth dynamic warping
-    DynamicWarpingR dwr = new DynamicWarpingR(-_pmax,_pmax,_sg,_s2);
-    dwr.setStrainLimits(r1min,r1max,r2min,r2max);
-    dwr.setSmoothness(h1,h2); //default values are each 10
-    float[][] p_dwr = SDWSlopesAvg(dwr);
-    p_dwr = mul(p_dwr,_dg/_d2);
+  public static void plotSDW(boolean error, int k) {
+    double r1min = -0.2;
+    double r1max = 0.2;
+    double r2min = -0.4;
+    double r2max = 0.4;
+    double h1 = 20.0;
+    double h2 =  9.0;
+    Sampling s1 = new Sampling(_n1); //shift sampling in 1st dimension
+    Sampling s2 = new Sampling(_n2); //shift sampling in 2nd dimension
+    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,
+                                       r1min,r1max,r2min,r2max,s1,s2);
+    float[][] p_sdw = dws.findSmoothSlopes(_f);
+    //DynamicWarpingK dwk = new DynamicWarpingK(k,-_pmax,_pmax,s1,s2);
+    //dwk.setSmoothness(h1,h2);
+    //dwk.setStrainLimits(r1min,r1max,r2min,r2max);
+    
+    //float[][] p_dwk = SDWSlopesAvg(dwk);
+    //p_dwk = mul(p_dwk,_dg/_d2);
 
     if (error) {
       System.out.println("Smooth dynamic warping:");
-      float error_dwr = Util.rmsError(p_dwr,_pk,_dg,_d2,T);
+      float error_sdw = Util.rmsError(p_sdw,_pk,_dg,_d2,T);
     }
-    System.out.println("slopes: "+p_dwr[230][225]);
+    System.out.println("slopes: "+p_sdw[230][225]);
 
     // interp, title, paint, colorbar, color
     String hl = "Traces"; //horizontal label
     String vl = "Samples"; //vertical label
     String cbl = "slope (samples/trace)"; //colorbar label
-    Plot.plot(_sg,_s2,p_dwr,"SDW noise= "+_noise,hl,vl,cbl,
+    Plot.plot(_sg,_s2,p_sdw,"SDW noise= "+_noise,hl,vl,cbl,
         _fw,_fh,-_clipMax,_clipMax,
         _clip,F,_title,_paint,T,T);
   }
@@ -369,8 +373,8 @@ public class Slopes{
       for(int i2=0; i2<_n2param; ++i2) {
         for(int i1=0; i1<_n1param; ++i1) {
           dw.setShiftSmoothing(_param1[i1],_param2[i2]);
-          pe = DWSlopesAvg(dw);
-          rmserror[i2][i1] = Util.rmsError(pe,_pk,_d1,_d2,false);
+          //pe = DWSlopesAvg(dw);
+          //rmserror[i2][i1] = Util.rmsError(pe,_pk,_d1,_d2,false);
         }
       }
     }
@@ -382,8 +386,8 @@ public class Slopes{
       for(int i2=0; i2<_n2param; ++i2) {
         for(int i1=0; i1<_n1param; ++i1) {
           dw.setStrainMax(_param1[i1],_param2[i2]);
-          pe = DWSlopesAvg(dw);
-          rmserror[i2][i1] = Util.rmsError(pe,_pk,_d1,_d2,false);
+          //pe = DWSlopesAvg(dw);
+          //rmserror[i2][i1] = Util.rmsError(pe,_pk,_d1,_d2,false);
         }
       }
     }
@@ -600,7 +604,7 @@ public class Slopes{
 
   ////////////////ESTIMATING SLOPES USING (SMOOTH) DYNAMIC WARPING/////////////
 
-  public static float[][] DWSlopesAvg(DynamicWarping dw) {
+  public static float[][] SDWSlopesAvg(DynamicWarpingK dwk) {
     float[][] pp = new float[_n2][_ng];
     float[][] pm = new float[_n2][_ng];
     float[][] pa = new float[_n2][_ng];
@@ -617,36 +621,23 @@ public class Slopes{
       fm[i2] = _f[i2-1];
     }
 
-    pp = dw.findShifts(_f,fp);
-    pm = dw.findShifts(_f,fm);
+    pp = dwk.findShifts(_sg,_f,_sg,fp);
+    pm = dwk.findShifts(_sg,_f,_sg,fm);
     pa = sub(pp,pm);
     pa = mul(pa,0.5f);
+    //pm = mul(pm,-1.0f);
     return pa;
   }
 
-  public static float[][] SDWSlopesAvg(DynamicWarpingR dwr) {
-    float[][] pp = new float[_n2][_ng];
-    float[][] pm = new float[_n2][_ng];
-    float[][] pa = new float[_n2][_ng];
-    float[][] fp = new float[_n2][_ng];
-    float[][] fm = new float[_n2][_ng];
-
-    fp[0]    = _f[1];
-    fm[0]    = _f[0];
-    fp[_n2-1] = _f[_n2-1];
-    fm[_n2-1] = _f[_n2-2];
-
-    for (int i2=1; i2<_n2-1; ++i2) {
-      fp[i2] = _f[i2+1];
-      fm[i2] = _f[i2-1];
-    }
-
-    pp = dwr.findShifts(_sg,_f,_sg,fp);
-    pm = dwr.findShifts(_sg,_f,_sg,fm);
-    pa = sub(pp,pm);
-    pa = mul(pa,0.5f);
-    return pa;
-  }
+  /*
+  public static float[][] SDWSlopesAvg(DynamicWarpingR dwr, int nl) {
+    float[][] g = copy(_ng,_n2,_f);
+    g = copy(_ng+nl,_n2,g);
+    Sampling sf = new Sampling(_ng);
+    Sampling sg = new Sampling(_ng+nl);
+    float[][] p = dwr.findShifts(_sg,_f,_sg,g);
+    return p;
+  }*/
 
   /*
   public static float[][] DWSlopes1D(DynamicWarping dw, 
@@ -667,7 +658,7 @@ public class Slopes{
   private static final int _niter = 5;
   private static final float _fw = 0.75f; //fraction width for slide
   private static final float _fh = 0.9f; //fraction height for slide
-  private static final float _pmax = 1.0f;
+  private static final float _pmax = 5.0f;
   private static final float _clipMax = 4.0f;
   private static final float pi = FLT_PI;
   private static final boolean T = true;
