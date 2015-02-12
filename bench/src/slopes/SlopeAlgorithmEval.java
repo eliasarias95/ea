@@ -257,7 +257,7 @@ public class SlopeAlgorithmEval {
         //Slopes.setGOMParameters();
         
         //time methods and plot estimated slopes
-        //timeAndPlotLSF(error);
+        timeAndPlotLSF(error);
         //timeAndPlotPWDM(error);
         timeAndPlotDW(error,k);
         //timeAndPlotSDW(error,k);

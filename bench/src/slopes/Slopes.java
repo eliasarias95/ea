@@ -221,7 +221,7 @@ public class Slopes{
   public static void plotDW(boolean error, int k) {
     float strainMax1 = 0.2f;
     float strainMax2 = 1.0f;
-    Sampling s1 = new Sampling(_n1);
+    Sampling s1 = new Sampling((_n1-1)*k+1);
     Sampling s2 = new Sampling(_n2);
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes((int)_pmax*k,s1,s2);
     dws.setK(k);
@@ -250,7 +250,7 @@ public class Slopes{
     double r1max = 0.2;
     double r2min = -0.4;
     double r2max = 0.4;
-    double h1 = 40.0;
+    double h1 = 35.0;
     double h2 = 12.0;
     Sampling s1 = new Sampling(_n1); //shift sampling in 1st dimension
     Sampling s2 = new Sampling(_n2); //shift sampling in 2nd dimension
@@ -276,7 +276,7 @@ public class Slopes{
     String cbl = "slope (samples/trace)"; //colorbar label
     Plot.plot(_sg,_s2,p_sdw,"SDW noise= "+_noise,hl,vl,cbl,
         _fw,_fh,-_clipMax,_clipMax,
-        _clip,F,_title,_paint,T,T);
+        _clip,F,_title,true,T,T);
   }
 
   /**

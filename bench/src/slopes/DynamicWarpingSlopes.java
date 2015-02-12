@@ -56,12 +56,11 @@ public class DynamicWarpingSlopes {
     }
     
     trace("n1*k= "+n1*_k);
-    Sampling sg = new Sampling(n1*_k);
     float[][] g = superSample(f);
     float[][] gp = superSample(fp);
     float[][] gm = superSample(fm);
-    float[][] pp = _dwk.findShifts(sg,g,sg,gp);
-    float[][] pm = _dwk.findShifts(sg,g,sg,gm);
+    float[][] pp = _dwk.findShifts(_s1,g,_s1,gp);
+    float[][] pm = _dwk.findShifts(_s1,g,_s1,gm);
     float[][] pa = sub(pp,pm);
     pa = mul(pa,0.5f);
     pa = mul(pa,1.0f/(float)_k);

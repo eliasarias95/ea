@@ -283,8 +283,8 @@ public class DynamicWarpingK {
     final int[] k2s = subsample(n2,_k2min);
     final int nk1 = k1s.length;
     final int nk2 = k2s.length;
-    trace("k1s:"); dump(k1s);
-    trace("k2s:"); dump(k2s);
+    //trace("k1s:"); dump(k1s);
+    //trace("k2s:"); dump(k2s);
 
     trace("findShifts: smoothing in 1st dimension ...");
     final float[][][] ek = new float[n2][][];
@@ -452,7 +452,7 @@ public class DynamicWarpingK {
   private double _r1max,_r2max,_r3max;
   private int _k1min,_k2min,_k3min;
   private SincInterpolator _si;
-  private float _epow = 2.0f;
+  private float _epow = 0.25f;
 
   private static CubicInterpolator makeInterpolator1(
     float[] x, float[] y) 
