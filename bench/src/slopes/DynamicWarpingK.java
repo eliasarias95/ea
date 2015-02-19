@@ -452,7 +452,7 @@ public class DynamicWarpingK {
   private double _r1max,_r2max,_r3max;
   private int _k1min,_k2min,_k3min;
   private SincInterpolator _si;
-  private float _epow = 0.25f;
+  private float _epow = 1.00f;
 
   private static CubicInterpolator makeInterpolator1(
     float[] x, float[] y) 

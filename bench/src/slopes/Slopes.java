@@ -207,8 +207,8 @@ public class Slopes{
     double d1 = _s1.getDelta();
     double d2 = _s2.getDelta();
     Sfdip sd = new Sfdip(-_pmax,_pmax);
-    sd.setRect(76,6);
-    sd.setOrder(5);
+    sd.setRect(75,6);
+    sd.setOrder(4);
     sd.setNiter(_niter);
     //sd.setBoth("y");
     float[][] pe = new float[n2][n1]; //pwd w/initial p=0 (Madagascar)
@@ -236,8 +236,8 @@ public class Slopes{
     double d1 = _s1.getDelta();
     double d2 = _s2.getDelta();
     Sfdip sd = new Sfdip(-_pmax,_pmax);
-    sd.setRect(76,6);
-    sd.setOrder(5);
+    sd.setRect(75,6);
+    sd.setOrder(4);
     sd.setNiter(_niter);
     //sd.setBoth("y");
     float[][] pe = new float[n2][n1]; //pwd w/initial p=0 (Madagascar)
@@ -387,14 +387,12 @@ public class Slopes{
     int n2 = _s2.getCount();
     double d1 = _s1.getDelta();
     double d2 = _s2.getDelta();
-    double r1min = -0.2;
-    double r1max = 0.2;
-    double r2min = -0.4;
-    double r2max = 0.4;
-    double h1 = 35.0;
+    double r1 = 0.1;
+    double r2 = 0.4;
+    double h1 = 72.0;
     double h2 = 12.0;
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,
-                                       r1min,r1max,r2min,r2max,_s1,_s2);
+                                       -r1,r1,-r2,r2,_s1,_s2);
     _sw.restart();
     float[][] pe = dws.findSmoothSlopes(f);
     pe = mul(pe,(float)(d1/d2));
@@ -418,14 +416,12 @@ public class Slopes{
     int n2 = _s2.getCount();
     double d1 = _s1.getDelta();
     double d2 = _s2.getDelta();
-    double r1min = -0.2;
-    double r1max = 0.2;
-    double r2min = -0.4;
-    double r2max = 0.4;
-    double h1 = 35.0;
+    double r1 = 0.1;
+    double r2 = 0.4;
+    double h1 = 72.0;
     double h2 = 12.0;
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,
-                                       r1min,r1max,r2min,r2max,_s1,_s2);
+                                       -r1,r1,-r2,r2,_s1,_s2);
     _sw.restart();
     float[][] pe = dws.findSmoothSlopes(f);
     pe = mul(pe,(float)(d1/d2));
@@ -600,7 +596,7 @@ public class Slopes{
     double d2 = _s2.getDelta();
     float[] param1 = Util.f(sp1.getValues());
     float[] param2 = Util.f(sp2.getValues());
-    double h1 = 35.0;
+    double h1 = 72.0;
     double h2 = 12.0;
 
     float[][] pe = new float[n2][n1];
@@ -650,7 +646,7 @@ public class Slopes{
     double d2 = _s2.getDelta();
     float[] ovt = new float[norder];
     Sfdip sd = new Sfdip(-_pmax,_pmax);
-    sd.setRect(76,6);
+    sd.setRect(75,6);
     sd.setNiter(_niter);
     float[][] p_pwdm = new float[n2][n1]; //pwd w/initial p=0 (Madagascar)
     for (int i=1; i<norder; ++i) {
@@ -669,13 +665,113 @@ public class Slopes{
     Plot.plot(ovt,"Order vs time","Order","Time",_fw,_fh,F);
   }
 
-  /*public static void rmsErrorCurve(int nrms) {
-    for (int i=0; i<nrms; ++i) {
-      _noise = i;
-    }
+  public void testRmsErrorCurveLSF(Sampling sn) {
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    double d1 = _s1.getDelta();
+    double d2 = _s2.getDelta();
+    int nrms = sn.getCount();
+    double drms = sn.getDelta();
+    float[] noise = Util.f(sn.getValues());;
 
+    float[][][] fandp = new float[2][n2][n1];
+    float[][] f = new float[n2][n1];
+    float[][] p = new float[n2][n1];
+
+    //Structure tensor
+    LocalSlopeFinder lsf = new LocalSlopeFinder(23.0f,1.0f,_pmax);
+    float[][] p_lsf = new float[n2][n1];
+    
+    float[] rms_error_lsf = new float[nrms];
+    for (int i=0; i<nrms; ++i) {
+      fandp = FakeData.seismicAndSlopes2d2014A(noise[i],F);
+      f = fandp[0];
+      p = fandp[1];
+      lsf.findSlopes(f,p_lsf);
+      p_lsf = mul(p_lsf,(float)(d1/d2));
+      rms_error_lsf[i] = Util.rmsError(p_lsf,p,false);
+    }
+    Util.writeBinary(rms_error_lsf,PATH+"rms_error_lsf.dat");
   }
-  */
+
+  public void testRmsErrorCurvePWD(Sampling sn) {
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    double d1 = _s1.getDelta();
+    double d2 = _s2.getDelta();
+    int nrms = sn.getCount();
+    double drms = sn.getDelta();
+    float[] noise = Util.f(sn.getValues());;
+
+    float[][][] fandp = new float[2][n2][n1];
+    float[][] f = new float[n2][n1];
+    float[][] p = new float[n2][n1];
+
+    //Plane-wave destruction filter
+    Sfdip sd = new Sfdip(-_pmax,_pmax);
+    sd.setRect(75,6);
+    sd.setOrder(4);
+    float[][] p_pwd = new float[n2][n1];
+
+    float[] rms_error_pwd = new float[nrms];
+    for (int i=0; i<nrms; ++i) {
+      fandp = FakeData.seismicAndSlopes2d2014A(noise[i],F);
+      f = fandp[0];
+      p = fandp[1];
+      sd.findSlopes(_s1,_s2,f,p_pwd);
+      p_pwd = mul(p_pwd,(float)(d1/d2));
+      rms_error_pwd[i] = Util.rmsError(p_pwd,p,false);
+    }
+    Util.writeBinary(rms_error_pwd,PATH+"rms_error_pwd.dat");
+  }
+
+  public void testRmsErrorCurveSDW(Sampling sn, int k) {
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    double d1 = _s1.getDelta();
+    double d2 = _s2.getDelta();
+    int nrms = sn.getCount();
+    double drms = sn.getDelta();
+    float[] noise = Util.f(sn.getValues());;
+
+    float[][][] fandp = new float[2][n2][n1];
+    float[][] f = new float[n2][n1];
+    float[][] p = new float[n2][n1];
+
+    //Smooth dynamic warping
+    double r1 = 0.1;
+    double r2 = 0.4;
+    double h1 = 40.0;
+    double h2 =  9.0;
+    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,
+                                       -r1,r1,-r2,r2,_s1,_s2);
+    float[][] p_sdw = new float[n2][n1];
+    
+    float[] rms_error_sdw = new float[nrms];
+    for (int i=0; i<nrms; ++i) {
+      fandp = FakeData.seismicAndSlopes2d2014A(noise[i],F);
+      f = fandp[0];
+      p = fandp[1];
+      p_sdw = dws.findSmoothSlopes(f);
+      p_sdw = mul(p_sdw,(float)(d1/d2));
+      rms_error_sdw[i] = Util.rmsError(p_sdw,p,false);
+    }
+    Util.writeBinary(rms_error_sdw,PATH+"rms_error_sdw.dat");
+  }
+
+  public void plotRmsErrorCurves(Sampling sn) {
+    float fw = 0.75f; //fraction width for slide
+    float fh = 0.9f; //fraction height for slide
+    int nrms = sn.getCount();
+    float[] noise = Util.f(sn.getValues());;
+    float[] rms_error_lsf = Util.readImage(nrms,PATH+"rms_error_lsf.dat");
+    float[] rms_error_pwd = Util.readImage(nrms,PATH+"rms_error_pwd.dat");
+    float[] rms_error_sdw = Util.readImage(nrms,PATH+"rms_error_sdw.dat");
+    // paint
+    Plot.plot(noise,rms_error_pwd,rms_error_lsf,rms_error_sdw,
+        "PWD, LSF, and SDW RMS error vs NS ratio",fw,fh,F);
+  }
+
   /*private static void goErrorLocation() {
     int i = 5;
     LocalSlopeFinder lsf = new LocalSlopeFinder(24.0f,1.0f,pmax);
@@ -818,6 +914,63 @@ public class Slopes{
     Plot.plot(s1,s2,lsf_sd,"Sample standard deviation LOF",fw,fh,0,1,F,T,T,T);
     Plot.plot(s1,s2,mad_sd,"Sample standard deviation PWD",fw,fh,0,1,F,T,T,T);
     Plot.plot(s1,s2,dw_sd,"Sample standard deviation DW",fw,fh,0,1,F,T,T,T);
+  }*/
+
+  /*
+  private static void goTestSlopeVsError() {
+    int n1 = 501;
+    int n2 = 501;
+
+    float noise = 0.5f;
+
+    float[][][] synthAndSlope = FakeData.seismicAndSlopes2d2014A(noise,F);
+    float[][] exact_slope = synthAndSlope[1];
+    float[][] lsf_mean = Util.readImage(n1,n2,
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/lsf_mean.dat");
+    float[][] mad_mean = Util.readImage(n1,n2,
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/mad_mean.dat");
+    float[][] lsf_sd = Util.readImage(n1,n2,
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/lsf_sd.dat");
+    float[][] mad_sd = Util.readImage(n1,n2,
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/mad_sd.dat");
+
+    float[][] mad_abs = sub(mad_mean,exact_slope); 
+    float[][] lsf_abs = sub(lsf_mean,exact_slope); 
+
+    float[] mad_1Dslope = new float[n2*n1];
+    float[] lsf_1Dslope = new float[n2*n1];
+    float[] mad_1Dabs = new float[n2*n1];
+    float[] lsf_1Dabs = new float[n2*n1];
+    float[] exact_1Dslope= new float[n2*n1];
+    for (int i2=0; i2<n2; ++i2) {
+      for (int i1=0; i1<n1; ++i1) {
+        mad_1Dslope[i1+i2*n1] = abs(atan(mad_mean[i2][i1]));
+        lsf_1Dslope[i1+i2*n1] = abs(atan(lsf_mean[i2][i1]));
+        mad_1Dabs[i1+i2*n1] = abs(mad_sd[i2][i1]);
+        lsf_1Dabs[i1+i2*n1] = abs(lsf_sd[i2][i1]);
+        exact_1Dslope[i1+i2*n1] = exact_slope[i2][i1];
+      }
+    }
+    Util.writeBinary(exact_1Dslope,
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/exact_slope1D.dat");
+    Util.writeBinary(lsf_1Dslope,
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/struct_tens1D.dat");
+    Util.writeBinary(mad_1Dslope,
+        "/Users/earias/Home/git/ea/bench/src/slopes/data/plane_wave1D.dat");
+    float fw = 0.75f; //fraction width for slide
+    float fh = 0.8f; //fraction height for slide
+    //Plot.plotHistogram(exact_1Dslope, lsf_1Dslope, mad_1Dslope,
+    //  "Histogram",fw,fh,F);
+
+    // paint
+    //Plot.plot(mad_1Dslope,mad_1Dabs,"PWD Slope vs Absolute Error",
+    //"Slope (samples/trace)","(samples/trace)",fw,fh,T);
+    //Plot.plot(lsf_1Dslope,lsf_1Dabs,"LSF Slope vs Absolute Error",
+    //"Slope (samples/trace)","(samples/trace)",fw,fh,T);
+    Plot.plot(exact_1Dslope,mad_1Dabs,"PWD Slope vs Absolute Error",
+    "Slope (samples/trace)","(samples/trace)",fw,fh,T);
+    Plot.plot(exact_1Dslope,lsf_1Dabs,"LSF Slope vs Absolute Error",
+    "Slope (samples/trace)","(samples/trace)",fw,fh,T);
   }*/
 
   private static void trace(String s) {
