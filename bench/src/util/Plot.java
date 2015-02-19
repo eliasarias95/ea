@@ -218,8 +218,8 @@ public class Plot {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
     PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
-    //PixelsView pv = pp.addPixels(s1,s2,f);
-    PixelsView pv = pp.addPixels(f);
+    PixelsView pv = pp.addPixels(s1,s2,f);
+    //PixelsView pv = pp.addPixels(f);
     pv.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
     pp.addTiledView(pv);
     pp.setHLabel(hl);

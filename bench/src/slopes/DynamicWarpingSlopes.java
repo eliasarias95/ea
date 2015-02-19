@@ -33,9 +33,6 @@ public class DynamicWarpingSlopes {
 
   public void setK(int k) {
     _k = k;
-    //_dwk = new DynamicWarpingK(k,-_pmax,_pmax,_s1,_s2);
-    //_dwk.setSmoothness(_h1,_h2);
-    //_dwk.setStrainLimits(_r1min,_r1max,_r2min,_r2max);
   }
 
   public float[][] findSlopes(float[][] f) {
@@ -55,7 +52,6 @@ public class DynamicWarpingSlopes {
       fm[i2] = f[i2-1];
     }
     
-    trace("n1*k= "+n1*_k);
     float[][] g = superSample(f);
     float[][] gp = superSample(fp);
     float[][] gm = superSample(fm);
@@ -64,7 +60,6 @@ public class DynamicWarpingSlopes {
     float[][] pa = sub(pp,pm);
     pa = mul(pa,0.5f);
     pa = mul(pa,1.0f/(float)_k);
-    trace("pa[0].length= "+pa[0].length);
     float[][] qa = subSample(pa);
     return qa;
   }
@@ -87,29 +82,23 @@ public class DynamicWarpingSlopes {
     return pm;
   }
 
-  public static float[][][] makeConstantSlope(float freq, float p2, 
-                                              int n1, int n2) {
-    float[][][] fandp = new float[2][n2][n1];
-    float[][] f = new float[n2][n1];
-    float[][] p = new float[n2][n1];
-    for (int i2=0; i2<n2; ++i2){
-      for (int i1=0; i1<n1; ++i1){
-        f[i2][i1] = cos(2.0f*pi*(p2*freq*i2-freq*i1));
-        p[i2][i1] = p2;
-      }
-    }
-    fandp[0] = copy(f);
-    fandp[1] = copy(p);
-    return fandp;
+/////////////////////////PRIVATE/////////////////////////
+
+  private static final float pi = FLT_PI;
+  private int _k;
+  private double _pmax,_h1,_h2,_r1min,_r1max,_r2min,_r2max;
+  private Sampling _s1,_s2;
+  private DynamicWarpingK _dwk;
+  private SincInterpolator _si;
+
+  private static void trace(String s) {
+    System.out.println(s);
   }
 
   private float[][] subSample(float[][] f) {
     int n2 = f.length;
     int n1f = f[0].length;
     int n1g = (n1f-1)/_k+1;
-    trace("n1g= "+n1g+" n1f= "+n1f);
-    trace("n1= "+copy(n1g,n2,0,0,_k,1,f)[0].length);
-    trace("n2= "+copy(n1g,n2,0,0,_k,1,f).length);
     return copy(n1g,n2,0,0,_k,1,f);
   }
 
@@ -123,7 +112,6 @@ public class DynamicWarpingSlopes {
     Sampling s1f = new Sampling(n1f,d1f,f1f);
 
     int n1g = (n1f-1)*_k+1;
-    trace("super n1g= "+n1g+" super n1f= "+n1f);
     float d2g = d2f;
     float d1g = 1.0f/(float)_k;
     float f2g = f2f;
@@ -166,98 +154,4 @@ public class DynamicWarpingSlopes {
     pi = bc.interpolate00(_s1,_s2);
     return pi;
   }
-
-  private static void trace(String s) {
-    System.out.println(s);
-  }
-
-  private static void goTestSuperAndSub() {
-    int k = 5;
-    int n = 10;
-    Sampling s = new Sampling(n);
-    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(1,s,s);
-    dws.setK(k);
-    float[][] x = new float[n][n];
-    for (int i2=0; i2<n; ++i2) {
-      for (int i1=0; i1<n; ++i1) {
-        x[i2][i1] = i1;
-        x[i2][0] = 3;
-        System.out.println("x["+i2+"]["+i1+"]= "+x[i2][i1]);
-      }
-    }
-
-    float[][] y = dws.superSample(x);
-    float[][] z = dws.subSample(y);
-    int n1 = y[0].length;
-    int n2 = y.length;
-    for (int i2=0; i2<n2; ++i2) {
-      for (int i1=0; i1<n1; ++i1) {
-        System.out.println("y["+i2+"]["+i1+"]= "+y[i2][i1]);
-      }
-    }
-
-    n1 = z[0].length;
-    n2 = z.length;
-    for (int i2=0; i2<n2; ++i2) {
-      for (int i1=0; i1<n1; ++i1) {
-        System.out.println("z["+i2+"]["+i1+"]= "+z[i2][i1]);
-      }
-    }
-  }
-
-  private static void goTestDWS() {
-    int k = 10;
-    int pmax = 4;
-    int m1 = 501;
-    int m2 = 501;
-    Sampling s1 = new Sampling(m1);
-    Sampling s2 = new Sampling(m2);
-    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(pmax*k,s1,s2);
-    dws.setK(k);
-    float freq = 0.1f;
-    float p2 = -3.7f;
-    float[][][] fandp = makeConstantSlope(freq,p2,m1,m2);
-    float[][] f = fandp[0];
-    float[][] g = dws.superSample(f); //super sampled image
-    float[][] p = fandp[1];
-    float[][] q = dws.superSample(p); //super sampled slopes 
-
-    float[][] pe = dws.findSlopes(f);
-    System.out.println("k= "+k+" slope= "+pe[230][230]);
-    Sampling sg = new Sampling(m1*k,1.0f/k,0.0f);
-    System.out.println("max slope= "+max(p));
-    // clip, interp, title, paint, colorbar, color
-    String hl = "Traces"; //horizontal label
-    String vl = "Samples"; //vertical label
-    String cbl = ""; //colorbar label
-    Plot.plot(sg,s2,g,"Super Synthetic",hl,vl,cbl,
-        0.75f,0.9f,-4,4,
-        false,false,true,false,true,false);
-    Plot.plot(sg,s2,f,"Synthetic",hl,vl,cbl,
-        0.75f,0.9f,-4,4,
-        false,false,true,false,true,false);
-
-    cbl = "slope (samples/trace)"; //colorbar label
-    Plot.plot(sg,s2,q,"Known slopes",hl,vl,cbl,
-        0.75f,0.9f,-4,4,
-        false,false,true,false,true,true);
-
-    // interp, title, paint, colorbar, color
-    Plot.plot(s1,s2,pe,"DW",hl,vl,cbl,
-        0.75f,0.9f,-4,4,
-        false,false,true,false,true,true);
-    float error = Util.rmsError(pe,p,1.0f/(float)k,1.0f,true);
-  }
-
-  public static void main(String[] args) {
-    goTestDWS();
-    //goTestSuperAndSub();
-  }
-
-  private static final float pi = FLT_PI;
-  private int _k;
-  private double _pmax,_h1,_h2,_r1min,_r1max,_r2min,_r2max;
-  private Sampling _s1,_s2;
-  private DynamicWarpingK _dwk;
-  private SincInterpolator _si;
 }

@@ -24,6 +24,32 @@ import java.util.Random;
 
 public class Util {
 
+  /**
+   * Converts a 1D array of doubles into an array of floats.
+   * @param d array[n1] of doubles to be converted.
+   * @return array[n1] of floats.
+   */
+  public static float[] f(double[] x) {
+    int n1 = x.length;
+    float[] f = new float[n1];
+    for (int i1=0; i1<n1; ++i1)
+      f[i1] = (float)x[i1];
+    return f;
+  }
+
+  /**
+   * Converts a 1D array of doubles into an array of ints.
+   * @param d array[n1] of doubles to be converted.
+   * @return array[n1] of ints.
+   */
+  public static int[] i(double[] x) {
+    int n1 = x.length;
+    int[] i = new int[n1];
+    for (int i1=0; i1<n1; ++i1)
+      i[i1] = (int)x[i1];
+    return i;
+  }
+
   public static float[] addNoise(double nrms, float[] f) {
     int n1 = f.length;
     Random r = new Random(1);
@@ -44,14 +70,13 @@ public class Util {
     return (float)sqrt(sum/n1);
   }
 
-  public static float rmsError(float[][] pe, float[][] pk, float d1, float d2,
-      boolean print_error) {
+  public static float rmsError(float[][] pe, float[][] p, boolean print_error) {
     int n1 = pe[0].length;
     int n2 = pe.length;
-    pe = sub(pe,pk);
+    pe = sub(pe,p);
     pe = pow(pe,2);
     float rmserror = sqrt(sum(pe)/(float)(n2*n1));
-    if (print_error == true)
+    if (print_error)
       System.out.println("Error = "+rmserror);
     return rmserror;
   }
@@ -70,7 +95,7 @@ public class Util {
       a[i] = rf.normal();
     }
     writeBinary(a,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/dtw_test.dat");
+        "/Users/earias/Home/git/ea/bench/src/util/data/dtw_test.dat");
   }
 
   /**
