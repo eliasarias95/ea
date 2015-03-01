@@ -256,6 +256,7 @@ public class FakeData {
     float[][][] p = makeReflectivityWithNormals(n1,n2);
     float[][][] q = makeReflectivityWithNormals(n1,n2);
     float[][][] r = makeReflectivityWithNormals(n1,n2);
+    float[][][] s = makeReflectivityWithNormals(n1,n2);
     Linear1 throw1 = new Linear1(0.0f,0.10f);
     Linear1 throw2 = new Linear1(0.0f,0.10f);
     LinearFault2 fault1 = new LinearFault2(0.0f,n2*0.2f, 15.0f,throw1);
@@ -268,10 +269,12 @@ public class FakeData {
     p = combine(n1/6,r,p);
     p = apply(fault1,p);
     p = apply(fault2,p);
+    s = copy(p);
+    s[0] = addNoise(noise,p[0],rand);
     p = addWavelet(0.1,p);
     p[0] = addNoise(noise,p[0],rand);
-    p[1] = neg(div(p[2],p[1]));
-    return new float[][][]{p[0],p[1]};
+    p[1] = neg(div(s[2],s[1]));
+    return new float[][][]{p[0],p[1],s[0]};
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -300,10 +303,14 @@ public class FakeData {
     int n1 = f[0].length;
     int n2 = f.length;
     Random r;
-    if (rand)
+    if (rand) {
+      trace("in here Random()");
       r = new Random();
-    else
+    }
+    else {
+      trace("in here Random(1)");
       r = new Random(1);
+    }
     //nrms *= max(abs(f));
     float[][] g = mul(2.0f,sub(randfloat(r,n1,n2),0.5f));
     RecursiveGaussianFilter rgf = new RecursiveGaussianFilter(2.0);

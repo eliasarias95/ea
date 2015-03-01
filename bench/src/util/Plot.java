@@ -68,32 +68,28 @@ public class Plot {
    * @param paint if true, paints image to png.
    */
   //TODO FIX THIS!!!!
-  public static void plot(float[] f1, float[] f2, String title, String hl,
-      String vl, float fw, float fh, boolean paint) {
+  public static void plot(float[] f1, float[] f2, float[] f3, 
+      String title, String hl, String vl, float fw, float fh, boolean paint) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
-    PointsView pv1 = new PointsView(f1);
-    PointsView pv2 = new PointsView(f2);
-    pv1.setLineColor(java.awt.Color.RED);
+    PointsView pv1 = new PointsView(f1,f2);
+    PointsView pv2 = new PointsView(f1,f3);
+    pv2.setLineColor(java.awt.Color.RED);
     pv1.setLineWidth(5);
     pv2.setLineWidth(5);
-    pv1.setOrientation(PointsView.Orientation.X1DOWN_X2RIGHT);
-    pv2.setOrientation(PointsView.Orientation.X1DOWN_X2RIGHT);
+    //pv1.setOrientation(PointsView.Orientation.X1DOWN_X2RIGHT);
+    //pv2.setOrientation(PointsView.Orientation.X1DOWN_X2RIGHT);
     PlotPanel pp1 = new PlotPanel();
-    PlotPanel pp2 = new PlotPanel();
     pp1.addTiledView(pv1);
-    pp2.addTiledView(pv2);
+    pp1.addTiledView(pv2);
     //pp.setTitle(title);
     pp1.setHLabel(hl);
     pp1.setVLabel(vl);
     pp1.setColorBarWidthMinimum(70);
-    pp2.setHLabel(hl);
-    pp2.setVLabel(vl);
-    pp2.setColorBarWidthMinimum(70);
     //pp.setHInterval(0.5);
     //pp.setVInterval(0.2);
     //pp.setVLimits(0,1);
-    PlotFrame pf = new PlotFrame(pp1,pp2,PlotFrame.Split.HORIZONTAL);
+    PlotFrame pf = new PlotFrame(pp1);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
@@ -159,8 +155,8 @@ public class Plot {
     pp.setVLabel("RMS error");
     pp.setColorBarWidthMinimum(70);
     pp.setHInterval(0.5);
-    pp.setVInterval(0.2);
-    pp.setVLimits(0,1);
+    //pp.setVInterval(0.2);
+    pp.setVLimits(-50000,0);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     pf.setFontSizeForSlide(fw,fh,_ratio);

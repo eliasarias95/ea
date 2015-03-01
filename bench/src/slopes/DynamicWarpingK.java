@@ -51,7 +51,7 @@ import edu.mines.jtk.mosaic.*;
  *
  * @author Dave Hale, Colorado School of Mines
  * @author Elias Arias, Colorado School of Mines
- * @version 2015.02.05
+ * @version 19.2.2015
  */
 public class DynamicWarpingK {
 
@@ -364,13 +364,20 @@ public class DynamicWarpingK {
     float[] fi = new float[ne];
     float[] gi = new float[ne];
     _si.interpolate(sf,f,se,fi);
+    float sum = 0;
     for (int is=0; is<ns; ++is) {
       _si.interpolate(
         ng,sg.getDelta(),sg.getFirst(),g,
         ne,se.getDelta(),se.getFirst()+ss.getValue(is),gi);
-      for (int ie=0; ie<ne; ++ie)
+      for (int ie=0; ie<ne; ++ie) {
         e[ie][is] = error(fi[ie],gi[ie]);
+        //if (e[ie][is]>= 2.0f)
+        //  ++sum;
+      }
     }
+    //trace("e length = "+e[0].length*e.length);
+    //trace("sum= "+sum);
+    //trace("max error= "+max(e));
     return e;
   }
 
@@ -476,7 +483,24 @@ public class DynamicWarpingK {
   }
 
   private float error(float f, float g) {
-    return pow(abs(f-g),_epow);
+    float del = 10.00f;
+    //Huber norm
+    if (abs(f-g)<=del)
+      return pow(abs(f-g),2.0f);
+    else
+      return 2.0f*del*abs(f-g)-del*del;
+    //Bi-squared
+    //if (abs(f-g)<=del)
+    //  return 1.0f-pow(1.0f-pow(abs(f-g)/del,2.0f),3.0f);
+    //else
+    //  return 1.0f;
+    //Truncated quadratic
+    //if (abs(f-g)<=del)
+    //  return pow(abs(f-g),2.0f);
+    //else
+    //  return del*del;
+    //L_epow norm
+    //return pow(abs(f-g),_epow);
   }
 
   /**

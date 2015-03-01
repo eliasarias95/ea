@@ -6,6 +6,10 @@ import edu.mines.jtk.dsp.*;
 import edu.mines.jtk.interp.*;
 import static edu.mines.jtk.util.ArrayMath.*;
 
+/**
+ * @author Elias Arias, Colorado School of Mines, CWP
+ * @version 19.2.2015
+ */
 public class DynamicWarpingSlopes {
 
   public DynamicWarpingSlopes(double pmax, Sampling s1, Sampling s2) {
@@ -64,7 +68,7 @@ public class DynamicWarpingSlopes {
     return qa;
   }
 
-  public float[][] findSmoothSlopes(float[][] f) {
+  public float[][] findSmoothSlopes(Sampling sf, float[][] f) {
     int n2 = f.length;
     int n1 = f[0].length;
     float[][] pm = new float[n2][n1];
@@ -76,7 +80,7 @@ public class DynamicWarpingSlopes {
       fm[i2] = f[i2-1];
     }
 
-    pm = _dwk.findShifts(_s1,f,_s1,fm);
+    pm = _dwk.findShifts(sf,f,sf,fm);
     pm = mul(pm,-1.0f);
     pm = interpolateSlopes(pm);
     return pm;
