@@ -60,6 +60,18 @@ public class Util {
     return add(f,g);
   }
 
+  public static float[][] flip2(float[][] x) {
+    int n2 = x.length;
+    int n1 = x[0].length;
+    float[][] xf = new float[n2][n1];
+    for (int i2=0; i2<n2; ++i2) {
+      for (int i1=0; i1<n1; ++i1) {
+        xf[i2][i1] = x[n2-1-i2][i1];
+      }
+    }
+    return xf;
+  }
+
   public static float rms(float[] f) {
     int n1 = f.length;
     double sum = 0.0;
@@ -114,6 +126,26 @@ public class Util {
    */
   public static float[][] sexp(float[][] x) {
     return mul(sgn(x),log(add(abs(x),1.0f)));
+  }
+
+  /**
+   * Reads a binary file.
+   * @param n1 the length of floats in the 1st-dimension
+   * @param n2 the length of floats in the 2nd-dimension
+   * @param n3 the length of floats in the 3rd-dimension
+   * @param fileName the name of the file to be read
+   * @return array[n3][n2][n1] of floats read from file
+   */
+  public static float[][][] readImage(int n1, int n2, int n3, String fileName) {
+    try {
+      ArrayInputStream ais = new ArrayInputStream(fileName);
+      float[][][] x = new float[n3][n2][n1];
+      ais.readFloats(x);
+      ais.close();
+      return x;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

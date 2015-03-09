@@ -485,10 +485,10 @@ public class DynamicWarpingK {
   private float error(float f, float g) {
     float del = 10.00f;
     //Huber norm
-    if (abs(f-g)<=del)
-      return pow(abs(f-g),2.0f);
-    else
-      return 2.0f*del*abs(f-g)-del*del;
+    //if (abs(f-g)<=del)
+    //  return pow(abs(f-g),2.0f);
+    //else
+    //  return 2.0f*del*abs(f-g)-del*del;
     //Bi-squared
     //if (abs(f-g)<=del)
     //  return 1.0f-pow(1.0f-pow(abs(f-g)/del,2.0f),3.0f);
@@ -500,7 +500,7 @@ public class DynamicWarpingK {
     //else
     //  return del*del;
     //L_epow norm
-    //return pow(abs(f-g),_epow);
+    return pow(abs(f-g),_epow);
   }
 
   /**
