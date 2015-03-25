@@ -7,7 +7,6 @@ import edu.mines.jtk.util.Stopwatch;
 import static edu.mines.jtk.util.ArrayMath.*;
 
 import util.*;
-import warp.DynamicWarpingR;
 import dnp.LocalSlopeFinder;
 import dnp.PlaneWaveDestructor;
 
@@ -42,8 +41,6 @@ public class Slopes{
     _s1 = s1;
     _s2 = s2;
     _s3 = s3;
-    double d1 = s1.getDelta();
-    double d2 = s2.getDelta();
     _pmax = pmax;
   }
 
@@ -142,7 +139,7 @@ public class Slopes{
   public static void makeRealGOM(float[][] f) {
     int n1 = f[0].length;
     int n2 = f.length;
-    float[][] temp = (Util.readImage(n1,n2,PATH+"data/gom.dat"));
+    float[][] temp = Util.sexp(Util.readImage(n1,n2,PATH+"data/gom.dat"));
     //mul(temp,.001f,temp);
     for (int i2=0; i2<n2; ++i2){
       for (int i1=0; i1<n1; ++i1){
@@ -169,6 +166,26 @@ public class Slopes{
     }
   }
 
+  /**
+   * Takes a real seismic image from the GOM and places it in the array f.
+   * @param f array[920][301] that holds the data for the GOM seismic image.
+   */
+  public static void makeRealTp(float[][][] f) {
+    int n1 = f[0][0].length;
+    int n2 = f[0].length;
+    int n3 = f.length;
+    float[][][] temp = Util.readImage(n1,n2,n3,PATH+
+          //"data/tp/tpsz_subz_51_4_1400.dat");
+          "data/tp/tpsz_subz_401_4_400.dat");
+    for (int i3=0; i3<n3; ++i3){
+      for (int i2=0; i2<n2; ++i2){
+        for (int i1=0; i1<n1; ++i1){
+          f[i3][i2][i1] = temp[i3][i2][i1];
+        }
+      }
+    }
+  }
+
 ////////////////////////ESTIMATING SLOPES/////////////////////////////
 
   /**
@@ -178,18 +195,16 @@ public class Slopes{
     boolean one = true;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    double d1 = _s1.getDelta();
-    double d2 = _s2.getDelta();
     LocalSlopeFinder lsf = new LocalSlopeFinder(23.0f,1.0f,_pmax);
     float[][] pe = new float[n2][n1];
     _sw.restart();
     lsf.findSlopes(f,pe);
-    //pe = mul(pe,(float)(d2/d1));
     trace("lsf slopes max= "+max(pe));
     trace("lsf slopes min= "+min(pe));
     _sw.stop();
     trace("Structure tensor time = "+_sw.time());    
 
+    Util.writeBinary(pe,PATH+"data/lsf_"+title+".dat");
     // clip, interp, title, paint, colorbar, color
     String cbl = "slope (samples/trace)"; //colorbar label
     Plot.plot(_s1,_s2,pe,"lsf_"+title,hl,vl,cbl,
@@ -204,13 +219,10 @@ public class Slopes{
     boolean one = true;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    double d1 = _s1.getDelta();
-    double d2 = _s2.getDelta();
     LocalSlopeFinder lsf = new LocalSlopeFinder(23.0f,1.0f,_pmax);
     float[][] pe = new float[n2][n1];
     _sw.restart();
     lsf.findSlopes(f,pe);
-    //pe = mul(pe,(float)(d2/d2));
     _sw.stop();
     trace("Structure tensor time = "+_sw.time());    
     trace("Structure tensor:");
@@ -232,23 +244,21 @@ public class Slopes{
     boolean one = true;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    double d1 = _s1.getDelta();
-    double d2 = _s2.getDelta();
     Sfdip sd = new Sfdip(-_pmax,_pmax);
-    sd.setRect(40,10);
+    sd.setRect(75,6);
     sd.setOrder(4);
     sd.setNiter(_niter);
-    sd.setNj(4);
+    sd.setNj(1);
     sd.setBoth("y");
     float[][] pe = new float[n2][n1]; //pwd w/initial p=0 (Madagascar)
     _sw.restart();
     sd.findSlopes(_s1,_s2,f,pe);
-    //pe = mul(pe,(float)(d1/d2));
     trace("pwdm slopes max= "+max(pe));
     trace("pwdm slopes min= "+min(pe));
     _sw.stop();
     trace("Madagascar PWD time = "+_sw.time());    
 
+    Util.writeBinary(pe,PATH+"data/pwdm_"+title+".dat");
     // interp, title, paint, colorbar, color
     String cbl = "slope (samples/trace)"; //colorbar label
     Plot.plot(_s1,_s2,pe,"pwdm_"+title,hl,vl,cbl,
@@ -263,8 +273,6 @@ public class Slopes{
     boolean one = true;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    double d1 = _s1.getDelta();
-    double d2 = _s2.getDelta();
     Sfdip sd = new Sfdip(-_pmax,_pmax);
     sd.setRect(75,6);
     sd.setOrder(4);
@@ -274,7 +282,6 @@ public class Slopes{
     float[][] pe = new float[n2][n1]; //pwd w/initial p=0 (Madagascar)
     _sw.restart();
     sd.findSlopes(_s1,_s2,f,pe);
-    //pe = mul(pe,(float)(d1/d2));
     _sw.stop();
     trace("Madagascar PWD time = "+_sw.time());    
     trace("Madagascar PWD:");
@@ -421,25 +428,23 @@ public class Slopes{
     boolean one = true;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    double d1 = _s1.getDelta();
-    double d2 = _s2.getDelta();
-    float pmax = _pmax*(float)(d2/d1);
-    double r1 = 0.10;
-    double r2 = 0.30;
+    double r1 = 0.1;
+    double r2 = 0.5;
     double h1 = 72.0;
-    double h2 = 12.0;
+    double h2 =  6.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
-    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,pmax,h1,h2,
-                                       -r1,r1,-r2,r2,ss1,ss2);
+    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,
+                                       r1,r2,ss1,ss2);
     _sw.restart();
-    float[][] pe = dws.findSmoothSlopes(_s1,f);
-    pe = mul(pe,(float)(d1/d2));
+    float[][] pe = new float[n2][n1];
+    dws.findSmoothSlopes(ss1,f,pe);
     trace("sdw slopes max= "+max(pe));
     trace("sdw slopes min= "+min(pe));
     _sw.stop();
     trace("Smooth dynamic warping time = "+_sw.time());    
 
+    Util.writeBinary(pe,PATH+"data/sdw_"+title+".dat");
     // interp, title, paint, colorbar, color
     String cbl = "slope (samples/trace)"; //colorbar label
     Plot.plot(_s1,_s2,pe,"sdw_"+title,hl,vl,cbl,
@@ -454,20 +459,17 @@ public class Slopes{
     boolean one = true;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    double d1 = _s1.getDelta();
-    double d2 = _s2.getDelta();
-    float pmax = _pmax*(float)(d2/d1);
     double r1 = 0.1;
     double r2 = 0.3;
     double h1 = 72.0;
     double h2 = 12.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
-    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,pmax,h1,h2,
-                                       -r1,r1,-r2,r2,ss1,ss2);
+    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,
+                                       r1,r2,ss1,ss2);
     _sw.restart();
-    float[][] pe = dws.findSmoothSlopes(_s1,f);
-    pe = mul(pe,(float)(d1/d2));
+    float[][] pe = new float[n2][n1];
+    dws.findSmoothSlopes(ss1,f,pe);
     _sw.stop();
     trace("Smooth dynamic warping time = "+_sw.time());    
     float error_sdw = Util.rmsError(pe,p,T);
@@ -481,6 +483,35 @@ public class Slopes{
         _clip,F,_title,_paint,T,T,_slide,one);
   }
 
+   /**
+   * Smooth dynamic warping: plots the estimated slopes, RMS error, and time.
+   */
+  public void plotSDW(int k, float[][][] f, String title) {
+    boolean one = true;
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    double r1 = 0.1;
+    double r2 = 0.3;
+    double r3 = 0.3;
+    double h1 = 72.0;
+    double h2 = 12.0;
+    double h3 = 12.0;
+    Sampling ss1 = new Sampling(n1);
+    Sampling ss2 = new Sampling(n2);
+    Sampling ss3 = new Sampling(n3);
+    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,h3,
+                                       r1,r2,r3,ss1,ss2,ss3);
+    _sw.restart();
+    float[][][] p2 = new float[n3][n2][n1];
+    float[][][] p3 = new float[n3][n2][n1];
+    dws.findSmoothSlopes(_s1,f,p2,p3);
+    _sw.stop();
+    trace("Smooth dynamic warping time = "+_sw.time());    
+    Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
+    Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+  }
+
   /**
    * Plots the seismic image.
    */
@@ -488,26 +519,38 @@ public class Slopes{
     boolean one = true;
     // clip, interp, title, paint, colorbar, color
     Plot.plot(_s1,_s2,f,title,hl,vl,"",
-        _fw,_fh,0,0,
+        _fw,_fh,-2000,2000,
         F,F,_title,_paint,T,F,_slide,one);
   }
 
-  public void plot3D(float[][][] f) {
-    Plot.plot(_s1,_s2,_s3,f);
+  public void plot3D(String title, float[][][] f) {
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    float[][][] p2 = Util.readImage(n1,n2,n3,PATH+"data/"+title+"_p2.dat");
+    float[][][] p3 = Util.readImage(n1,n2,n3,PATH+"data/"+title+"_p3.dat");
+    Plot.plot(_s1,_s2,_s3,f,p2,"slope (samples/trace)",title+"_p2_slices",
+        -_clipMax,_clipMax,_paint);
+    Plot.plot(_s1,_s2,_s3,f,p3,"slope (samples/trace)",title+"_p3_slices",
+        -_clipMax,_clipMax,_paint);
+    Plot.plotp(_s1,_s2,_s3,f,p2,"slope (samples/trace)",title+"_p2_panels",
+        -_clipMax,_clipMax,_paint);
+    Plot.plotp(_s1,_s2,_s3,f,p3,"slope (samples/trace)",title+"_p3_panels",
+        -_clipMax,_clipMax,_paint);
   }
 
   /**
-   * Plots the seismic image.
+   * Plots the mean and std dev images.
    */
   public void plotImage(String title, String hl, String vl, String cbl,
-      String fileName) {
+      String fileName, float cmin, float cmax) {
     boolean one = true;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     float[][] f = Util.readImage(n1,n2,PATH+fileName);
     // clip, interp, title, paint, colorbar, color
     Plot.plot(_s1,_s2,f,title,hl,vl,cbl,
-        _fw,_fh,0,_clipMax,
+        _fw,_fh,cmin,cmax,
         T,F,_title,_paint,T,T,_slide,one);
   }
 
@@ -524,6 +567,16 @@ public class Slopes{
     Plot.plot(_s1,_s2,p,"known_slopes",hl,vl,cbl,
         _fw,_fh,-_clipMax,_clipMax,
         _clip,F,_title,_paint,T,T,_slide,one);
+  }
+
+  public void plotTeaser(String title, float[][] f) {
+    boolean paint = true;
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    float[][] pe_lsf = Util.readImage(n1,n2,PATH+"data/lsf_"+title+".dat");
+    float[][] pe_pwd = Util.readImage(n1,n2,PATH+"data/pwdm_"+title+".dat");
+    float[][] pe_sdw = Util.readImage(n1,n2,PATH+"data/sdw_"+title+".dat");
+    Plot.plot(_s1,_s2,f,pe_lsf,pe_pwd,pe_sdw,"teaser",_fw,_fh,_slide,paint);
   }
 
 ////////////////////TESTING/PLOTTING OPTIMAL PARAMETERS///////////////////
@@ -645,8 +698,8 @@ public class Slopes{
     for(int i2=0; i2<np2; ++i2) {
       for(int i1=0; i1<np1; ++i1) {
         dws = new DynamicWarpingSlopes(k,_pmax,param1[i1],param2[i2],
-                                       -r1,r1,-r2,r2,ss1,ss2);
-        pe = dws.findSmoothSlopes(_s1,f);
+                                       r1,r2,ss1,ss2);
+        dws.findSmoothSlopes(_s1,f,pe);
         pe = mul(pe,(float)(d1/d2));
         rmserror[i2][i1] = Util.rmsError(pe,p,F);
       }
@@ -680,9 +733,8 @@ public class Slopes{
     for(int i2=0; i2<np2; ++i2) {
       for(int i1=0; i1<np1; ++i1) {
         dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,
-                                       -param1[i1],param1[i1],
-                                       -param2[i2],param2[i2],ss1,ss2);
-        pe = dws.findSmoothSlopes(_s1,f);
+                                       param1[i1],param2[i2],ss1,ss2);
+        dws.findSmoothSlopes(_s1,f,pe);
         pe = mul(pe,(float)(d1/d2));
         rmserror[i2][i1] = Util.rmsError(pe,p,F);
       }
@@ -811,14 +863,14 @@ public class Slopes{
 
     //Smooth dynamic warping
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,
-                                       -r1,r1,-r2,r2,ss1,ss2);
+                                       r1,r2,ss1,ss2);
     float[][] pe = new float[n2][n1];
     float[] rms_error = new float[nrms];
     for (int i=0; i<nrms; ++i) {
       fandp = FakeData.seismicAndSlopes2d2014A(nsratio[i],F);
       f = fandp[0];
       p = fandp[1];
-      pe = dws.findSmoothSlopes(_s1,f);
+      dws.findSmoothSlopes(_s1,f,pe);
       pe = mul(pe,(float)(d1/d2));
       rms_error[i] = Util.rmsError(pe,p,false);
     }
@@ -963,12 +1015,12 @@ public class Slopes{
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,
-                                       -r1,r1,-r2,r2,ss1,ss2);
+                                       r1,r2,ss1,ss2);
     for (int i=0; i<n; ++i) {
       fandp = FakeData.seismicAndSlopes2d2014A(noise,T);
       f = fandp[0];
       trace("i= "+i);
-      pe = dws.findSmoothSlopes(_s1,(f));
+      dws.findSmoothSlopes(_s1,f,pe);
       pe = mul(pe,(float)(d1/d2));
       psum = add(psum,pe);
     }
@@ -1049,13 +1101,13 @@ public class Slopes{
     float[][] pe = new float[n2][n1];
     float[][] sumdiffsq = new float[n2][n1]; //sum of differences squared
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,
-                                       -r1,r1,-r2,r2,ss1,ss2);
+                                       r1,r2,ss1,ss2);
     for (int i=0; i<nni; ++i) {
       fandp = FakeData.seismicAndSlopes2d2014A(_noise,T);
       f = fandp[0];
       p = fandp[1];
       trace("i= "+i);
-      pe = dws.findSmoothSlopes(_s1,f);
+      dws.findSmoothSlopes(_s1,f,pe);
       pe = mul(pe,(float)(d1/d2));
       sumdiffsq = add(sumdiffsq,pow(sub(pe,p),2));
     }
@@ -1201,7 +1253,7 @@ public class Slopes{
   private static final float pi = FLT_PI;      
   private static final float _fw = 0.75f; //fraction width for slide
   private static final float _fh = 0.9f; //fraction height for slide
-  private static final float _clipMax = 1.0f;
+  private static final float _clipMax = 1.5f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;

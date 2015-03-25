@@ -13,25 +13,32 @@ import static edu.mines.jtk.util.ArrayMath.*;
 public class DynamicWarpingSlopes {
 
   public DynamicWarpingSlopes(double pmax, Sampling s1, Sampling s2) {
-    this(1,pmax,1.0,1.0,-1.0,1.0,-1.0,1.0,s1,s2);
+    this(1,pmax,1.0,1.0,1.0,1.0,s1,s2);
   }
 
   public DynamicWarpingSlopes(int k, double pmax, double h1, double h2,
-      double r1min, double r1max, double r2min, double r2max, 
-      Sampling s1, Sampling s2) {
+      double r1, double r2, Sampling s1, Sampling s2) {
+    this(k,pmax,h1,h2,10,r1,r2,1,s1,s2,null);
+  }
+
+  public DynamicWarpingSlopes(int k, double pmax, 
+      double h1, double h2, double h3,
+      double r1, double r2, double r3,
+      Sampling s1, Sampling s2, Sampling s3) {
     _k = k;
     _pmax = pmax;
     _h1 = h1;
     _h2 = h2;
-    _r1min = r1min;
-    _r1max = r1max;
-    _r2min = r2min;
-    _r2max = r2max;
+    _h3 = h3;
+    _r1 = r1;
+    _r2 = r2;
+    _r3 = r3;
     _s1 = s1;
     _s2 = s2;
-    _dwk = new DynamicWarpingK(k,-pmax,pmax,s1,s2);
-    _dwk.setSmoothness(h1,h2);
-    _dwk.setStrainLimits(r1min,r1max,r2min,r2max);
+    _s3 = s3;
+    _dwk = new DynamicWarpingK(k,-pmax,pmax,s1,s2,s3);
+    _dwk.setSmoothness(h1,h2,h3);
+    _dwk.setStrainLimits(-r1,r1,-r2,r2,-r3,r3);
     _si = new SincInterpolator();
   }
 
@@ -68,11 +75,11 @@ public class DynamicWarpingSlopes {
     return qa;
   }
 
-  public float[][] findSmoothSlopes(Sampling sf, float[][] f) {
+  public void findSmoothSlopes(Sampling sf, float[][] f, float[][] p) {
     int n2 = f.length;
     int n1 = f[0].length;
-    float[][] pm = new float[n2][n1];
-    float[][] fm = new float[n2][n1];
+    float[][] fm   = new float[n2][n1];
+    float[][] temp = new float[n2][n1];
 
     fm[0]    = f[0];
     fm[n2-1] = f[n2-2];
@@ -80,18 +87,61 @@ public class DynamicWarpingSlopes {
       fm[i2] = f[i2-1];
     }
 
-    pm = _dwk.findShifts(sf,f,sf,fm);
-    pm = mul(pm,-1.0f);
-    pm = interpolateSlopes(pm);
-    return pm;
+    temp = _dwk.findShifts(sf,f,sf,fm);
+    temp = mul(temp,-1.0f);
+    temp = interpolateSlopes(temp);
+    for (int i2=0; i2<n2; ++i2)
+      for (int i1=0; i1<n1; ++i1)
+        p[i2][i1] = temp[i2][i1];
+  }
+
+  public void findSmoothSlopes(Sampling sf, float[][][] f, 
+                            float[][][] p2, float[][][] p3) {
+    int n3 = f.length;
+    int n2 = f[0].length;
+    int n1 = f[0][0].length;
+    float[][][] f2m  = new float[n3][n2][n1];
+    float[][][] f3m  = new float[n3][n2][n1];
+    float[][][] temp2  = new float[n3][n2][n1];
+    float[][][] temp3  = new float[n3][n2][n1];
+
+    for (int i3=0; i3<n3; ++i3) {
+      f2m[i3][0]    = f[i3][0];
+      f2m[i3][n2-1] = f[i3][n2-2];
+      for (int i2=1; i2<n2-1; ++i2) {
+        f2m[i3][i2] = f[i3][i2-1];
+      }
+    }
+
+    f3m[0]    = f[0];
+    f3m[n3-1] = f[n3-2];
+    for (int i3=1; i3<n3-1; ++i3) {
+      f3m[i3] = f[i3-1];
+    }
+
+    temp2 = _dwk.findShifts(sf,f,sf,f2m);
+    temp2 = mul(temp2,-1.0f);
+    temp2 = interpolateSlopes(temp2);
+    temp3 = _dwk.findShifts(sf,f,sf,f3m);
+    temp3 = mul(temp3,-1.0f);
+    temp3 = interpolateSlopes(temp3);
+
+    for (int i3=0; i3<n3; ++i3) {
+      for (int i2=0; i2<n2; ++i2) {
+        for (int i1=0; i1<n1; ++i1) {
+          p2[i3][i2][i1] = temp2[i3][i2][i1];
+          p3[i3][i2][i1] = temp3[i3][i2][i1];
+        }
+      }
+    }
   }
 
 /////////////////////////PRIVATE/////////////////////////
 
   private static final float pi = FLT_PI;
   private int _k;
-  private double _pmax,_h1,_h2,_r1min,_r1max,_r2min,_r2max;
-  private Sampling _s1,_s2;
+  private double _pmax,_h1,_h2,_h3,_r1,_r2,_r3;
+  private Sampling _s1,_s2,_s3;
   private DynamicWarpingK _dwk;
   private SincInterpolator _si;
 
@@ -147,15 +197,41 @@ public class DynamicWarpingSlopes {
     float[] x1 = new float[n1];
     float[] x2 = new float[n2];
     for (int i1=0; i1<n1; ++i1)
-      x1[i1] = i1-0.5f;
+      x1[i1] = i1;
     for (int i2=0; i2<n2; ++i2)
       x2[i2] = i2-0.5f;
 
-    BicubicInterpolator2 bc = new BicubicInterpolator2(
-      BicubicInterpolator2.Method.MONOTONIC,
-      BicubicInterpolator2.Method.SPLINE,
-      x1,x2,p);
+    //BicubicInterpolator2 bc = new BicubicInterpolator2(
+    //  BicubicInterpolator2.Method.MONOTONIC,
+    //  BicubicInterpolator2.Method.SPLINE,
+    //  x1,x2,p);
+    BilinearInterpolator2 bc = new BilinearInterpolator2(x1,x2,p);
     pi = bc.interpolate00(_s1,_s2);
+    return pi;
+  }
+
+  private float[][][] interpolateSlopes(float[][][] p) {
+    int n3 = p.length;
+    int n2 = p[0].length;
+    int n1 = p[0][0].length;
+    float[][][] pi = new float[n3][][];
+    float[] x1 = new float[n1];
+    float[] x2 = new float[n2];
+    float[] x3 = new float[n3];
+    for (int i1=0; i1<n1; ++i1)
+      x1[i1] = i1;
+    for (int i2=0; i2<n2; ++i2)
+      x2[i2] = i2-0.5f;
+    for (int i3=0; i3<n3; ++i3)
+      x3[i3] = i3-0.5f;
+
+    //TricubicInterpolator3 tc = new TricubicInterpolator3(
+    //  TricubicInterpolator3.Method.MONOTONIC,
+    //  TricubicInterpolator3.Method.SPLINE,
+    //  TricubicInterpolator3.Method.SPLINE,
+    //  x1,x2,x3,p);
+    TrilinearInterpolator3 tc = new TrilinearInterpolator3(x1,x2,x3,p);
+    pi = tc.interpolate000(_s1,_s2,_s3);
     return pi;
   }
 }

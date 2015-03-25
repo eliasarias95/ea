@@ -4,10 +4,13 @@ import edu.mines.jtk.mosaic.*;
 import edu.mines.jtk.awt.ColorMap;
 import edu.mines.jtk.dsp.*;
 import edu.mines.jtk.sgl.*;
+import edu.mines.jtk.util.SimpleFloat3;
 
 import static edu.mines.jtk.util.ArrayMath.*;
 
+import java.awt.Color;
 import java.text.DecimalFormat;
+import java.io.IOException;
 import javax.swing.*;
 
 /**
@@ -81,7 +84,7 @@ public class Plot {
    */
   public static void plot(Sampling s1, Sampling s2, float[][] f, String title,
       String hl, String vl, String cbl, float fw, float fh, 
-      float clipMin, float clipMax, boolean clip, boolean interp, boolean ttl, 
+      float cmin, float cmax, boolean clip, boolean interp, boolean ttl, 
       boolean paint, boolean cb, boolean color, boolean slide, boolean one) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
@@ -96,10 +99,10 @@ public class Plot {
     pp.setColorBarWidthMinimum(100);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    //pf.setSize(fwi,fhi);
+    //pf.setSize(1200,900);
     pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
-    if (clip) pv.setClips(clipMin,clipMax);
+    if (clip) pv.setClips(cmin,cmax);
     if (interp) pv.setInterpolation(PixelsView.Interpolation.NEAREST);
     if (color) pv.setColorModel(ColorMap.JET);
     if (ttl) pp.setTitle(title);
@@ -172,37 +175,44 @@ public class Plot {
    * @param title the title of the image generated
    */
   public static void plot(Sampling s1, Sampling s2, 
-      float[][] f1, float[][] f2, float[][] f3, String title, 
-      float fw, float fh, boolean print) {
+      float[][] f1, float[][] f2, float[][] f3, float[][] f4, String title, 
+      float fw, float fh, boolean slide, boolean paint) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
-    PlotPanel pp = new PlotPanel(1,3,PlotPanel.Orientation.X1DOWN_X2RIGHT);
+    PlotPanel pp = new PlotPanel(1,4,PlotPanel.Orientation.X1DOWN_X2RIGHT);
     PixelsView pv1 = pp.addPixels(0,0,s1,s2,f1);
     PixelsView pv2 = pp.addPixels(0,1,s1,s2,f2);
     PixelsView pv3 = pp.addPixels(0,2,s1,s2,f3);
-    pv1.setColorModel(ColorMap.JET);
+    PixelsView pv4 = pp.addPixels(0,3,s1,s2,f4);
     pv2.setColorModel(ColorMap.JET);
     pv3.setColorModel(ColorMap.JET);
-    //pv1.setClips(-3.0f,3.0f);
-    pv2.setClips(-3.0f,3.0f);
-    pv3.setClips(-3.0f,3.0f);
+    pv4.setColorModel(ColorMap.JET);
+    pv2.setClips(-1.0f,1.0f);
+    pv3.setClips(-1.0f,1.0f);
+    pv4.setClips(-1.0f,1.0f);
     pp.addColorBar("Slope (samples/traces)");
     pp.setColorBarWidthMinimum(100);
+    pp.setVLabel(0,"Samples");
     pp.setHLabel(0,"Traces");
-    pp.setVLabel(0,"Samples");
     pp.setHLabel(1,"Traces");
-    pp.setVLabel(0,"Samples");
     pp.setHLabel(2,"Traces");
-    pp.setVLabel(0,"Samples");
-    pp.getMosaic().getTileAxisTop(0).setFormat("%1.6G");
+    pp.setHLabel(3,"Traces");
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    pf.setSize(fwi,fhi);
-    pf.setFontSizeForSlide(fw,fh,_ratio);
+    pf.setSize(fwi*4,fhi);
     pf.setVisible(true);
-    if (print) {
-      int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,_paths+title+".png");
+    int dpi = 720;
+    if (slide) {
+      pf.setFontSizeForSlide(fw,fh,_ratio);
+      if (paint) {
+        pf.paintToPng(dpi,(1920f*fw-1)/dpi,_paths+title+".png");
+      }
+    }
+    else {
+      pf.setFontSizeForPrint(8.0,469.0);
+      if (paint) {
+        pf.paintToPng(dpi,6.51,_pathp+title+".png");
+      }
     }
   }
 
@@ -217,5 +227,126 @@ public class Plot {
 		ppp31.addColorBar();
 		PlotFrame pf = new PlotFrame(ppp31);
 		pf.setVisible(true);
+  }
+
+  public static void plot(Sampling s1, Sampling s2, Sampling s3, 
+      float[][][] f, float[][][] g, String cbl, String title, 
+      float cmin, float cmax, boolean paint) {
+    int n1 = s1.getCount();
+    int n2 = s2.getCount();
+    int n3 = s3.getCount();
+    SimpleFrame sf = new SimpleFrame(AxesOrientation.XRIGHT_YIN_ZDOWN);
+    ImagePanelGroup2 ipg = new ImagePanelGroup2(s1,s2,s3,f,g);
+    ipg.setClips2(cmin,cmax);
+    ipg.setColorModel2(ColorMap.setAlpha(ColorMap.JET,0.4));
+    ColorBar cbar = new ColorBar(cbl);
+    ipg.addColorMap2Listener(cbar);
+    sf.getWorld().addChild(ipg);
+    cbar.setWidthMinimum(120);
+    int k1 = 2;
+    int k2 = 193;
+    int k3 = 101;
+    ipg.setSlices(k1,k2,k3);
+    sf.setSize(985,700);   // for sch data
+    //sf.setSize(837,700); // for fake data
+    ViewCanvas vc = sf.getViewCanvas();
+    vc.setBackground(Color.WHITE);
+    double radius = 0.5*sqrt(n1*n1+n2*n2+n3*n3);
+    OrbitView ov = sf.getOrbitView();
+    ov.setEyeToScreenDistance(3018.87); // for consistency with brooks
+    ov.setWorldSphere(new BoundingSphere(0.5*n1,0.5*n2,0.5*n3,radius));
+    ov.setAzimuthAndElevation(100.0,35.0);
+    ov.setScale(1.2);
+    //ov.setTranslate(Vector3(-0.182,-0.238,-0.012));
+    ov.setTranslate(new Vector3(-0.190,-0.168,-0.006));
+    sf.setVisible(true);
+    if (paint) {
+      sf.paintToFile(_paths+title+".png");
+      try {
+      cbar.paintToPng(137,1,_paths+title+"_cbar.png");
+      } catch (IOException e) {
+        System.out.println(e);
+      }
+    }
+  }
+
+  public static void plotp(Sampling s1, Sampling s2, Sampling s3, 
+      float[][][] f, float[][][] g, String cbl, String title, 
+      float cmin, float cmax, boolean paint) {
+    Color background = Color.WHITE;
+    int n1 = s1.getCount();
+    int n2 = s2.getCount();
+    int n3 = s3.getCount();
+    PlotPanelPixels3 pp = new PlotPanelPixels3(
+      PlotPanelPixels3.Orientation.X1DOWN_X2RIGHT,
+      PlotPanelPixels3.AxesPlacement.LEFT_BOTTOM,
+      s1,s2,s3,f);
+    int k1 = 2;
+    int k2 = 193;
+    int k3 = 101;
+    pp.setSlices(k1,k2,k3);
+    pp.setLabel1("Samples");
+    pp.setLabel2("Inline traces");
+    pp.setLabel3("Crossline traces");
+    //pp.mosaic.setHeightElastic(0,100);
+    pp.getMosaic().setHeightElastic(1, 85);
+    pp.setLineColor(Color.YELLOW);
+    ColorBar cb = pp.addColorBar(cbl);
+    //pp.setInterval1(0.1)
+    //pp.setInterval2(0.3)
+    //pp.setInterval3(0.3)
+    PixelsView pv12 = new PixelsView(s1,s2,slice12(k3,g));
+    pv12.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
+    pv12.setInterpolation(PixelsView.Interpolation.NEAREST);
+    PixelsView pv13 = new PixelsView(s1,s3,slice13(k2,g));
+    pv13.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
+    pv13.setInterpolation(PixelsView.Interpolation.NEAREST);
+    PixelsView pv23 = new PixelsView(s2,s3,slice23(k1,g));
+    pv23.setOrientation(PixelsView.Orientation.X1RIGHT_X2UP);
+    pv23.setInterpolation(PixelsView.Interpolation.NEAREST);
+    pv12.setColorModel(ColorMap.setAlpha(ColorMap.JET,0.4));
+    pv13.setColorModel(ColorMap.setAlpha(ColorMap.JET,0.4));
+    pv23.setColorModel(ColorMap.setAlpha(ColorMap.JET,0.4));
+    pv12.setClips(cmin,cmax);
+    pv13.setClips(cmin,cmax);
+    pv23.setClips(cmin,cmax);
+    pp.getPixelsView12().getTile().addTiledView(pv12);
+    pp.getPixelsView13().getTile().addTiledView(pv13);
+    pp.getPixelsView23().getTile().addTiledView(pv23);
+    PlotFrame pf = new PlotFrame(pp);
+    pf.setBackground(background);
+    pp.setColorBarWidthMinimum(120);
+    //pf.setFontSize(18) //for print
+    pf.setFontSize(30); //for slices
+    //pf.setFontSizeForPrint(1.0,0.8)
+    pf.setSize(1150,800);
+    pf.setVisible(true);
+    if (paint) {
+      pf.paintToPng(360,7.0,_paths+title+".png");
+    }
+  }
+  
+  private static float[][] slice12(int k3, float[][][] f) {
+    int n1 = f[0][0].length;
+    int n2 = f[0].length;
+    float[][] s = new float[n2][n1];
+    new SimpleFloat3(f).get12(n1,n2,0,0,k3,s);
+    return s;
+  }
+
+  private static float[][] slice13(int k2, float[][][] f) {
+    int n1 = f[0][0].length;
+    int n3 = f.length;
+    float[][] s = new float[n3][n1];
+    new SimpleFloat3(f).get13(n1,n3,0,k2,0,s);
+    return s;
+  }
+
+  private static float[][] slice23(int k1, float[][][] f) {
+    int n2 = f[0].length;
+    int n3 = f.length;
+    float[][] s = new float[n3][n2];
+    new SimpleFloat3(f).get23(n2,n3,k1,0,0,s);
+    return s;
   }
 }
