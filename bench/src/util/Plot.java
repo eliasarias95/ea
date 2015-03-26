@@ -83,9 +83,9 @@ public class Plot {
    * @param title the title of the image generated.
    */
   public static void plot(Sampling s1, Sampling s2, float[][] f, String title,
-      String hl, String vl, String cbl, float fw, float fh, 
-      float cmin, float cmax, boolean clip, boolean interp, boolean ttl, 
-      boolean paint, boolean cb, boolean color, boolean slide, boolean one) {
+      String cbl, float fw, float fh, float cmin, float cmax, 
+      boolean clip, boolean interp, boolean ttl, boolean paint, boolean color, 
+      boolean slide, boolean one) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
     PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
@@ -93,9 +93,10 @@ public class Plot {
     //PixelsView pv = pp.addPixels(f);
     pv.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
     pp.addTiledView(pv);
-    pp.setHLabel(hl);
-    pp.setVLabel(vl);
+    pp.setHLabel("Traces");
+    pp.setVLabel("Samples");
     //pp.setVInterval(20.0);
+    pp.addColorBar(cbl);
     pp.setColorBarWidthMinimum(100);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -106,7 +107,6 @@ public class Plot {
     if (interp) pv.setInterpolation(PixelsView.Interpolation.NEAREST);
     if (color) pv.setColorModel(ColorMap.JET);
     if (ttl) pp.setTitle(title);
-    if (cb) pp.addColorBar(cbl);
     int dpi = 720;
     if (slide) {
       pf.setFontSizeForSlide(fw,fh,_ratio);
@@ -127,43 +127,6 @@ public class Plot {
           pf.paintToPng(dpi,6.51,_pathp+title+".png");
         }
       }
-    }
-  }
-
-  /**
-   * For absolute difference images.
-   * @param s1 the sampling in the 1st-dimension
-   * @param s2 the sampling in the 2nd-dimension
-   * @param f array[n2][n1] of floats to be plotted
-   * @param title the title of the image generated
-   */
-  public static void plot(Sampling s1, Sampling s2, 
-      float[][] f1, float[][] f2, String title, float fw, float fh, 
-      boolean print) {
-    int fwi = round(1920*fw/2+1);
-    int fhi = round(1080*fh/2+1);
-    PlotPanel pp = new PlotPanel(1,2,PlotPanel.Orientation.X1DOWN_X2RIGHT);
-    PixelsView pv1 = pp.addPixels(0,0,s1,s2,f1);
-    PixelsView pv2 = pp.addPixels(0,1,s1,s2,f2);
-    pv1.setColorModel(ColorMap.RED_WHITE_BLUE);
-    pv2.setColorModel(ColorMap.RED_WHITE_BLUE);
-    pv1.setClips(-1.5f,1.5f);
-    pv2.setClips(-1.5f,1.5f);
-    pp.addColorBar("Slope error (samples/trace)");
-    pp.setColorBarWidthMinimum(90);
-    pp.setHLabel(0,"Traces");
-    pp.setVLabel(0,"Samples");
-    pp.setHLabel(1,"Traces");
-    pp.setVLabel(0,"Samples");
-    pp.getMosaic().getTileAxisTop(0).setFormat("%1.6G");
-    PlotFrame pf = new PlotFrame(pp);
-    pf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    pf.setSize(fwi,fhi);
-    pf.setFontSizeForSlide(fw,fh,_ratio);
-    pf.setVisible(true);
-    if (print) {
-      int dpi = 720;
-      pf.paintToPng(dpi,(1920f*fw-1)/dpi,_paths+title+".png");
     }
   }
 
@@ -216,21 +179,8 @@ public class Plot {
     }
   }
 
-  public static void plot(Sampling s1, Sampling s2, Sampling s3, float[][][] f) {
-    ImagePanelGroup img = new ImagePanelGroup(s1,s2,s3,f);
-		SimpleFrame sf = new SimpleFrame();
-		sf.addImagePanels(img);
-    PlotPanelPixels3 ppp31 = new PlotPanelPixels3(
-				PlotPanelPixels3.Orientation.X1DOWN_X2RIGHT,
-				PlotPanelPixels3.AxesPlacement.LEFT_BOTTOM,s1,s2,s3,f);
-		ppp31.setLineColor(java.awt.Color.GREEN);
-		ppp31.addColorBar();
-		PlotFrame pf = new PlotFrame(ppp31);
-		pf.setVisible(true);
-  }
-
   public static void plot(Sampling s1, Sampling s2, Sampling s3, 
-      float[][][] f, float[][][] g, String cbl, String title, 
+      float[][][] f, float[][][] g, String title, 
       float cmin, float cmax, boolean paint) {
     int n1 = s1.getCount();
     int n2 = s2.getCount();
@@ -239,13 +189,10 @@ public class Plot {
     ImagePanelGroup2 ipg = new ImagePanelGroup2(s1,s2,s3,f,g);
     ipg.setClips2(cmin,cmax);
     ipg.setColorModel2(ColorMap.setAlpha(ColorMap.JET,0.4));
-    ColorBar cbar = new ColorBar(cbl);
-    ipg.addColorMap2Listener(cbar);
     sf.getWorld().addChild(ipg);
-    cbar.setWidthMinimum(120);
-    int k1 = 2;
-    int k2 = 193;
-    int k3 = 101;
+    int k1 = 220;
+    int k2 = 317;
+    int k3 = 41;
     ipg.setSlices(k1,k2,k3);
     sf.setSize(985,700);   // for sch data
     //sf.setSize(837,700); // for fake data
@@ -255,22 +202,16 @@ public class Plot {
     OrbitView ov = sf.getOrbitView();
     ov.setEyeToScreenDistance(3018.87); // for consistency with brooks
     ov.setWorldSphere(new BoundingSphere(0.5*n1,0.5*n2,0.5*n3,radius));
-    ov.setAzimuthAndElevation(100.0,35.0);
+    ov.setAzimuthAndElevation(35.0,20.0);
     ov.setScale(1.2);
-    //ov.setTranslate(Vector3(-0.182,-0.238,-0.012));
-    ov.setTranslate(new Vector3(-0.190,-0.168,-0.006));
+    ov.setTranslate(new Vector3(0.090,0.238,0.012));
     sf.setVisible(true);
     if (paint) {
       sf.paintToFile(_paths+title+".png");
-      try {
-      cbar.paintToPng(137,1,_paths+title+"_cbar.png");
-      } catch (IOException e) {
-        System.out.println(e);
-      }
     }
   }
 
-  public static void plotp(Sampling s1, Sampling s2, Sampling s3, 
+  public static void plot(Sampling s1, Sampling s2, Sampling s3, 
       float[][][] f, float[][][] g, String cbl, String title, 
       float cmin, float cmax, boolean paint) {
     Color background = Color.WHITE;
@@ -281,20 +222,20 @@ public class Plot {
       PlotPanelPixels3.Orientation.X1DOWN_X2RIGHT,
       PlotPanelPixels3.AxesPlacement.LEFT_BOTTOM,
       s1,s2,s3,f);
-    int k1 = 2;
-    int k2 = 193;
-    int k3 = 101;
+    int k1 = 220;
+    int k2 = 317;
+    int k3 = 41;
     pp.setSlices(k1,k2,k3);
     pp.setLabel1("Samples");
-    pp.setLabel2("Inline traces");
-    pp.setLabel3("Crossline traces");
+    pp.setLabel2("Inline (traces)");
+    pp.setLabel3("Crossline (traces)");
     //pp.mosaic.setHeightElastic(0,100);
     pp.getMosaic().setHeightElastic(1, 85);
     pp.setLineColor(Color.YELLOW);
     ColorBar cb = pp.addColorBar(cbl);
-    //pp.setInterval1(0.1)
-    //pp.setInterval2(0.3)
-    //pp.setInterval3(0.3)
+    pp.setInterval1(50);
+    pp.setInterval2(50);
+    pp.setInterval3(50);
     PixelsView pv12 = new PixelsView(s1,s2,slice12(k3,g));
     pv12.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
     pv12.setInterpolation(PixelsView.Interpolation.NEAREST);
@@ -317,7 +258,7 @@ public class Plot {
     pf.setBackground(background);
     pp.setColorBarWidthMinimum(120);
     //pf.setFontSize(18) //for print
-    pf.setFontSize(30); //for slices
+    pf.setFontSize(27); //for slices
     //pf.setFontSizeForPrint(1.0,0.8)
     pf.setSize(1150,800);
     pf.setVisible(true);

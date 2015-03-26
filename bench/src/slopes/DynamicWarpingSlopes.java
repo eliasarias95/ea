@@ -8,7 +8,7 @@ import static edu.mines.jtk.util.ArrayMath.*;
 
 /**
  * @author Elias Arias, Colorado School of Mines, CWP
- * @version 19.2.2015
+ * @version 25.3.2015
  */
 public class DynamicWarpingSlopes {
 

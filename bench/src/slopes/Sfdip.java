@@ -1,15 +1,12 @@
 package slopes;
 
-import edu.mines.jtk.io.ArrayInputStream;
-import edu.mines.jtk.io.ArrayOutputStream;
 import edu.mines.jtk.dsp.Sampling;
-
-import java.io.*;
+import edu.mines.jtk.util.Check;
 
 /**
  * Java class to allow for more java-like use of the sfdip code in Madagascar.
  * @author Elias Arias, Colorado School of Mines, CWP
- * @version 20.1.2014
+ * @version 25.3.2015
  */
 public class Sfdip {
 
@@ -20,6 +17,17 @@ public class Sfdip {
   public Sfdip(float pmin, float pmax) {
     _pmin = pmin;
     _pmax = pmax;
+    _qmin = pmin;
+    _qmax = pmax;
+  }
+
+  /**
+   * What to compute in 3D, 0: in-line, 1: cross-line, 2: both.
+   * @param n4 value either 0, 1, or 2.
+   */
+  public void setN4(int n4) {
+    Check.argument(n4==0 || n4==1 || n4==2, "must be an integer 0, 1 or 2");
+    _n4 = n4;
   }
 
   /**
@@ -149,96 +157,55 @@ public class Sfdip {
 
   /**
    * Uses Madagascar to run sfdip to find the slopes in seismic data.
-   * @param x the array[n2][n1] of inputs
+   * @param s1 sampling of 1st dimension
+   * @param s2 sampling of 2nd dimension
+   * @param f the array[n2][n1] of inputs
    * @param p the array[n2][n1] of output slopes 
    */
-  public void findSlopes(Sampling s1, Sampling s2, float[][] x, float[][] p) {
+  public void findSlopes(Sampling s1, Sampling s2, float[][] f, float[][] p) {
     RsfFilter rf = new RsfFilter("sfdip","both="+_both,
       "n4="+_n4,"niter="+_niter,"liter="+_liter,"rect1="+_rect1,
       "rect2="+_rect2,"rect3="+_rect3,"p0="+_p0,"q0="+_q0,
       "order="+_order,"nj1="+_nj1,"nj2="+_nj2,"verb="+_verb,
       "pmin="+_pmin,"pmax="+_pmax,"qmin="+_qmin,"qmax="+_qmax);
-    rf.apply(s1,s2,x,p);
+    rf.apply(s1,s2,f,p);
   }
 
   /**
    * Uses Madagascar to run sfdip to find the slopes in seismic data.
-   * @param x the array[n2][n1] of inputs
-   * @param y the initial slope values
-   * @param p the array[n2][n1] of output slopes 
+   * @param s1 sampling of 1st dimension
+   * @param s2 sampling of 2nd dimension
+   * @param s3 sampling of 3rd dimension
+   * @param f the array[n3][n2][n1] of inputs
+   * @param p2 the array[n3][n2][n1] of output in-line slopes 
+   * @param p3 the array[n3][n2][n1] of output cross-line slopes 
    */
-  public void findSlopes(Sampling s1, Sampling s2, float[][] x,
-     float[][] y, float[][] p) {
+  public void findSlopes(Sampling s1, Sampling s2, Sampling s3, 
+      float[][][] f, float[][][] p2, float[][][] p3) {
     RsfFilter rf = new RsfFilter("sfdip","both="+_both,
       "n4="+_n4,"niter="+_niter,"liter="+_liter,"rect1="+_rect1,
       "rect2="+_rect2,"rect3="+_rect3,"p0="+_p0,"q0="+_q0,
       "order="+_order,"nj1="+_nj1,"nj2="+_nj2,"verb="+_verb,
       "pmin="+_pmin,"pmax="+_pmax,"qmin="+_qmin,"qmax="+_qmax);
-    rf.apply(s1,s2,x,p,y);
-  }
-
-  /*********************************Private*********************************/
-
-  /**
-   * A method that allows the user to call it multiple times when command line
-   * commands must be run one after the other.
-   * @param cmd the array of string commands to be run on the command line
-   */
-  private void pb(String[] cmd) {
-    try {
-      Process pb = new ProcessBuilder(cmd).start();
-      InputStreamReader isri = new InputStreamReader(pb.getInputStream());
-      BufferedReader stdInput = new BufferedReader(isri);
-
-      InputStreamReader isre = new InputStreamReader(pb.getErrorStream());
-      BufferedReader stdError = new BufferedReader(isre);
-
-      System.out.println("Here is the standard output of the command:\n");
-      String s1;
-      String s2;
-      while ((s1=stdInput.readLine()) !=null) {
-        System.out.println(s1);
-      }
-
-      System.out.println("Here is the standard error of the command:\n");
-      while ((s2=stdError.readLine()) !=null) {
-        System.out.println(s2);
-
-      }
-      //pb.waitFor();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    rf.apply(s1,s2,s3,f,p2,p3);
   }
 
   /**
-   * Reads a binary file.
-   * @param fileName the name of the file to be read
-   * @param x the array[n2][n1] of output data read from the file
+   * Uses Madagascar to run sfdip to find the slopes in seismic data.
+   * @param s1 sampling of 1st dimension
+   * @param s2 sampling of 2nd dimension
+   * @param f the array[n2][n1] of inputs
+   * @param pi the initial slope values
+   * @param p the array[n2][n1] of output slopes 
    */
-  private static void readImage(String fileName, float[][] x) {
-    try {
-      ArrayInputStream ais = new ArrayInputStream(fileName);
-      ais.readFloats(x);
-      ais.close();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Writes seismic data to binary file.
-   * @param x array[n2][n1] of data to write to the binary file
-   * @param fileName name of output binary file
-   */
-  private static void writeBinary(float[][] x, String fileName) {
-    try {
-      ArrayOutputStream aos = new ArrayOutputStream(fileName);
-      aos.writeFloats(x);
-      aos.close();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void findSlopes(Sampling s1, Sampling s2, float[][] f,
+     float[][] pi, float[][] p) {
+    RsfFilter rf = new RsfFilter("sfdip","both="+_both,
+      "n4="+_n4,"niter="+_niter,"liter="+_liter,"rect1="+_rect1,
+      "rect2="+_rect2,"rect3="+_rect3,"p0="+_p0,"q0="+_q0,
+      "order="+_order,"nj1="+_nj1,"nj2="+_nj2,"verb="+_verb,
+      "pmin="+_pmin,"pmax="+_pmax,"qmin="+_qmin,"qmax="+_qmax);
+    rf.apply(s1,s2,f,p,pi);
   }
 
   /****************************Private Variables****************************/
@@ -247,6 +214,5 @@ public class Sfdip {
   private int _n4=1,_nj1=1,_nj2=1,_rect1=1,_rect2=1,_rect3=1,_order=1;
   private int _niter=5,_liter=20;
   private float _p0=0.0f, _q0=0.0f;
-  private float _pmin, _pmax;
-  private float _qmin=-100.0f, _qmax=-100.0f;
+  private float _pmin, _pmax, _qmin, _qmax;
 }

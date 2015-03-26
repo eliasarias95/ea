@@ -28,7 +28,7 @@ import static edu.mines.jtk.util.ArrayMath.*;
  * The RSF program runs in the environment in which the JVM is running.
  * That environment includes the current directory, path, etc.
  * @author Dave Hale and Elias Arias, Colorado School of Mines, CWP
- * @version 2014.01.25
+ * @version 2015.03.25
  */
 public class RsfFilter {
 
@@ -85,6 +85,20 @@ public class RsfFilter {
   }
 
   /**
+   * Applies this filter to an array with default samplings.
+   * @param x the input array.
+   * @return the output array.
+   */
+  public float[][][] apply(float[][][] x) {
+    int n1 = x[0][0].length;
+    int n2 = x[0].length;
+    int n3 = x.length;
+    float[][][] y = new float[n3][n2][n1];
+    apply(x,y);
+    return y;
+  }
+
+  /**
    * Applies this filter for arrays with default samplings.
    * @param x the input array.
    * @param y the output array.
@@ -93,6 +107,18 @@ public class RsfFilter {
     int n1 = x[0].length;
     int n2 = x.length;
     apply(new Sampling(n1),new Sampling(n2),x,y);
+  }
+
+  /**
+   * Applies this filter for arrays with default samplings.
+   * @param x the input array.
+   * @param y the output array.
+   */
+  public void apply(float[][][] x, float[][][] y) {
+    int n1 = x[0][0].length;
+    int n2 = x[0].length;
+    int n3 = x.length;
+    apply(new Sampling(n1),new Sampling(n2),new Sampling(n3),x,y);
   }
 
   /**
@@ -111,6 +137,24 @@ public class RsfFilter {
   }
 
   /**
+   * Applies this filter to an array with specified samplings.
+   * @param s1 the sampling for the 1st dimension.
+   * @param s2 the sampling for the 2nd dimension.
+   * @param s3 the sampling for the 3rd dimension.
+   * @param x the input array.
+   * @return the output array.
+   */
+  public float[][][] apply(
+      Sampling s1, Sampling s2, Sampling s3, float[][][] x) {
+    int n1 = x[0][0].length;
+    int n2 = x[0].length;
+    int n3 = x.length;
+    float[][][] y = new float[n3][n2][n1];
+    apply(s1,s2,s3,x,y);
+    return y;
+  }
+
+  /**
    * Applies this filter for arrays with specified samplings.
    * @param s1 the sampling for the 1st dimension.
    * @param s2 the sampling for the 2nd dimension.
@@ -125,13 +169,40 @@ public class RsfFilter {
    * Applies this filter for arrays with specified samplings.
    * @param s1 the sampling for the 1st dimension.
    * @param s2 the sampling for the 2nd dimension.
+   * @param x first input array.
+   * @param y second input array.
+   * @param z the output array.
+   */
+  public void apply(Sampling s1, Sampling s2, 
+      float[][] x, float[][] y, float[][] z) {
+    apply(new Sampling[]{s1,s2},x,y,z);
+  }
+
+  /**
+   * Applies this filter for arrays with specified samplings.
+   * @param s1 the sampling for the 1st dimension.
+   * @param s2 the sampling for the 2nd dimension.
+   * @param s3 the sampling for the 3rd dimension.
    * @param x the input array.
    * @param y the output array.
-   * @param z additional input array.
    */
-  public void apply(Sampling s1, Sampling s2, float[][] x, float[][] y, 
-      float[][] z) {
-    apply(new Sampling[]{s1,s2},x,y,z);
+  public void apply(
+      Sampling s1, Sampling s2, Sampling s3, float[][][] x, float[][][] y) {
+    apply(new Sampling[]{s1,s2,s3},x,y);
+  }
+
+  /**
+   * Applies this filter for arrays with specified samplings.
+   * @param s1 the sampling for the 1st dimension.
+   * @param s2 the sampling for the 2nd dimension.
+   * @param s3 the sampling for the 3rd dimension.
+   * @param x the input array.
+   * @param y first output array.
+   * @param z second output array.
+   */
+  public void apply(Sampling s1, Sampling s2, Sampling s3, 
+      float[][][] x, float[][][] y, float[][][] z) {
+    apply(new Sampling[]{s1,s2,s3},x,y,z);
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -259,13 +330,13 @@ public class RsfFilter {
       ArrayOutputStream aos2 = new ArrayOutputStream(binInFile2);
       if (x instanceof float[]) {
         aos.writeFloats((float[])x);
-        aos2.writeFloats((float[])z);
+        aos2.writeFloats((float[])y);
       } else if (x instanceof float[][]) {
         aos.writeFloats((float[][])x);
-        aos2.writeFloats((float[][])z);
+        aos2.writeFloats((float[][])y);
       } else if (x instanceof float[][][]) {
         aos.writeFloats((float[][][])x);
-        aos2.writeFloats((float[][][])z);
+        aos2.writeFloats((float[][][])y);
       }
       aos.close();
       aos2.close();
@@ -322,11 +393,12 @@ public class RsfFilter {
       // Read floats from the RSF output file.
       ArrayInputStream ais = new ArrayInputStream(binOutFile);
       if (y instanceof float[]) {
-        ais.readFloats((float[])y);
+        ais.readFloats((float[])z);
       } else if (y instanceof float[][]) {
-        ais.readFloats((float[][])y);
+        ais.readFloats((float[][])z);
       } else if (y instanceof float[][][]) {
         ais.readFloats((float[][][])y);
+        ais.readFloats((float[][][])z);
       }
       ais.close();
 

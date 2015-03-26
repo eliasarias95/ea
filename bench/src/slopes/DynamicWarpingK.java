@@ -51,7 +51,7 @@ import edu.mines.jtk.mosaic.*;
  *
  * @author Dave Hale, Colorado School of Mines
  * @author Elias Arias, Colorado School of Mines
- * @version 19.3.2015
+ * @version 25.3.2015
  */
 public class DynamicWarpingK {
 
