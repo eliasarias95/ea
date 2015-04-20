@@ -1,16 +1,18 @@
 package slopes;
 
 import edu.mines.jtk.dsp.*;
+import edu.mines.jtk.sgl.*;
 import edu.mines.jtk.util.Check;
 import edu.mines.jtk.util.Stopwatch;
+
 
 import static edu.mines.jtk.util.ArrayMath.*;
 
 import util.*;
-import dnp.LocalSlopeFinder;
 import dnp.PlaneWaveDestructor;
 
-
+import java.awt.Color;
+import java.util.Random;
 import javax.swing.*;
 
 /**
@@ -132,7 +134,7 @@ public class Slopes{
   public static void makeRealGOM(float[][] f) {
     int n1 = f[0].length;
     int n2 = f.length;
-    float[][] temp = Util.sexp(Util.readImage(n1,n2,PATH+"data/gom.dat"));
+    float[][] temp = (Util.readImage(n1,n2,PATH+"data/gom.dat"));
     for (int i2=0; i2<n2; ++i2){
       for (int i1=0; i1<n1; ++i1){
         f[i2][i1] = temp[i2][i1];
@@ -148,6 +150,7 @@ public class Slopes{
     int n1 = f[0].length;
     int n2 = f.length;
     float[][] temp = (Util.readImage(n1,n2,PATH+"data/tp/tp73.dat"));
+    //temp = Util.addNoise(0.0,temp);
     for (int i2=0; i2<n2; ++i2){
       for (int i1=0; i1<n1; ++i1){
         f[i2][i1] = temp[i2][i1];
@@ -163,9 +166,11 @@ public class Slopes{
     int n1 = f[0][0].length;
     int n2 = f[0].length;
     int n3 = f.length;
+    //float[][] g = new float[n3][n1];
     float[][][] temp = Util.readImage(n1,n2,n3,PATH+
           //"data/tp/tpsz_subz_51_4_1400.dat");
           "data/tp/tpsz_subz_401_4_400.dat");
+    //temp = Util.addNoise(0.0001,temp);
     for (int i3=0; i3<n3; ++i3){
       for (int i2=0; i2<n2; ++i2){
         for (int i1=0; i1<n1; ++i1){
@@ -173,6 +178,15 @@ public class Slopes{
         }
       }
     }
+
+    /*
+    for (int i3=0; i3<n3; ++i3){
+      for (int i1=0; i1<n1; ++i1){
+        g[i3][i1] = f[i3][317][i1];
+      }
+    }
+    Util.writeBinary(g,PATH+"data/tp/tp317.dat");
+    */
   }
 
 /****************************ESTIMATING SLOPES****************************/
@@ -186,14 +200,19 @@ public class Slopes{
     int n2 = _s2.getCount();
     LocalSlopeFinder lsf = new LocalSlopeFinder(23.0f,1.0f,_pmax);
     float[][] pe = new float[n2][n1];
+    ZeroMask zm = new ZeroMask(f);
     _sw.restart();
     lsf.findSlopes(f,pe);
     _sw.stop();
+    zm.apply(0.0f,pe);
     trace("Structure tensor time = "+_sw.time());    
     Util.writeBinary(pe,PATH+"data/"+title+"_p.dat");
     trace("Structure tensor:");
     float error;
-    if (p!=null) error = Util.rmsError(pe,p,T);
+    if (p!=null) {
+      error = Util.rmsError(pe,p,T);
+      trace("mean slope= "+sum(p)/(n1*n2));
+    }
   }
 
   /**
@@ -204,12 +223,39 @@ public class Slopes{
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
-    LocalSlopeFinder lsf = new LocalSlopeFinder(23.0f,1.0f,1.0f,_pmax);
+    LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,2.0f,2.0f,_pmax);
     float[][][] p2 = new float[n3][n2][n1];
     float[][][] p3 = new float[n3][n2][n1];
+    ZeroMask zm = new ZeroMask(f);
     _sw.restart();
+    //lsf.findSlopesE(f,p2,p3,null);
     lsf.findSlopes(f,p2,p3,null);
     _sw.stop();
+    zm.apply(0.0f,p2);
+    zm.apply(0.0f,p3);
+    trace("Structure tensor time = "+_sw.time());    
+    Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
+    Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+  }
+
+  /**
+   * Structure tensor: plots the estimated slopes.
+   */
+  public void estimateTransLSF(float[][][] f, String title) {
+    boolean one = true;
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,2.0f,2.0f,_pmax);
+    float[][][] p2 = new float[n2][n3][n1];
+    float[][][] p3 = new float[n2][n3][n1];
+    ZeroMask zm = new ZeroMask(f);
+    _sw.restart();
+    lsf.findSlopesE(f,p2,p3,null);
+    //lsf.findSlopes(f,p2,p3,null);
+    _sw.stop();
+    zm.apply(0.0f,p2);
+    zm.apply(0.0f,p3);
     trace("Structure tensor time = "+_sw.time());    
     Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
     Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
@@ -248,8 +294,8 @@ public class Slopes{
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
     Sfdip sd = new Sfdip(-_pmax,_pmax);
-    sd.setRect(75,6,6);
-    sd.setOrder(4);
+    sd.setRect(50,4,4);
+    sd.setOrder(2);
     sd.setNiter(_niter);
     sd.setN4(2);
     sd.setBoth("n");
@@ -257,6 +303,30 @@ public class Slopes{
     float[][][] p3 = new float[n3][n2][n1];
     _sw.restart();
     sd.findSlopes(_s1,_s2,_s3,f,p2,p3);
+    _sw.stop();
+    trace("Madagascar PWD time = "+_sw.time());    
+    Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
+    Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+  }
+
+  /**
+   * PWD Madagascar: plots the estimated slopes.
+   */
+  public void estimateTransPWDM(float[][][] f, String title) {
+    boolean one = true;
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    Sfdip sd = new Sfdip(-_pmax,_pmax);
+    sd.setRect(50,4,4);
+    sd.setOrder(2);
+    sd.setNiter(_niter);
+    sd.setN4(2);
+    sd.setBoth("n");
+    float[][][] p2 = new float[n2][n3][n1];
+    float[][][] p3 = new float[n2][n3][n1];
+    _sw.restart();
+    sd.findSlopes(_s1,_s3,_s2,f,p2,p3);
     _sw.stop();
     trace("Madagascar PWD time = "+_sw.time());    
     Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
@@ -316,17 +386,20 @@ public class Slopes{
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     double r1 = 0.1;
-    double r2 = 0.3;
+    double r2 = 0.5;
     double h1 = 72.0;
-    double h2 = 12.0;
+    double h2 =  6.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,r1,r2,
                                                         ss1,ss2);
+    dws.setErrorSmoothing(2);
     _sw.restart();
     float[][] pe = new float[n2][n1];
+    ZeroMask zm = new ZeroMask(f);
     dws.findSmoothSlopes(ss1,f,pe);
     _sw.stop();
+    zm.apply(0.0f,pe);
     trace("Smooth dynamic warping time = "+_sw.time());    
     Util.writeBinary(pe,PATH+"data/"+title+"_p.dat");
     trace("Smooth dynamic warping:");
@@ -343,24 +416,72 @@ public class Slopes{
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
     double r1 = 0.1;
-    double r2 = 0.3;
-    double r3 = 0.3;
-    double h1 = 72.0;
-    double h2 = 12.0;
-    double h3 = 12.0;
+    double r2 = 0.5;
+    double r3 = 0.5;
+    double h1 = 50.0;
+    double h2 =  6.0;
+    double h3 =  6.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
     Sampling ss3 = new Sampling(n3);
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,h3,
                                        r1,r2,r3,ss1,ss2,ss3);
-    _sw.restart();
+    dws.setErrorSmoothing(2);
     float[][][] p2 = new float[n3][n2][n1];
     float[][][] p3 = new float[n3][n2][n1];
+    ZeroMask zm = new ZeroMask(f);
+    _sw.restart();
     dws.findSmoothSlopes(_s1,f,p2,p3);
     _sw.stop();
+    zm.apply(0.0f,p2);
+    zm.apply(0.0f,p3);
     trace("Smooth dynamic warping time = "+_sw.time());    
     Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
     Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+  }
+
+  public void estimateTransSDW(int k, float[][][] f, String title) {
+    boolean one = true;
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    double r1 = 0.1;
+    double r2 = 0.5;
+    double r3 = 0.5;
+    double h1 = 50.0;
+    double h2 =  6.0;
+    double h3 =  6.0;
+    Sampling ss1 = new Sampling(n1);
+    Sampling ss2 = new Sampling(n2);
+    Sampling ss3 = new Sampling(n3);
+    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h3,h2,
+                                       r1,r3,r2,ss1,ss3,ss2);
+    dws.setErrorSmoothing(2);
+    _sw.restart();
+    float[][][] p2 = new float[n2][n3][n1];
+    float[][][] p3 = new float[n2][n3][n1];
+    ZeroMask zm = new ZeroMask(f);
+    dws.findSmoothSlopes(_s1,f,p2,p3);
+    _sw.stop();
+    zm.apply(0.0f,p2);
+    zm.apply(0.0f,p3);
+    trace("Smooth dynamic warping time = "+_sw.time());    
+    Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
+    Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+  }
+
+  public void retranspose(String title) {
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    float[][][] p2 = Util.readImage(n1,n3,n2,PATH+"data/"+title+"_p2.dat");
+    float[][][] p3 = Util.readImage(n1,n3,n2,PATH+"data/"+title+"_p3.dat");
+    float[][][] p2t = new float[n3][n2][n1];
+    float[][][] p3t = new float[n3][n2][n1];
+    Util.transpose23(p2,p3t);
+    Util.transpose23(p3,p2t);
+    Util.writeBinary(p2t,PATH+"data/"+title+"_p2.dat");
+    Util.writeBinary(p3t,PATH+"data/"+title+"_p3.dat");
   }
 
 /**********************CHOOSING OPTIMAL PARAMETERS**********************/
@@ -630,7 +751,7 @@ public class Slopes{
     for (int i=0; i<n; ++i) {
       trace("nsratio= "+nsratio[i]);
       pbar = testSampleMeanLSF(fileName,nni,nsratio[i],sigma1,sigma2);
-      mean_error[i] = sum(sub(pbar,(p)))/(n1*n2);
+      mean_error[i] = sum(sub(pbar,p))/(n1*n2);
     }
     Util.writeBinary(mean_error,PATH+fileName);
   }
@@ -858,12 +979,27 @@ public class Slopes{
     float[][] p = Util.readImage(n1,n2,PATH+"data/"+title+"_p.dat");
     // clip, interp, title, paint, color
     String cbl = "slope (samples/trace)"; //colorbar label
-    Plot.plot(_s1,_s2,p,title+"_p_noise="+_noise,cbl,_fw,_fh, -_cmax,_cmax,
-        _clip,F,_title,_paint,T,_slide,one);
-    if (f!=null) {
-      Plot.plot(_s1,_s2,f,title,"",_fw,_fh,-2000,2000,F,F,_title,_paint,F,
-          _slide,one);
-    }
+    Plot.plot(_s1,_s2,f,p,title+num,cbl,_fw,_fh,-_cmax,_cmax,_clip,_title,_paint,
+        _slide,one);
+  }
+
+  public void plot3DSub(float[][][] f, String title1, String title2) {
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    float[][][] p2 = Util.readImage(n1,n2,n3,PATH+"data/"+title1+"_p2.dat");
+    float[][][] p3 = Util.readImage(n1,n2,n3,PATH+"data/"+title1+"_p3.dat");
+    float[][][] p2t = Util.readImage(n1,n2,n3,PATH+"data/"+title2+"_p2.dat");
+    float[][][] p3t = Util.readImage(n1,n2,n3,PATH+"data/"+title2+"_p3.dat");
+    //Plot.plot(_s1,_s2,_s3,f,sub(p2,p2t),title1+"_p2_slices",-_cmax,_cmax,
+    //_paint);
+    //Plot.plot(_s1,_s2,_s3,f,sub(p3,p3t),title1+"_p3_slices",-_cmax,_cmax,
+    //_paint);
+    Plot.plot(_s1,_s2,_s3,f,sub(p2,p2t),"slope (samples/trace)",title1+
+        "_p2_panels",0.6f,0.8f,-_cmax,_cmax,_paint,_slide);
+    Plot.plot(_s1,_s2,_s3,f,sub(p3,p3t),"slope (samples/trace)",title1+
+       "_p3_panels",0.6f,0.8f,-_cmax,_cmax,_paint,_slide);
+      trace("max and min values= "+max(sub(p3,p3t))+", "+min(sub(p2,p2t)));
   }
 
   public void plot3D(float[][][] f, String title) {
@@ -875,9 +1011,40 @@ public class Slopes{
     Plot.plot(_s1,_s2,_s3,f,p2,title+"_p2_slices",-_cmax,_cmax,_paint);
     Plot.plot(_s1,_s2,_s3,f,p3,title+"_p3_slices",-_cmax,_cmax,_paint);
     Plot.plot(_s1,_s2,_s3,f,p2,"slope (samples/trace)",title+"_p2_panels",
-        -_cmax,_cmax,_paint);
+        0.6f,0.8f,-_cmax,_cmax,_paint,_slide);
     Plot.plot(_s1,_s2,_s3,f,p3,"slope (samples/trace)",title+"_p3_panels",
-        -_cmax,_cmax,_paint);
+        0.6f,0.8f,-_cmax,_cmax,_paint,_slide);
+  }
+
+  public void plotError(String t1, String t2, String t3) {
+    int n  = 20;
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    float[][][] p2t1 = Util.readImage(n1,n2,n3,PATH+"data/"+t1+"_p2.dat");
+    float[][][] p3t1 = Util.readImage(n1,n2,n3,PATH+"data/"+t1+"_p3.dat");
+    float[][][] p2t2 = Util.readImage(n1,n2,n3,PATH+"data/"+t2+"_p2.dat");
+    float[][][] p3t2 = Util.readImage(n1,n2,n3,PATH+"data/"+t2+"_p3.dat");
+    float[][][] p2t3 = Util.readImage(n1,n2,n3,PATH+"data/"+t3+"_p2.dat");
+    float[][][] p3t3 = Util.readImage(n1,n2,n3,PATH+"data/"+t3+"_p3.dat");
+    Sampling s = new Sampling(n,1,1);
+    float[] p   = new float[n];
+    float[] e1  = new float[n];
+    float[] pe1 = new float[n];
+    float[] e2  = new float[n];
+    float[] pe2 = new float[n];
+    float[] e3  = new float[n];
+    float[] pe3 = new float[n];
+    float med_error1 = Util.errorStatistic(p2t1,p3t1,e1,p,pe1);
+    float med_error2 = Util.errorStatistic(p2t2,p3t2,e2,p,pe2);
+    float med_error3 = Util.errorStatistic(p2t3,p3t3,e3,p,pe3);
+    trace(t1+" median error= "+med_error1);
+    trace(t2+" median error= "+med_error2);
+    trace(t3+" median error= "+med_error3);
+    //Plot.plot(s,pe1,pe2,pe3,p,t1+"_"+t2+"_"+t3+"_est_slope_plot","pick #",
+    //    "slope (samples/trace)",_fw,_fh,-1f,1f,_slide,false,_paint);
+    Plot.plot(s,e1,e2,e3,t1+"_"+t2+"_"+t3+"_median_error_plot","pick #",
+        "slope error (samples/trace)",_fw,_fh,-0.3f,0.3f,_slide,false,_paint);
   }
 
   /**
@@ -923,50 +1090,7 @@ public class Slopes{
         T,T,_title,_paint,T,_slide,one);
   }
 
-  /*private static void goErrorLocation() {
-    int i = 5;
-    LocalSlopeFinder lsf = new LocalSlopeFinder(24.0f,1.0f,pmax);
-    float[][] lsf_slope = new float[n2][n1];
-    lsf.findSlopes(synth_data,lsf_slope);
-
-    Sfdip sd = new Sfdip(-pmax,pmax);
-    sd.setRect(76,6);
-    sd.setOrder(2);
-    float[][] mad_slope = new float[n2][n1];
-    sd.findSlopes(s1,s2,synth_data,mad_slope);
-
-    lsf_slope = mul(lsf_slope,d1/d2);
-    mad_slope = mul(mad_slope,d1/d2);
-    
-    float[][] exact_grad = new float[n2][n1];
-    float[][] lsf_grad = new float[n2][n1];
-    float[][] mad_grad = new float[n2][n1];
-    double rgf_sig = 2.0;
-    RecursiveGaussianFilter rgf = new RecursiveGaussianFilter(rgf_sig);
-    rgf.apply11(exact_slope,exact_grad);
-    rgf.apply11(lsf_slope,lsf_grad);
-    rgf.apply11(mad_slope,mad_grad);
-
-    float exact_mag = sqrt(sum(pow(exact_grad,2))); 
-    float lsf_mag = sqrt(sum(pow(lsf_grad,2))); 
-    float mad_mag = sqrt(sum(pow(mad_grad,2))); 
-
-    float[][] exact_rmsdiff = new float[n2][n1]; 
-    float[][] lsf_rmsdiff = new float[n2][n1]; 
-    float[][] mad_rmsdiff = new float[n2][n1]; 
-
-    sub(lsf_slope,exact_slope,lsf_rmsdiff);
-    sub(mad_slope,exact_slope,mad_rmsdiff);
-    
-
-    float fw = 0.9f; //fraction width for slide
-    float fh = 0.7f; //fraction height for slide
-    // title, paint, colorbar, color
-    //Plot.plot(s1,s2,exact_rmsdiff,"RMS Diff Exact",fw,fh,F,F,T,T);
-    Plot.plot(s1,s2,lsf_rmsdiff,"RMS Diff LOF w noise"+i,fw,fh,-2,2,F,F,T,T);
-    Plot.plot(s1,s2,mad_rmsdiff,"RMS Diff MAD w noise"+i,fw,fh,-2,2,F,F,T,T);
-  }
-
+  /*
   private static void goTestSlopeVsError() {
     int n1 = 501;
     int n2 = 501;
@@ -1034,13 +1158,13 @@ public class Slopes{
   private static final float pi = FLT_PI;      
   private static final float _fw = 0.75f; //fraction width for slide
   private static final float _fh = 0.9f; //fraction height for slide
-  private static final float _cmax = 1.5f;
+  private static final float _cmax = 1.0f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;
-  private static final boolean _paint = false;  
+  private static final boolean _paint = false;
   private static final boolean _clip = true;
-  private static final boolean _slide = false;
+  private static final boolean _slide = true;
 
   private Stopwatch _sw = new Stopwatch();
   private float _noise;

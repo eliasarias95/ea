@@ -42,6 +42,10 @@ public class DynamicWarpingSlopes {
     _si = new SincInterpolator();
   }
 
+  public void setErrorSmoothing(int esmooth) {
+    _dwk.setErrorSmoothing(esmooth);
+  }
+
   public void setK(int k) {
     _k = k;
   }
@@ -87,8 +91,7 @@ public class DynamicWarpingSlopes {
       fm[i2] = f[i2-1];
     }
 
-    temp = _dwk.findShifts(sf,f,sf,fm);
-    temp = mul(temp,-1.0f);
+    temp = _dwk.findShifts(sf,fm,sf,f);
     temp = interpolateSlopes(temp);
     for (int i2=0; i2<n2; ++i2)
       for (int i1=0; i1<n1; ++i1)
@@ -119,12 +122,10 @@ public class DynamicWarpingSlopes {
       f3m[i3] = f[i3-1];
     }
 
-    temp2 = _dwk.findShifts(sf,f,sf,f2m);
-    temp2 = mul(temp2,-1.0f);
-    temp2 = interpolateSlopes(temp2);
-    temp3 = _dwk.findShifts(sf,f,sf,f3m);
-    temp3 = mul(temp3,-1.0f);
-    temp3 = interpolateSlopes(temp3);
+    temp2 = _dwk.findShifts(sf,f2m,sf,f);
+    temp2 = interpolateSlopes(temp2,2);
+    temp3 = _dwk.findShifts(sf,f3m,sf,f);
+    temp3 = interpolateSlopes(temp3,3);
 
     for (int i3=0; i3<n3; ++i3) {
       for (int i2=0; i2<n2; ++i2) {
@@ -210,7 +211,7 @@ public class DynamicWarpingSlopes {
     return pi;
   }
 
-  private float[][][] interpolateSlopes(float[][][] p) {
+  private float[][][] interpolateSlopes(float[][][] p, int twoOrThree) {
     int n3 = p.length;
     int n2 = p[0].length;
     int n1 = p[0][0].length;
@@ -220,18 +221,39 @@ public class DynamicWarpingSlopes {
     float[] x3 = new float[n3];
     for (int i1=0; i1<n1; ++i1)
       x1[i1] = i1;
-    for (int i2=0; i2<n2; ++i2)
-      x2[i2] = i2-0.5f;
-    for (int i3=0; i3<n3; ++i3)
-      x3[i3] = i3-0.5f;
+    if (twoOrThree == 2) {
+      for (int i2=0; i2<n2; ++i2)
+        x2[i2] = i2-0.5f;
+      for (int i3=0; i3<n3; ++i3)
+        x3[i3] = i3;
+    }
+    else {
+      for (int i2=0; i2<n2; ++i2)
+        x2[i2] = i2;
+      for (int i3=0; i3<n3; ++i3)
+        x3[i3] = i3-0.5f;
+    }
 
+    //trace("before making tricubic interpolator");
     //TricubicInterpolator3 tc = new TricubicInterpolator3(
     //  TricubicInterpolator3.Method.MONOTONIC,
-    //  TricubicInterpolator3.Method.SPLINE,
-    //  TricubicInterpolator3.Method.SPLINE,
+    //  TricubicInterpolator3.Method.MONOTONIC,
+    //  TricubicInterpolator3.Method.MONOTONIC,
     //  x1,x2,x3,p);
+    //trace("after making tricubic interpolator");
+    trace("before making trilinear interpolator");
     TrilinearInterpolator3 tc = new TrilinearInterpolator3(x1,x2,x3,p);
+    trace("after making trilinear interpolator");
     pi = tc.interpolate000(_s1,_s2,_s3);
-    return pi;
+    trace("after using trilinear interpolator");
+    //trace("after using tricubic interpolator");
+    for (int i3=0; i3<n3; ++i3) {
+      for (int i2=0; i2<n2; ++i2) {
+        for (int i1=0; i1<n1; ++i1) {
+          p[i3][i2][i1] = pi[i3][i2][i1];
+        }
+      }
+    }
+    return p;
   }
 }

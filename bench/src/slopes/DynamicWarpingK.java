@@ -194,6 +194,21 @@ public class DynamicWarpingK {
   }
 
   /**
+   * Sets the number of nonlinear smoothings of alignment errors.
+   * In dynamic warping, alignment errors are smoothed the specified 
+   * number of times, along all dimensions (in order 1, 2, ...), 
+   * before estimating shifts by accumulating and backtracking along 
+   * only the 1st dimension. 
+   * <p> 
+   * The default number of smoothings is zero, which is best for 1D
+   * sequences. For 2D and 3D images, two smoothings are recommended.
+   * @param esmooth number of nonlinear smoothings.
+   */
+  public void setErrorSmoothing(int esmooth) {
+    _esmooth = esmooth;
+  }
+
+  /**
    * Sets the smoothness of shifts computed by this dynamic warping.
    * <em>
    * Units of smoothness are the same as those used in the corresponding
@@ -300,6 +315,13 @@ public class DynamicWarpingK {
     float[][][] ekk = smoothErrors2(_r2min,_r2max,k2s,ss,s2,ek);
     normalizeErrors(ekk);
 
+    /*
+    float[][][] es = new float[nk2][][];
+    for (int is=0; is<_esmooth-1; ++is) {
+
+    }
+    */
+
     trace("findShifts: finding shifts ...");
     float[][] ukk = new float[nk2][];
     for (int ik2=0; ik2<nk2; ++ik2) {
@@ -362,6 +384,15 @@ public class DynamicWarpingK {
     final float[][][][] ekkk = smoothErrors3(_r3min,_r3max,k3s,ss,s3,ekk);
     normalizeErrors(ekkk);
 
+    float[][][][] es = ekkk;
+    for (int is=0; is<_esmooth-1; ++is) {
+      smoothSubsampledErrors(_r1min,_r1max,k1s,
+                                   _r2min,_r2max,k2s,
+                                   _r3min,_r3max,k3s,ss,s1,s2,s3,es);
+      normalizeErrors(es);
+    }
+    final float[][][][] e = es;
+
     trace("findShifts: finding shifts ...");
     final float[][][] ukk = new float[nk3][nk2][];
     int nk23 = nk2*nk3;
@@ -370,7 +401,7 @@ public class DynamicWarpingK {
       int ik2 = ik23%nk2;
       int ik3 = ik23/nk2;
       ukk[ik3][ik2] = findShiftsFromSubsampledErrors(
-        _r1min,_r1max,k1s,ss,s1,ekkk[ik3][ik2]);
+        _r1min,_r1max,k1s,ss,s1,e[ik3][ik2]);
     }});
 
     trace("findShifts: interpolating shifts ...");
@@ -495,6 +526,7 @@ public class DynamicWarpingK {
   private double _r1min,_r2min,_r3min;
   private double _r1max,_r2max,_r3max;
   private int _k1min,_k2min,_k3min;
+  private int _esmooth = 1;
   private SincInterpolator _si;
   private float _epow = 1.00f;
 
@@ -592,36 +624,6 @@ public class DynamicWarpingK {
   }
 
   /**
-   * Smooths alignment errors.
-   * @param rmin lower bound on strain.
-   * @param rmax upper bound on strain.
-   * @param me number of errors summed per smoothed error.
-   * @param ss uniform sampling of ns shifts.
-   * @param se uniform sampling of ne errors.
-   * @param e input array[ne][ns] of alignment errors.
-   * @return array[ne][ns] of subsampled errors.
-   */
-  private static float[][] smoothErrors(
-    double rmin, double rmax, int me, 
-    Sampling ss, Sampling se, float[][] e) 
-  {
-    int ns = ss.getCount();
-    int ne = se.getCount();
-    float[][] df = new float[ne][ns];
-    float[][] dr = new float[ne][ns];
-    accumulate( 1,rmin,rmax,me,ss,se,e,df);
-    accumulate(-1,rmin,rmax,me,ss,se,e,dr);
-    float[][] d = df;
-    float scale = 1.0f/ne;
-    for (int ie=0; ie<ne; ++ie) {
-      for (int is=0; is<ns; ++is) {
-        d[ie][is] = scale*(df[ie][is]+dr[ie][is]-e[ie][is]);
-      }
-    }
-    return d;
-  }
-
-  /**
    * Subsamples alignment errors.
    * @param rmin lower bound on strain.
    * @param rmax upper bound on strain.
@@ -657,10 +659,12 @@ public class DynamicWarpingK {
    * Returns alignment errors smoothed in the second dimension.
    * Returned errors are sparse in the second dimension, and
    * unchanged in the first dimension.
-   * @param e alignment errors.
    * @param r2min minimum strain the second dimension.
    * @param r2max maximum strain in the second dimension.
    * @param k2s second dimension sparse grid indices.
+   * @param ss uniform sampling of ns shifts.
+   * @param se uniform sampling of ne errors.
+   * @param e alignment errors.
    * @return smoothed alignment errors with size
    *  [k2s.length][e[0].length][e[0][0].length].
    */
@@ -688,10 +692,12 @@ public class DynamicWarpingK {
    * Returns alignment errors smoothed in the second dimension.
    * Returned errors are sparse in the second dimension, and
    * unchanged in the first dimension and third dimension.
-   * @param e alignment errors.
    * @param r2Min minimum strain in the second dimension.
    * @param r2Max maximum strain in the second dimension.
    * @param k2s second dimension sparse grid indices.
+   * @param ss uniform sampling of ns shifts.
+   * @param se uniform sampling of ne errors.
+   * @param e alignment errors.
    * @return smoothed alignment errors with size
    *  [e.length][k2s.length][e[0][0].length][e[0][0][0].length].
    */
@@ -709,10 +715,12 @@ public class DynamicWarpingK {
    * Returns alignment errors smoothed in the third dimension.
    * Returned errors are sparse in the third dimension, and
    * unchanged in the first and second dimension.
-   * @param e alignment errors.
    * @param r3Min minimum strain in the third dimension.
    * @param r3Max maximum strain in the third dimension.
    * @param k3s third dimension sparse grid indices.
+   * @param ss uniform sampling of ns shifts.
+   * @param se uniform sampling of ne errors.
+   * @param e alignment errors.
    * @return smoothed alignment errors with size
    *  [k3s.length][e[0].length][e[0][0].length][e[0][0][0].length].
    */
@@ -728,7 +736,7 @@ public class DynamicWarpingK {
     Parallel.loop(nk1,new Parallel.LoopInt() {
     public void compute(int ik1) {
       for (int ik2=0; ik2<nk2; ++ik2) {
-        float[][]  e3 = new float[n3][ns]; // smooth errors at index i1,i2
+        float[][] e3 = new float[n3][ns]; // smooth errors at index i1,i2
         for (int i3=0; i3<n3; ++i3)
           e3[i3] = e[i3][ik2][ik1];
         float[][] es3 = subsampleErrors(r3min,r3max,k3s,ss,se,e3);
@@ -776,6 +784,31 @@ public class DynamicWarpingK {
     }
     for (int ik2=0; ik2<nk2; ++ik2) {
       smoothSubsampledErrors(r1min,r1max,k1s,ss,s1,e[ik2]);
+    }
+  }
+
+  private static void smoothSubsampledErrors(
+    double r1min, double r1max, int[] k1s,
+    double r2min, double r2max, int[] k2s,
+    double r3min, double r3max, int[] k3s,
+    Sampling ss, Sampling s1, Sampling s2, Sampling s3, float[][][][] e) 
+  {
+    int ns = ss.getCount();
+    int nk1 = k1s.length;
+    int nk2 = k2s.length;
+    int nk3 = k3s.length;
+    float[][] e3 = new float[nk3][];
+    for (int ik1=0; ik1<nk1; ++ik1) {
+      for (int ik2=0; ik2<nk2; ++ik2) {
+        for (int ik3=0; ik3<nk3; ++ik3)
+          e3[ik3] = e[ik3][ik2][ik1];
+        smoothSubsampledErrors(r3min,r3max,k3s,ss,s3,e3);
+        for (int ik3=0; ik3<nk3; ++ik3)
+          e[ik3][ik2][ik1] = e3[ik3];
+      }
+    }
+    for (int ik3=0; ik3<nk3; ++ik3) {
+      smoothSubsampledErrors(r1min,r1max,k1s,r2min,r2max,k2s,ss,s1,s2,e[ik3]);
     }
   }
 
@@ -1219,7 +1252,7 @@ public class DynamicWarpingK {
           uk23[ik3][ik2] = ukk[ik3][ik2][ik1];
       BicubicInterpolator2 bl = new BicubicInterpolator2(
         BicubicInterpolator2.Method.MONOTONIC,
-        BicubicInterpolator2.Method.SPLINE,
+        BicubicInterpolator2.Method.MONOTONIC,
         xk2,xk3,uk23);
       double v3 = f3;
       for (int i3=0; i3<n3; ++i3, v3=f3+i3*d3) {
@@ -1235,7 +1268,7 @@ public class DynamicWarpingK {
     for (int i3=0; i3<n3; ++i3) {
       for (int i2=0; i2<n2; ++i2) {
         CubicInterpolator ci = 
-          new CubicInterpolator(CubicInterpolator.Method.LINEAR,
+          new CubicInterpolator(CubicInterpolator.Method.MONOTONIC,
                 xk1,u23[i3][i2]);
         double v1 = f1;
         for (int i1=0; i1<n1; ++i1, v1=f1+i1*d1)

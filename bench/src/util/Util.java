@@ -3,7 +3,9 @@ package util;
 import edu.mines.jtk.io.*;
 import edu.mines.jtk.dsp.*;
 import edu.mines.jtk.util.RandomFloat;
+import edu.mines.jtk.util.Parallel;
 import edu.mines.jtk.mosaic.SimplePlot;
+import edu.mines.jtk.util.SimpleFloat3;
 
 import dnp.LocalSlopeFinder;
 import dnp.PlaneWaveDestructor;
@@ -60,6 +62,45 @@ public class Util {
     return add(f,g);
   }
 
+  public static float[][] addNoise(double nrms, float[][] f) {
+    int n1 = f[0].length;
+    int n2 = f.length;
+    Random r = new Random(1);
+    //nrms *= max(abs(f));
+    float[][] g = mul(2.0f,sub(randfloat(r,n1,n2),0.5f));
+    RecursiveGaussianFilter rgf = new RecursiveGaussianFilter(2.0);
+    rgf.apply10(g,g); // 1st derivative enhances high-frequencies
+    float frms = sqrt(sum(mul(f,f))/n1/n2);
+    float grms = sqrt(sum(mul(g,g))/n1/n2);
+    g = mul(g,(float)nrms*frms/grms);
+    return add(f,g);
+  }
+
+  public static float[][][] addNoise(double nrms, float[][][] f) {
+    int n1 = f[0][0].length;
+    int n2 = f[0].length;
+    int n3 = f.length;
+    Random r = new Random(1); // 31415
+    float[][][] g = mul(2.0f,sub(randfloat(r,n1,n2,n3),0.5f));
+    RecursiveGaussianFilter rgf = new RecursiveGaussianFilter(1.0);
+    rgf.apply100(g,g); // 1st derivative enhances high-frequencies
+    g = mul(g,(float)nrms*rms(f)/rms(g));
+    return add(f,g);
+  }
+
+  /*
+   * A parallel transpose method with a block size of 1.
+   */
+  public static void transpose23(float[][][] x, float[][][] y) {
+    int n3 = x.length;
+    int n2 = x[0].length;
+    int n1 = x[0][0].length;
+    for (int i2=0; i2<n2; ++i2)
+      for (int i3=0; i3<n3; ++i3)
+        for (int i1=0; i1<n1; ++i1)
+          y[i2][i3][i1] = x[i3][i2][i1];
+  }
+
   public static float[][] flip2(float[][] x) {
     int n2 = x.length;
     int n1 = x[0].length;
@@ -82,6 +123,35 @@ public class Util {
     return (float)sqrt(sum/n1);
   }
 
+  public static float rms(float[][] f) {
+    int n1 = f[0].length;
+    int n2 = f.length;
+    double sum = 0.0;
+    for (int i2=0; i2<n2; ++i2) {
+      for (int i1=0; i1<n1; ++i1) {
+        float fi = f[i2][i1];
+        sum += fi*fi;
+      }
+    }
+    return (float)sqrt(sum/n1/n2);
+  }
+
+  public static float rms(float[][][] f) {
+    int n1 = f[0][0].length;
+    int n2 = f[0].length;
+    int n3 = f.length;
+    double sum = 0.0;
+    for (int i3=0; i3<n3; ++i3) {
+      for (int i2=0; i2<n2; ++i2) {
+        for (int i1=0; i1<n1; ++i1) {
+          float fi = f[i3][i2][i1];
+          sum += fi*fi;
+        }
+      }
+    }
+    return (float)sqrt(sum/n1/n2/n3);
+  }
+
   public static float rmsError(float[][] pe, float[][] p, boolean print_error) {
     int n1 = pe[0].length;
     int n2 = pe.length;
@@ -91,6 +161,79 @@ public class Util {
     if (print_error)
       System.out.println("Error = "+rmserror);
     return rmserror;
+  }
+
+  public static float errorStatistic(
+      float[][][] p2, float[][][] p3, float[] e, float[] p, float[] pe) {
+    int n = 20;
+    float[] m = new float[n];
+
+    p[0]  = -0.915f;
+    p[1]  = -0.847f;
+    p[2]  = -0.427f;
+    p[3]  = -0.369f;
+    p[4]  = -0.357f;
+    p[5]  = -0.321f;
+    p[6]  = -0.149f;
+    p[7]  = -0.119f;
+    p[8]  = -0.045f;// +-
+    p[9]  =  0.011f;// +-
+    p[10] =  0.014f;// +-
+    p[11] =  0.263f;
+    p[12] =  0.324f;
+    p[13] =  0.328f;
+    p[14] =  0.409f;
+    p[15] =  0.447f;
+    p[16] =  0.527f;
+    p[17] =  0.560f;
+    p[18] =  0.600f;
+    p[19] =  0.605f;
+
+    pe[0]  = p3[55 ][147][108];
+    pe[1]  = p2[160][70 ][242];
+    pe[2]  = p2[52 ][215][105];
+    pe[3]  = p2[38 ][197][49 ];
+    pe[4]  = p2[49 ][199][108];
+    pe[5]  = p2[58 ][194][195];
+    pe[6]  = p2[83 ][124][43 ];
+    pe[7]  = p3[65 ][0  ][69 ];
+    pe[8]  = p2[81 ][56 ][65 ]; // +-
+    pe[9]  = p3[77 ][205][158]; // +-
+    pe[10] = p2[139][58 ][82 ]; // +-
+    pe[11] = p2[109][246][123];
+    pe[12] = p3[124][134][152];
+    pe[13] = p3[132][82 ][124];
+    pe[14] = p3[91 ][227][108];
+    pe[15] = p3[111][235][81 ];
+    pe[16] = p3[118][257][24 ];
+    pe[17] = p2[81 ][335][75 ];
+    pe[18] = p3[93 ][317][166];
+    pe[19] = p3[61 ][278][182];
+
+    e[0]  = -(-0.915f-p3[55 ][147][108]);
+    e[1]  = -(-0.847f-p2[160][70 ][242]);
+    e[2]  = -(-0.427f-p2[52 ][215][105]);
+    e[3]  = -(-0.369f-p2[38 ][197][49 ]);
+    e[4]  = -(-0.357f-p2[49 ][199][108]);
+    e[5]  = -(-0.321f-p2[58 ][194][195]);
+    e[6]  = -(-0.149f-p2[83 ][124][43 ]);
+    e[7]  = -(-0.119f-p3[65 ][0  ][69 ]);
+    e[8]  = -(-0.045f-p2[81 ][56 ][65 ]); // +-
+    e[9]  = -( 0.011f-p3[77 ][205][158]); // +-
+    e[10] = -( 0.014f-p2[139][58 ][82 ]); // +-
+    e[11] = -( 0.263f-p2[109][246][123]);
+    e[12] = -( 0.324f-p3[124][134][152]);
+    e[13] = -( 0.328f-p3[132][82 ][124]);
+    e[14] = -( 0.409f-p3[91 ][227][108]);
+    e[15] = -( 0.447f-p3[111][235][81 ]);
+    e[16] = -( 0.527f-p3[118][257][24 ]);
+    e[17] = -( 0.560f-p2[81 ][335][75 ]);
+    e[18] = -( 0.600f-p3[93 ][317][166]);
+    e[19] = -( 0.605f-p3[61 ][278][182]);
+
+    m = copy(e);
+    quickSort(m);
+    return (m[9]+m[10])/2.0f;
   }
 
   public static float[] reSampleSinc(Sampling sf, float[] f, Sampling sg) {
@@ -126,6 +269,30 @@ public class Util {
    */
   public static float[][] sexp(float[][] x) {
     return mul(sgn(x),log(add(abs(x),0.5f)));
+  }
+
+  public static float[][] slice12(int k3, float[][][] f) {
+    int n1 = f[0][0].length;
+    int n2 = f[0].length;
+    float[][] s = new float[n2][n1];
+    new SimpleFloat3(f).get12(n1,n2,0,0,k3,s);
+    return s;
+  }
+
+  public static float[][] slice13(int k2, float[][][] f) {
+    int n1 = f[0][0].length;
+    int n3 = f.length;
+    float[][] s = new float[n3][n1];
+    new SimpleFloat3(f).get13(n1,n3,0,k2,0,s);
+    return s;
+  }
+
+  public static float[][] slice23(int k1, float[][][] f) {
+    int n2 = f[0].length;
+    int n3 = f.length;
+    float[][] s = new float[n3][n2];
+    new SimpleFloat3(f).get23(n2,n3,k1,0,0,s);
+    return s;
   }
 
   /**

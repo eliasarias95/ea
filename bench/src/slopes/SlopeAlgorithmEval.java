@@ -66,9 +66,9 @@ public class SlopeAlgorithmEval {
     }
     if (method==4) {
       s2D.estimateLSF(f,p,lsf_title);
-      s2D.plot2D(null,lsf_title);
+      s2D.plot2D(f,lsf_title);
       s2D.estimatePWDM(f,p,pwd_title);
-      s2D.plot2D(null,pwd_title);
+      s2D.plot2D(f,pwd_title);
       s2D.estimateSDW(k,f,p,sdw_title);
       s2D.plot2D(f,sdw_title);
     }
@@ -120,31 +120,31 @@ public class SlopeAlgorithmEval {
     double d2 = 0.25;
     float[][] f  = new float[n2][n1];//2D seismic image
     float[][] p = new float[n2][n1]; //2D slope values
-    Sampling s1 = new Sampling(n1,d1,0.0);
-    Sampling s2 = new Sampling(n2,d2,0.0);
+    Sampling s1 = new Sampling(n1);
+    Sampling s2 = new Sampling(n2);
     Slopes s2D = new Slopes(noise,pmax,s1,s2);
     Slopes.makeSyntheticConstant(freq,pc2,f,p);
     String lsf_title = "lsf_constant2D";
     String pwd_title = "pwd_constant2D";
     String sdw_title = "sdw_constant2D";
     if (method==1) {
-      //s2D.estimateLSF(f,p,lsf_title);
+      s2D.estimateLSF(f,p,lsf_title);
       s2D.plot2D(f,lsf_title);
     }
     if (method==2) {
-      //s2D.estimatePWDM(f,p,pwd_title);
+      s2D.estimatePWDM(f,p,pwd_title);
       s2D.plot2D(f,pwd_title);
     }
     if (method==3) {
-      //s2D.estimateSDW(k,f,p,sdw_title);
+      s2D.estimateSDW(k,f,p,sdw_title);
       s2D.plot2D(f,sdw_title);
     }
     if (method==4) {
-      //s2D.estimateLSF(f,p,lsf_title);
-      s2D.plot2D(null,lsf_title);
-      //s2D.estimatePWDM(f,p,pwd_title);
-      s2D.plot2D(null,pwd_title);
-      //s2D.estimateSDW(k,f,p,sdw_title);
+      s2D.estimateLSF(f,p,lsf_title);
+      s2D.plot2D(f,lsf_title);
+      s2D.estimatePWDM(f,p,pwd_title);
+      s2D.plot2D(f,pwd_title);
+      s2D.estimateSDW(k,f,p,sdw_title);
       s2D.plot2D(f,sdw_title);
     }
   }
@@ -222,23 +222,23 @@ public class SlopeAlgorithmEval {
     String pwd_title = "pwd_GOM2D";
     String sdw_title = "sdw_GOM2D";
     if (method==1) {
-      //s2D.estimateLSF(f,null,lsf_title);
+      s2D.estimateLSF(f,null,lsf_title);
       s2D.plot2D(f,lsf_title);
     }
     if (method==2) {
-      //s2D.estimatePWDM(f,null,pwd_title);
+      s2D.estimatePWDM(f,null,pwd_title);
       s2D.plot2D(f,pwd_title);
     }
     if (method==3) {
-      //s2D.estimateSDW(k,f,null,sdw_title);
+      s2D.estimateSDW(k,f,null,sdw_title);
       s2D.plot2D(f,sdw_title);
     }
     if (method==4) {
-      //s2D.estimateLSF(f,null,lsf_title);
-      s2D.plot2D(null,lsf_title);
-      //s2D.estimatePWDM(f,null,pwd_title);
-      s2D.plot2D(null,pwd_title);
-      //s2D.estimateSDW(k,f,null,sdw_title);
+      s2D.estimateLSF(f,null,lsf_title);
+      s2D.plot2D(f,lsf_title);
+      s2D.estimatePWDM(f,null,pwd_title);
+      s2D.plot2D(f,pwd_title);
+      s2D.estimateSDW(k,f,null,sdw_title);
       s2D.plot2D(f,sdw_title);
     }
   }
@@ -255,6 +255,8 @@ public class SlopeAlgorithmEval {
         "not valid input");
     int n1 = 251;
     int n2 = 357;
+    //int n1 = 401;
+    //int n2 = 161;
     float d1 = 0.004f;
     float d2 = .025f;
     float f1 = 0.5f;
@@ -268,22 +270,22 @@ public class SlopeAlgorithmEval {
     String pwd_title = "pwd_TP2D";
     String sdw_title = "sdw_TP2D";
     if (method==1) {
-      //s2D.estimateLSF(f,null,lsf_title);
+      s2D.estimateLSF(f,null,lsf_title);
       s2D.plot2D(f,lsf_title);
     }
     if (method==2) {
-      //s2D.estimatePWDM(f,null,pwd_title);
+      s2D.estimatePWDM(f,null,pwd_title);
       s2D.plot2D(f,pwd_title);
     }
     if (method==3) {
-      //s2D.estimateSDW(k,f,null,sdw_title);
+      s2D.estimateSDW(k,f,null,sdw_title);
       s2D.plot2D(f,sdw_title);
     }
     if (method==4) {
       //s2D.estimateLSF(f,null,lsf_title);
-      s2D.plot2D(null,lsf_title);
+      s2D.plot2D(f,lsf_title);
       //s2D.estimatePWDM(f,null,pwd_title);
-      s2D.plot2D(null,pwd_title);
+      s2D.plot2D(f,pwd_title);
       //s2D.estimateSDW(k,f,null,sdw_title);
       s2D.plot2D(f,sdw_title);
     }
@@ -300,8 +302,7 @@ public class SlopeAlgorithmEval {
   private static void TP3(int method) {
     Check.argument(method==1 || method==2 || method==3 || method==4,
         "not valid input");
-    //int n1 = 51;
-    int n1 = 401;
+    int n1 = 251;
     int n2 = 357;
     int n3 = 161;
     float d1 = 0.002f;
@@ -310,34 +311,63 @@ public class SlopeAlgorithmEval {
     float f1 = 0;
     float f2 = 0;
     float f3 = 0;
-    float[][][] f  = new float[n3][n2][n1];//for TP image
+    float[][][] f  = new float[n3][n2][n1]; //for TP image
+    f = Util.readImage(n1,n2,n3,PATH+"data/tp/tpst_subt_251_4_500.dat");
+    float[][][] g  = new float[n2][n3][n1]; //for TP image
     Sampling s1 = new Sampling(n1);
     Sampling s2 = new Sampling(n2);
     Sampling s3 = new Sampling(n3);
     Slopes s3D = new Slopes(noise,pmax,s1,s2,s3);
-    Slopes.makeRealTp(f);
+    Util.transpose23(f,g);
+    //String lsf_title = "tp/lsf";
+    //String pwd_title = "tp/pwd";
+    //String sdw_title = "tp/sdw";
     String lsf_title = "lsf_TP3D";
     String pwd_title = "pwd_TP3D";
     String sdw_title = "sdw_TP3D";
+    //String lsf_title = "lsf_temp";
+    //String lsf_title = "lsf_gom3D";
     if (method==1) { 
-      //s3D.estimateLSF(f,lsf_title);
+      s3D.estimateLSF(f,lsf_title);
+      //s3D.estimateTransLSF(g,lsf_title+"_trans");
       s3D.plot3D(f,lsf_title);
+      //s3D.retranspose(lsf_title+"_trans");
+      //s3D.plot3D(f,lsf_title+"_trans");
+      //s3D.plot3DSub(f,lsf_title,lsf_title+"_trans");
+      //float[][][] p3 = Util.readImage(n1,n2,n3,PATH+"data/"+lsf_title+"_p3.dat");
+      //s2D.plot2D(Util.slice13(317,p3),"lsf_TP2D");
     }
     if (method==2) { 
       //s3D.estimatePWDM(f,pwd_title);
+      //s3D.estimateTransPWDM(g,pwd_title+"_trans");
       s3D.plot3D(f,pwd_title);
+      //s3D.retranspose(pwd_title+"_trans");
+      //s3D.plot3D(f,pwd_title+"_trans");
+      //s3D.plot3DSub(f,pwd_title,pwd_title+"_trans");
+      //float[][][] p3 = Util.readImage(n1,n2,n3,PATH+"data/"+pwd_title+"_p3.dat");
+      //s2D.plot2D(Util.slice13(317,p3),"pwd_TP2D");
     }
     if (method==3) {
       //s3D.estimateSDW(k,f,sdw_title);
+      //s3D.estimateTransSDW(k,g,sdw_title+"_trans");
       s3D.plot3D(f,sdw_title);
+      //s3D.retranspose(sdw_title+"_trans");
+      //s3D.plot3D(f,sdw_title+"_trans");
+      //s3D.plot3DSub(f,sdw_title,sdw_title+"_trans");
+      //float[][][] p3 = Util.readImage(n1,n2,n3,PATH+"data/"+sdw_title+"_p3.dat");
+      //s2D.plot2D(Util.slice13(317,p3),"sdw_TP2D");
     }
     if (method==4) {
+      s3D.plotError(lsf_title,pwd_title,sdw_title);
       //s3D.estimateLSF(f,lsf_title);
-      s3D.plot3D(f,lsf_title);
+      //s3D.estimateTransLSF(g,lsf_title+"_trans");
+      //s3D.plot3D(f,lsf_title);
       //s3D.estimatePWDM(f,pwd_title);
-      s3D.plot3D(f,pwd_title);
+      //s3D.estimateTransPWDM(g,pwd_title+"_trans");
+      //s3D.plot3D(f,pwd_title);
       //s3D.estimateSDW(k,f,sdw_title);
-      s3D.plot3D(f,sdw_title);
+      //s3D.estimateTransSDW(k,g,sdw_title+"_trans");
+      //s3D.plot3D(f,sdw_title);
     }
   }
 
@@ -709,9 +739,9 @@ public class SlopeAlgorithmEval {
         //1=lsf  2=pwd  3=sdw  4=all
         //constant3D(4);
         //1=lsf  2=pwd  3=sdw  4=all
-        //GOM(4);
+        //GOM(1);
         //1=lsf  2=pwd  3=sdw  4=all
-        //TP2(4);
+        //TP2(1);
         //1=lsf  2=pwd  3=sdw  4=all
         TP3(4);
 
