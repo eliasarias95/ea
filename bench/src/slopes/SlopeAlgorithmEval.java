@@ -328,7 +328,7 @@ public class SlopeAlgorithmEval {
     //String lsf_title = "lsf_temp";
     //String lsf_title = "lsf_gom3D";
     if (method==1) { 
-      s3D.estimateLSF(f,lsf_title);
+      //s3D.estimateLSF(f,lsf_title);
       //s3D.estimateTransLSF(g,lsf_title+"_trans");
       s3D.plot3D(f,lsf_title);
       //s3D.retranspose(lsf_title+"_trans");
@@ -358,7 +358,6 @@ public class SlopeAlgorithmEval {
       //s2D.plot2D(Util.slice13(317,p3),"sdw_TP2D");
     }
     if (method==4) {
-      s3D.plotError(lsf_title,pwd_title,sdw_title);
       //s3D.estimateLSF(f,lsf_title);
       //s3D.estimateTransLSF(g,lsf_title+"_trans");
       //s3D.plot3D(f,lsf_title);
@@ -368,6 +367,7 @@ public class SlopeAlgorithmEval {
       //s3D.estimateSDW(k,f,sdw_title);
       //s3D.estimateTransSDW(k,g,sdw_title+"_trans");
       //s3D.plot3D(f,sdw_title);
+      s3D.plotError(lsf_title,pwd_title,sdw_title);
     }
   }
 
@@ -535,7 +535,7 @@ public class SlopeAlgorithmEval {
     }
     String title = "pwd_lsf_sdw_rmserror_vs_nsratio"+num;
     String hl = "Noise/signal";
-    String vl = "RMS error";
+    String vl = "slope error (samples/trace)";
     s2D.plotCurve(sn,fileName1,fileName2,fileName3,title,hl,vl,0,1);
   }
 
@@ -590,7 +590,7 @@ public class SlopeAlgorithmEval {
     }
     String title = "pwd_lsf_sdw_mean_error_vs_nsratio"+nni;
     String hl = "Noise/signal";
-    String vl = "Mean error";
+    String vl = "slope error (samples/trace)";
     s2D.plotCurve(sn,fileName1,fileName2,fileName3,title,hl,vl,0,0.02f);
   }
 
@@ -710,8 +710,8 @@ public class SlopeAlgorithmEval {
   private static int num;
   private static final int norder = 15;
   private static final int k = 10;
-  private static final float pmax = 2.0f;
-  private static final float noise = 0.0f;
+  private static final float pmax = 9.0f;
+  private static final float noise = 0.5f;
   private static final float freq = 0.1f;
   private static final float pc2   = -0.7f;//constant slope
   private static final float pc3   = 1.3f;//constant slope
@@ -733,7 +733,7 @@ public class SlopeAlgorithmEval {
         Slopes.makeSyntheticComplex(noise,f2D,p2D,r2D);
 
         //1=lsf  2=pwd  3=sdw  4=all
-        //complex2D(4);
+        //complex2D(2);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant2D(4);
         //1=lsf  2=pwd  3=sdw  4=all

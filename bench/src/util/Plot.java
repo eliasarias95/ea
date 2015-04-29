@@ -20,14 +20,14 @@ import javax.swing.*;
 public class Plot {
 
   private static int k1 = 185;
-  private static int k2 = 227;
-  private static int k3 = 52;
+  private static int k2 = 0;
+  private static int k3 = 160;
   //private static int k1 = 99;
   //private static int k2 = 90;
   //private static int k3 = 90;
   private static final double _ratio = 16.0/9.0;
   private static final String _paths = 
-    "/Users/earias/Documents/research/figures/annual_meeting15/";
+    "/Users/earias/Documents/research/figures/testing/";
   private static final String _pathp = 
     "/Users/earias/Documents/research/figures/paper/";
 
@@ -41,14 +41,20 @@ public class Plot {
     PointsView pv2 = new PointsView(s,f2);
     PointsView pv3 = new PointsView(s,f3);
     PointsView pv4 = new PointsView(s,zero);
+    //pv1.setLineWidth(5);
+    //pv1.setLineColor(java.awt.Color.green);
     pv1.setMarkColor(java.awt.Color.GREEN);
     pv1.setMarkStyle(PointsView.Mark.FILLED_CIRCLE);
     pv1.setLineStyle(PointsView.Line.NONE);
     pv1.setMarkSize(12);
+    //pv2.setLineWidth(5);
+    //pv2.setLineColor(java.awt.Color.BLUE);
     pv2.setMarkColor(java.awt.Color.BLUE);
     pv2.setMarkStyle(PointsView.Mark.FILLED_CIRCLE);
     pv2.setLineStyle(PointsView.Line.NONE);
     pv2.setMarkSize(12);
+    //pv3.setLineWidth(5);
+    //pv3.setLineColor(java.awt.Color.RED);
     pv3.setMarkColor(java.awt.Color.RED);
     pv3.setMarkStyle(PointsView.Mark.FILLED_CIRCLE);
     pv3.setLineStyle(PointsView.Line.NONE);
@@ -96,6 +102,9 @@ public class Plot {
       Sampling s, float[] f1, float[] f2, float[] f3, float[] f4, 
       String title, String hl, String vl, float fw, float fh, 
       float cmin, float cmax, boolean slide, boolean one, boolean paint) {
+    float[] zero = new float[s.getCount()];
+    fill(0.00000001f,zero);
+    PointsView pv5 = new PointsView(s,zero);
     PointsView pv1 = new PointsView(s,f1);
     PointsView pv2 = new PointsView(s,f2);
     PointsView pv3 = new PointsView(s,f3);
@@ -103,22 +112,27 @@ public class Plot {
     pv1.setMarkColor(java.awt.Color.GREEN);
     pv1.setMarkStyle(PointsView.Mark.FILLED_CIRCLE);
     pv1.setLineStyle(PointsView.Line.NONE);
-    pv1.setMarkSize(8);
+    pv1.setMarkSize(12);
     pv2.setMarkColor(java.awt.Color.BLUE);
     pv2.setMarkStyle(PointsView.Mark.FILLED_CIRCLE);
     pv2.setLineStyle(PointsView.Line.NONE);
-    pv2.setMarkSize(8);
+    pv2.setMarkSize(12);
     pv3.setMarkColor(java.awt.Color.RED);
     pv3.setMarkStyle(PointsView.Mark.FILLED_CIRCLE);
     pv3.setLineStyle(PointsView.Line.NONE);
-    pv3.setMarkSize(8);
-    pv4.setLineColor(java.awt.Color.BLACK);
-    pv4.setLineWidth(5);
+    pv3.setMarkSize(12);
+    pv4.setMarkColor(java.awt.Color.BLACK);
+    pv4.setMarkStyle(PointsView.Mark.FILLED_CIRCLE);
+    pv4.setLineStyle(PointsView.Line.NONE);
+    pv4.setMarkSize(12);
+    pv5.setLineColor(java.awt.Color.BLACK);
+    pv5.setLineWidth(2);
     PlotPanel pp = new PlotPanel();
+    pp.addTiledView(pv5);
+    pp.addTiledView(pv4);
     pp.addTiledView(pv1);
     pp.addTiledView(pv2);
     pp.addTiledView(pv3);
-    pp.addTiledView(pv4);
     pp.setHLabel(hl);
     pp.setVLabel(vl);
     pp.setColorBarWidthMinimum(70);
@@ -221,9 +235,9 @@ public class Plot {
     PixelsView pv1 = pp.addPixels(s1,s2,f);
     PixelsView pv2 = pp.addPixels(s1,s2,g);
     pv1.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
-    //pv1.setClips(-2000,2000);
+    pv1.setClips(-2000,2000);
     pv2.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
-    pv2.setColorModel(ColorMap.setAlpha(ColorMap.JET,0.4));
+    pv2.setColorModel(ColorMap.setAlpha(ColorMap.JET,0.0));
     pv1.setInterpolation(PixelsView.Interpolation.NEAREST);
     pv2.setInterpolation(PixelsView.Interpolation.NEAREST);
     pp.addTiledView(pv1);
@@ -232,8 +246,8 @@ public class Plot {
     pp.setVLabel("Samples");
     pp.addColorBar(cbl);
     pp.setColorBarWidthMinimum(110);
-    pp.setHInterval(100);
-    pp.setVInterval(100);
+    pp.setHInterval(20);
+    pp.setVInterval(20);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     //pf.setSize(fwi,fhi);
@@ -366,10 +380,11 @@ public class Plot {
       PlotPanelPixels3.Orientation.X1DOWN_X2RIGHT,
       PlotPanelPixels3.AxesPlacement.LEFT_BOTTOM,
       s1,s3,s2,ft);
+    pp.setClips(-4,4);
     pp.setSlices(k1,k3,k2);
     pp.setLabel1("Samples");
-    pp.setLabel3("Inline (traces)");
-    pp.setLabel2("Crossline");
+    pp.setLabel3("Crossline");
+    pp.setLabel2("Inline");
     //pp.getMosaic().setHeightElastic(1, 85);
     pp.setLineColor(Color.YELLOW);
     ColorBar cb = pp.addColorBar(cbl);

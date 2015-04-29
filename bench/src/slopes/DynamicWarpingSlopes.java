@@ -241,11 +241,8 @@ public class DynamicWarpingSlopes {
     //  TricubicInterpolator3.Method.MONOTONIC,
     //  x1,x2,x3,p);
     //trace("after making tricubic interpolator");
-    trace("before making trilinear interpolator");
     TrilinearInterpolator3 tc = new TrilinearInterpolator3(x1,x2,x3,p);
-    trace("after making trilinear interpolator");
     pi = tc.interpolate000(_s1,_s2,_s3);
-    trace("after using trilinear interpolator");
     //trace("after using tricubic interpolator");
     for (int i3=0; i3<n3; ++i3) {
       for (int i2=0; i2<n2; ++i2) {

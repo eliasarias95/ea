@@ -294,7 +294,7 @@ public class Slopes{
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
     Sfdip sd = new Sfdip(-_pmax,_pmax);
-    sd.setRect(50,4,4);
+    sd.setRect(30,9,9);
     sd.setOrder(2);
     sd.setNiter(_niter);
     sd.setN4(2);
@@ -318,7 +318,7 @@ public class Slopes{
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
     Sfdip sd = new Sfdip(-_pmax,_pmax);
-    sd.setRect(50,4,4);
+    sd.setRect(30,9,9);
     sd.setOrder(2);
     sd.setNiter(_niter);
     sd.setN4(2);
@@ -416,11 +416,11 @@ public class Slopes{
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
     double r1 = 0.1;
-    double r2 = 0.5;
-    double r3 = 0.5;
-    double h1 = 50.0;
-    double h2 =  6.0;
-    double h3 =  6.0;
+    double r2 = 0.7;
+    double r3 = 0.7;
+    double h1 = 20.0;
+    double h2 =  9.0;
+    double h3 =  9.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
     Sampling ss3 = new Sampling(n3);
@@ -446,11 +446,11 @@ public class Slopes{
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
     double r1 = 0.1;
-    double r2 = 0.5;
-    double r3 = 0.5;
-    double h1 = 50.0;
-    double h2 =  6.0;
-    double h3 =  6.0;
+    double r2 = 0.2;
+    double r3 = 0.2;
+    double h1 = 20.0;
+    double h2 =  9.0;
+    double h3 =  9.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
     Sampling ss3 = new Sampling(n3);
@@ -1009,11 +1009,11 @@ public class Slopes{
     float[][][] p2 = Util.readImage(n1,n2,n3,PATH+"data/"+title+"_p2.dat");
     float[][][] p3 = Util.readImage(n1,n2,n3,PATH+"data/"+title+"_p3.dat");
     Plot.plot(_s1,_s2,_s3,f,p2,title+"_p2_slices",-_cmax,_cmax,_paint);
-    Plot.plot(_s1,_s2,_s3,f,p3,title+"_p3_slices",-_cmax,_cmax,_paint);
+    //Plot.plot(_s1,_s2,_s3,f,p3,title+"_p3_slices",-_cmax,_cmax,_paint);
     Plot.plot(_s1,_s2,_s3,f,p2,"slope (samples/trace)",title+"_p2_panels",
         0.6f,0.8f,-_cmax,_cmax,_paint,_slide);
-    Plot.plot(_s1,_s2,_s3,f,p3,"slope (samples/trace)",title+"_p3_panels",
-        0.6f,0.8f,-_cmax,_cmax,_paint,_slide);
+    //Plot.plot(_s1,_s2,_s3,f,p3,"slope (samples/trace)",title+"_p3_panels",
+    //    0.6f,0.8f,-_cmax,_cmax,_paint,_slide);
   }
 
   public void plotError(String t1, String t2, String t3) {
@@ -1029,22 +1029,35 @@ public class Slopes{
     float[][][] p3t3 = Util.readImage(n1,n2,n3,PATH+"data/"+t3+"_p3.dat");
     Sampling s = new Sampling(n,1,1);
     float[] p   = new float[n];
+    float[] pbar  = new float[n];
     float[] e1  = new float[n];
     float[] pe1 = new float[n];
     float[] e2  = new float[n];
     float[] pe2 = new float[n];
     float[] e3  = new float[n];
     float[] pe3 = new float[n];
-    float med_error1 = Util.errorStatistic(p2t1,p3t1,e1,p,pe1);
-    float med_error2 = Util.errorStatistic(p2t2,p3t2,e2,p,pe2);
-    float med_error3 = Util.errorStatistic(p2t3,p3t3,e3,p,pe3);
+    float[] e4  = new float[n];
+    float med_error1 = Util.errorStatistic(p2t1,p3t1,e1,p,pe1,pbar);
+    float med_error2 = Util.errorStatistic(p2t2,p3t2,e2,p,pe2,pbar);
+    float med_error3 = Util.errorStatistic(p2t3,p3t3,e3,p,pe3,pbar);
+    float med_error4 = Util.errorStatistic(p2t3,p3t3,e4,p,p,pbar);
+    pbar = add(pe1,pe2);
+    pbar = add(pbar,pe3);
+    pbar = add(pbar,p);
+    pbar = div(pbar,4.0f);
+    med_error1 = Util.errorStatistic(p2t1,p3t1,e1,p,pe1,pbar);
+    med_error2 = Util.errorStatistic(p2t2,p3t2,e2,p,pe2,pbar);
+    med_error3 = Util.errorStatistic(p2t3,p3t3,e3,p,pe3,pbar);
+    med_error4 = Util.errorStatistic(p2t3,p3t3,e4,p,p,pbar);
     trace(t1+" median error= "+med_error1);
     trace(t2+" median error= "+med_error2);
     trace(t3+" median error= "+med_error3);
-    //Plot.plot(s,pe1,pe2,pe3,p,t1+"_"+t2+"_"+t3+"_est_slope_plot","pick #",
+    trace("elias median error= "+med_error4);
+    //Plot.plot(s,pe1,pe2,pe3,p,"est_slope_plot","pick #",
     //    "slope (samples/trace)",_fw,_fh,-1f,1f,_slide,false,_paint);
-    Plot.plot(s,e1,e2,e3,t1+"_"+t2+"_"+t3+"_median_error_plot","pick #",
-        "slope error (samples/trace)",_fw,_fh,-0.3f,0.3f,_slide,false,_paint);
+    Plot.plot(s,e1,e2,e3,e4,"median_error_plot","pick #",
+        "slope difference (samples/trace)",_fw,_fh,-0.2f,0.2f,_slide,false,
+        _paint);
   }
 
   /**
@@ -1162,7 +1175,7 @@ public class Slopes{
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;
-  private static final boolean _paint = false;
+  private static final boolean _paint = true;
   private static final boolean _clip = true;
   private static final boolean _slide = true;
 
