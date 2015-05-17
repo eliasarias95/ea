@@ -21,7 +21,7 @@ public class Plot {
 
   private static int k1 = 185;
   private static int k2 = 0;
-  private static int k3 = 160;
+  private static int k3 = 83;
   //private static int k1 = 99;
   //private static int k2 = 90;
   //private static int k3 = 90;
@@ -29,7 +29,7 @@ public class Plot {
   private static final String _paths = 
     "/Users/earias/Documents/research/figures/testing/";
   private static final String _pathp = 
-    "/Users/earias/Documents/research/figures/paper/";
+    "/Users/earias/Documents/research/figures/thesis/";
 
   public static void plot(Sampling s, float[] f1, float[] f2, float[] f3, 
       String title, String hl, String vl, 
@@ -235,9 +235,9 @@ public class Plot {
     PixelsView pv1 = pp.addPixels(s1,s2,f);
     PixelsView pv2 = pp.addPixels(s1,s2,g);
     pv1.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
-    pv1.setClips(-2000,2000);
+    //pv1.setClips(-2000,2000);
     pv2.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
-    pv2.setColorModel(ColorMap.setAlpha(ColorMap.JET,0.0));
+    pv2.setColorModel(ColorMap.setAlpha(ColorMap.JET,0.4));
     pv1.setInterpolation(PixelsView.Interpolation.NEAREST);
     pv2.setInterpolation(PixelsView.Interpolation.NEAREST);
     pp.addTiledView(pv1);
@@ -246,13 +246,12 @@ public class Plot {
     pp.setVLabel("Samples");
     pp.addColorBar(cbl);
     pp.setColorBarWidthMinimum(110);
-    pp.setHInterval(20);
-    pp.setVInterval(20);
+    pp.setHInterval(100);
+    pp.setVInterval(100);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     //pf.setSize(fwi,fhi);
     pf.setSize(850,600);
-    pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
     if (clip) pv2.setClips(cmin,cmax);
     if (ttl) pp.setTitle(title);
@@ -365,7 +364,7 @@ public class Plot {
   public static void plot(Sampling s1, Sampling s2, Sampling s3, 
       float[][][] f, float[][][] g, String cbl, String title, 
       float fw, float fh, float cmin, float cmax, 
-      boolean paint, boolean slide) {
+      boolean paint, boolean slide, boolean one) {
     int fwi = round(1920*fw/2+1);
     int fhi = round(1080*fh/2+1);
     Color background = Color.WHITE;
@@ -388,7 +387,7 @@ public class Plot {
     //pp.getMosaic().setHeightElastic(1, 85);
     pp.setLineColor(Color.YELLOW);
     ColorBar cb = pp.addColorBar(cbl);
-    cb.setInterval(0.5);
+    cb.setInterval(1.0);
     pp.setInterval1(100);
     pp.setInterval2(100);
     pp.setInterval3(100);
@@ -414,13 +413,12 @@ public class Plot {
     pp.getPixelsView23().getTile().addTiledView(pv23);
     PlotFrame pf = new PlotFrame(pp);
     pf.setBackground(background);
-    pp.setColorBarWidthMinimum(200);
+    pp.setColorBarWidthMinimum(110);
     //pf.setFontSize(18) //for print
     //pf.setFontSize(30); //for slices
     //pf.setFontSizeForPrint(1.0,0.8)
     pf.setSize(1150,800);
     pp.getMosaic().setWidthElastic(1,90);
-    //pf.setSize(fwi,fhi);
     pf.setVisible(true);
     int dpi = 720;
     if (slide) {
@@ -429,8 +427,19 @@ public class Plot {
         pf.paintToPng(dpi,(1920f*fh-1)/dpi,_paths+title+".png");
       }
     }
-    if (paint) {
-      pf.paintToPng(360,7.0,_paths+title+".png");
+    else {
+      if (one) {
+        pf.setFontSizeForPrint(8.0,222.0);
+        if (paint) {
+          pf.paintToPng(dpi,3.08,_pathp+title+".png");
+        }
+      }
+      else {
+        pf.setFontSizeForPrint(8.0,469.0);
+        if (paint) {
+          pf.paintToPng(dpi,6.51,_pathp+title+".png");
+        }
+      }
     }
   }
 }

@@ -182,11 +182,27 @@ public class Sfdip {
    */
   public void findSlopes(Sampling s1, Sampling s2, Sampling s3, 
       float[][][] f, float[][][] p2, float[][][] p3) {
-    RsfFilter rf = new RsfFilter("sfdip","both="+_both,
+    RsfFilter rf = new RsfFilter("sffdip","both="+_both,
       "n4="+_n4,"niter="+_niter,"liter="+_liter,"rect1="+_rect1,
       "rect2="+_rect2,"rect3="+_rect3,"p0="+_p0,"q0="+_q0,
       "order="+_order,"nj1="+_nj1,"nj2="+_nj2,"verb="+_verb,
       "pmin="+_pmin,"pmax="+_pmax,"qmin="+_qmin,"qmax="+_qmax);
+    rf.apply(s1,s2,s3,f,p2,p3);
+  }
+
+  /**
+   * Uses Madagascar to run sffdip to find the slopes in seismic data.
+   * @param s1 sampling of 1st dimension
+   * @param s2 sampling of 2nd dimension
+   * @param s3 sampling of 3rd dimension
+   * @param f the array[n3][n2][n1] of inputs
+   * @param p2 the array[n3][n2][n1] of output in-line slopes 
+   * @param p3 the array[n3][n2][n1] of output cross-line slopes 
+   */
+  public void ffindSlopes(Sampling s1, Sampling s2, Sampling s3, 
+      float[][][] f, float[][][] p2, float[][][] p3) {
+    RsfFilter rf = new RsfFilter("sffdip","n4="+_n4,"liter="+_liter,
+        "rect1="+_rect1,"rect2="+_rect2,"rect3="+_rect3,"verb="+_verb);
     rf.apply(s1,s2,s3,f,p2,p3);
   }
 

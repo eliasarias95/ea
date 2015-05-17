@@ -174,7 +174,7 @@ public class LocalOrientFilter {
     int n2 = x.length;
     int n1 = x[0].length;
     float[][] el = new float[n2][n1];
-    ZeroMask zm = new ZeroMask(el);
+    ZeroMask zm = new ZeroMask(x);
     applyForNormalLinear(x,u1,u2,el);
     zm.apply(0.01f,el);
     el = pow(el,_epow);
@@ -350,15 +350,6 @@ public class LocalOrientFilter {
         if (el!=null) el[i2][i1] = (eui-evi)/eui;
       }
     }
-    /*
-    float pi = FLT_PI;
-    trace("theta[439][267]= "+theta[439][287]*180.0f/pi);
-    trace("theta[440][267]= "+theta[440][287]*180.0f/pi);
-    trace("theta[441][267]= "+theta[441][287]*180.0f/pi);
-
-    trace("theta[425][287]= "+theta[425][287]*180.0f/pi);
-    trace("theta[432][287]= "+theta[432][287]*180.0f/pi);
-    */
   }
 
   /**
@@ -381,6 +372,7 @@ public class LocalOrientFilter {
     float[][] eu, float[][] ev, 
     float[][] el)
   {
+    dump(s);
     // Where possible, use output arrays for workspace.
     float[][][] t = new float[8][][];
     int nt = 0;

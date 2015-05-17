@@ -19,7 +19,7 @@ public class TestSimpleDTW {
     int n1 = 101;
     int shift = 10;
     float[] a = Util.readImage(n1,
-        "/Users/earias/Home/git/ea/bench/src/novice/data/chris.dat");
+        "/Users/earias/Home/git/ea/bench/src/novice/chris.dat");
     float[] b = new float[n1];
     for (int i=0; i<n1-shift; ++i)
       b[i] = a[i+shift];
@@ -51,7 +51,7 @@ public class TestSimpleDTW {
     int n1 = 101;
     int shift = 10;
     float[] a = Util.readImage(n1,
-        "/Users/earias/Home/git/ea/bench/src/novice/data/chris.dat");
+        "/Users/earias/Home/git/ea/bench/src/novice/chris.dat");
     float[] b = new float[n1];
     for (int i=0; i<n1-shift; ++i)
       b[i] = a[i+shift];

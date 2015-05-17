@@ -65,11 +65,11 @@ public class SlopeAlgorithmEval {
       s2D.plot2D(f,sdw_title);
     }
     if (method==4) {
-      s2D.estimateLSF(f,p,lsf_title);
+      //s2D.estimateLSF(f,p,lsf_title);
       s2D.plot2D(f,lsf_title);
-      s2D.estimatePWDM(f,p,pwd_title);
+      //s2D.estimatePWDM(f,p,pwd_title);
       s2D.plot2D(f,pwd_title);
-      s2D.estimateSDW(k,f,p,sdw_title);
+      //s2D.estimateSDW(k,f,p,sdw_title);
       s2D.plot2D(f,sdw_title);
     }
     //s2D.plotF("flipped_synthetic_noise="+noise,hl,vl,flip2(f2D)); //plot synthetic seismic
@@ -234,9 +234,9 @@ public class SlopeAlgorithmEval {
       s2D.plot2D(f,sdw_title);
     }
     if (method==4) {
-      s2D.estimateLSF(f,null,lsf_title);
+      //s2D.estimateLSF(f,null,lsf_title);
       s2D.plot2D(f,lsf_title);
-      s2D.estimatePWDM(f,null,pwd_title);
+      //s2D.estimatePWDM(f,null,pwd_title);
       s2D.plot2D(f,pwd_title);
       s2D.estimateSDW(k,f,null,sdw_title);
       s2D.plot2D(f,sdw_title);
@@ -733,17 +733,17 @@ public class SlopeAlgorithmEval {
         Slopes.makeSyntheticComplex(noise,f2D,p2D,r2D);
 
         //1=lsf  2=pwd  3=sdw  4=all
-        //complex2D(2);
+        complex2D(1);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant2D(4);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant3D(4);
         //1=lsf  2=pwd  3=sdw  4=all
-        //GOM(1);
+        //GOM(4);
         //1=lsf  2=pwd  3=sdw  4=all
         //TP2(1);
         //1=lsf  2=pwd  3=sdw  4=all
-        TP3(4);
+        //TP3(2);
 
         int nni = 100;
         //1=lsf  2=pwd  3=sdw  4=all, test?
