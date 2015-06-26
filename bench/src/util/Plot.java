@@ -19,7 +19,7 @@ import javax.swing.*;
  */
 public class Plot {
 
-  private static int k1 = 185;
+  private static int k1 = 85;
   private static int k2 = 0;
   private static int k3 = 83;
   //private static int k1 = 99;
@@ -27,9 +27,9 @@ public class Plot {
   //private static int k3 = 90;
   private static final double _ratio = 16.0/9.0;
   private static final String _paths = 
-    "/Users/earias/Documents/research/figures/testing/";
+    "/users/elias.arias/Documents/research/figures/pgs/";
   private static final String _pathp = 
-    "/Users/earias/Documents/research/figures/thesis/";
+    "/users/elias.arias/Documents/research/figures/thesis/";
 
   public static void plot(Sampling s, float[] f1, float[] f2, float[] f3, 
       String title, String hl, String vl, 

@@ -152,12 +152,26 @@ public class Util {
     return (float)sqrt(sum/n1/n2/n3);
   }
 
-  public static float rmsError(float[][] pe, float[][] p, boolean print_error) {
+  public static float rmsError(
+      float[][] pe, float[][] p, boolean print_error) {
     int n1 = pe[0].length;
     int n2 = pe.length;
     pe = sub(pe,p);
     pe = pow(pe,2);
     float rmserror = sqrt(sum(pe)/(float)(n2*n1));
+    if (print_error)
+      System.out.println("Error = "+rmserror);
+    return rmserror;
+  }
+
+  public static float rmsError(
+      float[][][] pe, float[][][] p, boolean print_error) {
+    int n1 = pe[0][0].length;
+    int n2 = pe[0].length;
+    int n3 = pe.length;
+    pe = sub(pe,p);
+    pe = pow(pe,2);
+    float rmserror = sqrt(sum(pe)/(float)(n3*n2*n1));
     if (print_error)
       System.out.println("Error = "+rmserror);
     return rmserror;
@@ -236,7 +250,7 @@ public class Util {
       a[i] = rf.normal();
     }
     writeBinary(a,
-        "/Users/earias/Home/git/ea/bench/src/util/data/dtw_test.dat");
+        "/users/elias.arias/Home/git/ea/bench/src/util/data/dtw_test.dat");
   }
 
   /**

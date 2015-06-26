@@ -112,16 +112,17 @@ public class Slopes{
    * @param p array[103][102][101] for the know slope values.
    */
   public static void makeSyntheticComplex(
-      float noise, float[][][] f, float[][][] p) {
-    float[][][][] fandp = FakeData.seismicAndSlopes3d2014A(noise);
+      float noise, float[][][] f, float[][][] p2, float[][][] p3) {
+    float[][][][] fandp = FakeData.seismicAndSlopes3d2014A(noise,false);
     int n3 = f.length;
     int n2 = f[0].length;
     int n1 = f[0][0].length;
     for (int i3=0; i3<n3; ++i3){
       for (int i2=0; i2<n2; ++i2){
         for (int i1=0; i1<n1; ++i1){
-          f[i3][i2][i1] = fandp[0][i3][i2][i1];
-          p[i3][i2][i1] = fandp[1][i3][i2][i1];
+          f[i3][i2][i1]  = fandp[0][i3][i2][i1];
+          p2[i3][i2][i1] = fandp[1][i3][i2][i1];
+          p3[i3][i2][i1] = fandp[2][i3][i2][i1];
         }
       }
     }
@@ -218,23 +219,34 @@ public class Slopes{
   /**
    * Structure tensor: plots the estimated slopes.
    */
-  public void estimateLSF(float[][][] f, String title) {
+  public void estimateLSF(
+      float[][][] f, float[][][] p2, float[][][] p3, String title) {
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
     LocalSlopeFinder lsf = new LocalSlopeFinder(8.0f,2.0f,2.0f,_pmax);
-    float[][][] p2 = new float[n3][n2][n1];
-    float[][][] p3 = new float[n3][n2][n1];
+    float[][][] p2e = new float[n3][n2][n1];
+    float[][][] p3e = new float[n3][n2][n1];
     ZeroMask zm = new ZeroMask(f);
     _sw.restart();
-    //lsf.findSlopesE(f,p2,p3,null);
-    lsf.findSlopes(f,p2,p3,null);
+    //lsf.findSlopesE(f,p2e,p3e,null);
+    lsf.findSlopes(f,p2e,p3e,null);
     _sw.stop();
-    zm.apply(0.0f,p2);
-    zm.apply(0.0f,p3);
+    zm.apply(0.0f,p2e);
+    zm.apply(0.0f,p3e);
     trace("Structure tensor time = "+_sw.time());    
-    Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
-    Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+    Util.writeBinary(p2e,PATH+"data/"+title+"_p2.dat");
+    Util.writeBinary(p3e,PATH+"data/"+title+"_p3.dat");
+    trace("Structure tensor:");
+    float error2,error3;
+    if (p2!=null && p3!=null) {
+      trace("p2:");
+      error2 = Util.rmsError(p2e,p2,T);
+      trace("p3:");
+      error3 = Util.rmsError(p3e,p3,T);
+      trace("p2:max= "+max(p2)+" min= "+min(p2)+" mean= "+sum(p2)/(n1*n2*n3));
+      trace("p3:max= "+max(p3)+" min= "+min(p3)+" mean= "+sum(p3)/(n1*n2*n3));
+    }
   }
 
   /**
@@ -285,25 +297,34 @@ public class Slopes{
   /**
    * PWD Madagascar: plots the estimated slopes.
    */
-  public void estimatePWDM(float[][][] f, String title) {
+  public void estimatePWDM(
+      float[][][] f, float[][][] p2, float[][][] p3, String title) {
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
     Sfdip sd = new Sfdip(-_pmax,_pmax);
-    sd.setRect(30,9,9);
-    sd.setOrder(2);
+    sd.setRect(10,9,9);
+    sd.setOrder(4);
     sd.setNiter(_niter);
     sd.setN4(2);
     sd.setBoth("n");
-    float[][][] p2 = new float[n3][n2][n1];
-    float[][][] p3 = new float[n3][n2][n1];
+    float[][][] p2e = new float[n3][n2][n1];
+    float[][][] p3e = new float[n3][n2][n1];
     _sw.restart();
-    sd.findSlopes(_s1,_s2,_s3,f,p2,p3);
-    //sd.ffindSlopes(_s1,_s2,_s3,f,p2,p3); //fast 3D find slopes
+    sd.findSlopes(_s1,_s2,_s3,f,p2e,p3e);
+    //sd.ffindSlopes(_s1,_s2,_s3,f,p2e,p3e); //fast 3D find slopes
     _sw.stop();
     trace("Madagascar PWD time = "+_sw.time());    
-    Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
-    Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+    Util.writeBinary(p2e,PATH+"data/"+title+"_p2.dat");
+    Util.writeBinary(p3e,PATH+"data/"+title+"_p3.dat");
+    trace("Madagascar PWD:");
+    float error2,error3;
+    if (p2!=null && p3!=null) {
+      trace("p2:");
+      error2 = Util.rmsError(p2e,p2,T);
+      trace("p3:");
+      error3 = Util.rmsError(p3e,p3,T);
+    }
   }
 
   /**
@@ -406,7 +427,8 @@ public class Slopes{
    /**
    * Smooth dynamic warping: plots the estimated slopes, RMS error, and time.
    */
-  public void estimateSDW(int k, float[][][] f, String title) {
+  public void estimateSDW(
+      int k, float[][][] f, float[][][] p2, float[][][] p3, String title) {
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
@@ -422,17 +444,25 @@ public class Slopes{
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,h3,
                                        r1,r2,r3,ss1,ss2,ss3);
     dws.setErrorSmoothing(2);
-    float[][][] p2 = new float[n3][n2][n1];
-    float[][][] p3 = new float[n3][n2][n1];
+    float[][][] p2e = new float[n3][n2][n1];
+    float[][][] p3e = new float[n3][n2][n1];
     ZeroMask zm = new ZeroMask(f);
     _sw.restart();
-    dws.findSmoothSlopes(_s1,f,p2,p3);
+    dws.findSmoothSlopes(_s1,f,p2e,p3e);
     _sw.stop();
-    zm.apply(0.0f,p2);
-    zm.apply(0.0f,p3);
+    zm.apply(0.0f,p2e);
+    zm.apply(0.0f,p3e);
     trace("Smooth dynamic warping time = "+_sw.time());    
-    Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
-    Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+    Util.writeBinary(p2e,PATH+"data/"+title+"_p2.dat");
+    Util.writeBinary(p3e,PATH+"data/"+title+"_p3.dat");
+    trace("Smooth dynamic warping:");
+    float error2,error3;
+    if (p2!=null && p3!=null) {
+      trace("p2:");
+      error2 = Util.rmsError(p2e,p2,T);
+      trace("p3:");
+      error3 = Util.rmsError(p3e,p3,T);
+    }
   }
 
   public void estimateTransSDW(int k, float[][][] f, String title) {
@@ -650,6 +680,7 @@ public class Slopes{
 
   public void testRmsErrorCurveLSF(Sampling sn, String fileName, 
       float sigma1, float sigma2) {
+    trace("Structure tensor:");
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int nrms = sn.getCount();
@@ -664,6 +695,7 @@ public class Slopes{
     float[][] pe = new float[n2][n1];
     float[] rms_error = new float[nrms];
     for (int i=0; i<nrms; ++i) {
+      trace("i="+i);
       fandp = FakeData.seismicAndSlopes2d2014A(nsratio[i],F);
       f = fandp[0];
       p = fandp[1];
@@ -673,8 +705,43 @@ public class Slopes{
     Util.writeBinary(rms_error,PATH+fileName);
   }
 
+  public void testRmsErrorCurveLSF(Sampling sn, String fn2, String fn3, 
+      float sigma1, float sigma2, float sigma3) {
+    trace("Structure tensor:");
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    int nrms = sn.getCount();
+    float[] nsratio = Util.f(sn.getValues());
+
+    float[][][][] fandp = new float[3][n3][n2][n1];
+    float[][][] f  = new float[n3][n2][n1];
+    float[][][] p2 = new float[n3][n2][n1];
+    float[][][] p3 = new float[n3][n2][n1];
+
+    //Structure tensor
+    LocalSlopeFinder lsf = new LocalSlopeFinder(sigma1,sigma2,sigma3,_pmax);
+    float[][][] p2e = new float[n3][n2][n1];
+    float[][][] p3e = new float[n3][n2][n1];
+    float[] rms_error2 = new float[nrms];
+    float[] rms_error3 = new float[nrms];
+    for (int i=0; i<nrms; ++i) {
+      trace("i="+i);
+      fandp = FakeData.seismicAndSlopes3d2014A(nsratio[i],F);
+      f  = fandp[0];
+      p2 = fandp[1];
+      p3 = fandp[2];
+      lsf.findSlopes(f,p2e,p3e,null);
+      rms_error2[i] = Util.rmsError(p2e,p2,false);
+      rms_error3[i] = Util.rmsError(p3e,p3,false);
+    }
+    Util.writeBinary(rms_error2,PATH+fn2);
+    Util.writeBinary(rms_error3,PATH+fn3);
+  }
+
   public void testRmsErrorCurvePWD(Sampling sn, String fileName, 
       int rect1, int rect2) {
+    trace("Plane-wave destructor:");
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int nrms = sn.getCount();
@@ -691,6 +758,7 @@ public class Slopes{
     float[][] pe = new float[n2][n1];
     float[] rms_error = new float[nrms];
     for (int i=0; i<nrms; ++i) {
+      trace("i="+i);
       fandp = FakeData.seismicAndSlopes2d2014A(nsratio[i],F);
       f = fandp[0];
       p = fandp[1];
@@ -700,8 +768,46 @@ public class Slopes{
     Util.writeBinary(rms_error,PATH+fileName);
   }
 
+  public void testRmsErrorCurvePWD(Sampling sn, String fn2, String fn3, 
+      int rect1, int rect2, int rect3) {
+    trace("Plane-wave destructor:");
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    int nrms = sn.getCount();
+    float[] nsratio = Util.f(sn.getValues());
+
+    float[][][][] fandp = new float[3][n3][n2][n1];
+    float[][][] f  = new float[n3][n2][n1];
+    float[][][] p2 = new float[n3][n2][n1];
+    float[][][] p3 = new float[n3][n2][n1];
+
+    //Plane-wave destruction filter
+    Sfdip sd = new Sfdip(-_pmax,_pmax);
+    sd.setRect(rect1,rect2,rect3);
+    sd.setOrder(4);
+    sd.setN4(2);
+    float[][][] p2e = new float[n3][n2][n1];
+    float[][][] p3e = new float[n3][n2][n1];
+    float[] rms_error2 = new float[nrms];
+    float[] rms_error3 = new float[nrms];
+    for (int i=0; i<nrms; ++i) {
+      trace("i="+i);
+      fandp = FakeData.seismicAndSlopes3d2014A(nsratio[i],F);
+      f  = fandp[0];
+      p2 = fandp[1];
+      p3 = fandp[2];
+      sd.findSlopes(_s1,_s2,_s3,f,p2e,p3e);
+      rms_error2[i] = Util.rmsError(p2e,p2,false);
+      rms_error3[i] = Util.rmsError(p3e,p3,false);
+    }
+    Util.writeBinary(rms_error2,PATH+fn2);
+    Util.writeBinary(rms_error3,PATH+fn3);
+  }
+
   public void testRmsErrorCurveSDW(Sampling sn, String fileName, 
       int k, double r1, double r2, double h1, double h2) {
+    trace("Smooth dynamic warping:");
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int nrms = sn.getCount();
@@ -719,6 +825,7 @@ public class Slopes{
     float[][] pe = new float[n2][n1];
     float[] rms_error = new float[nrms];
     for (int i=0; i<nrms; ++i) {
+      trace("i="+i);
       fandp = FakeData.seismicAndSlopes2d2014A(nsratio[i],F);
       f = fandp[0];
       p = fandp[1];
@@ -726,6 +833,44 @@ public class Slopes{
       rms_error[i] = Util.rmsError(pe,p,false);
     }
     Util.writeBinary(rms_error,PATH+fileName);
+  }
+
+  public void testRmsErrorCurveSDW(Sampling sn, String fn2, String fn3, int k,
+      double r1, double r2, double r3, double h1, double h2, double h3) {
+    trace("Smooth dynamic warping:");
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n3 = _s3.getCount();
+    int nrms = sn.getCount();
+    float[] nsratio = Util.f(sn.getValues());
+
+    float[][][][] fandp = new float[3][n3][n2][n1];
+    float[][][] f  = new float[n3][n2][n1];
+    float[][][] p2 = new float[n3][n2][n1];
+    float[][][] p3 = new float[n3][n2][n1];
+    Sampling ss1 = new Sampling(n1);
+    Sampling ss2 = new Sampling(n2);
+    Sampling ss3 = new Sampling(n3);
+
+    //Smooth dynamic warping
+    DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,h3,
+                                       r1,r2,r3,ss1,ss2,ss3);
+    float[][][] p2e = new float[n3][n2][n1];
+    float[][][] p3e = new float[n3][n2][n1];
+    float[] rms_error2 = new float[nrms];
+    float[] rms_error3 = new float[nrms];
+    for (int i=0; i<nrms; ++i) {
+      trace("i="+i);
+      fandp = FakeData.seismicAndSlopes3d2014A(nsratio[i],F);
+      f  = fandp[0];
+      p2 = fandp[1];
+      p3 = fandp[2];
+      dws.findSmoothSlopes(_s1,f,p2e,p3e);
+      rms_error2[i] = Util.rmsError(p2e,p2,false);
+      rms_error3[i] = Util.rmsError(p3e,p3,false);
+    }
+    Util.writeBinary(rms_error2,PATH+fn2);
+    Util.writeBinary(rms_error3,PATH+fn3);
   }
 
   /**
@@ -1162,18 +1307,18 @@ public class Slopes{
 
   ///////////////////PRIVATE VARIABLES///////////////////////
   private static final String PATH = 
-    "/Users/earias/Home/git/ea/bench/src/util/";
+    "/users/elias.arias/Home/git/ea/bench/src/util/";
   private static final int _niter = 5;
   private static final float pi = FLT_PI;      
   private static final float _fw = 0.75f; //fraction width for slide
   private static final float _fh = 0.9f; //fraction height for slide
-  private static final float _cmax = 4.0f;
+  private static final float _cmax = 2.0f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;
   private static final boolean _paint = false;
   private static final boolean _clip = true;
-  private static final boolean _slide = false;
+  private static final boolean _slide = true;
 
   private Stopwatch _sw = new Stopwatch();
   private float _noise;

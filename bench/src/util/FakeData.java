@@ -62,7 +62,7 @@ public class FakeData {
       for (int i=0; i<n; ++i) {
         float[][][][] f = seismicAndSlopes3d2014A(
             sequences[i],nplanars[i],conjugates[i],conicals[i],
-            impedances[i],wavelets[i],noises[i]);
+            impedances[i],wavelets[i],noises[i],false);
         trace(" f min="+min(f[0])+" max="+max(f[0]));
         trace("p2 min="+min(f[1])+" max="+max(f[1]));
         trace("p3 min="+min(f[2])+" max="+max(f[2]));
@@ -92,8 +92,9 @@ public class FakeData {
    * @param noise rms of noise (relative to signal) added to the image.
    * @return array of arrays {f,p2,p3} with image f and slopes p2 and p3.
    */
-  public static float[][][][] seismicAndSlopes3d2014A(double noise) {
-    return seismicAndSlopes3d2014A("OA",3,false,false,false,true,noise);
+  public static float[][][][] seismicAndSlopes3d2014A(
+      double noise, boolean rand) {
+    return seismicAndSlopes3d2014A("OA",3,false,false,false,true,noise,rand);
   }
 
   /**
@@ -109,7 +110,7 @@ public class FakeData {
    */
   public static float[][][][] seismicAndSlopes3d2014A(
       String sequence, int nplanar, boolean conjugate, boolean conical,
-      boolean impedance, boolean wavelet, double noise) {
+      boolean impedance, boolean wavelet, double noise, boolean rand) {
     int n1 = 101;
     int n2 = 102;
     int n3 = 103;
@@ -183,7 +184,7 @@ public class FakeData {
     if (wavelet)
       p = addWavelet(0.15,p);
     p[0] = mul(1.0f/rms(p[0]),p[0]);
-    p[0] = addNoise(noise,p[0]);
+    p[0] = addNoise(noise,p[0],rand);
 
     // Slopes.
     p[2] = neg(div(p[2],p[1]));
@@ -326,6 +327,27 @@ public class FakeData {
     int n2 = f[0].length;
     int n3 = f.length;
     Random r = new Random(1); // 31415
+    float[][][] g = mul(2.0f,sub(randfloat(r,n1,n2,n3),0.5f));
+    RecursiveGaussianFilter rgf = new RecursiveGaussianFilter(1.0);
+    rgf.apply100(g,g); // 1st derivative enhances high-frequencies
+    g = mul(g,(float)nrms*rms(f)/rms(g));
+    return add(f,g);
+  }
+
+  private static float[][][] addNoise(
+      double nrms, float[][][] f, boolean rand) {
+    int n1 = f[0][0].length;
+    int n2 = f[0].length;
+    int n3 = f.length;
+    Random r;
+    if (rand) {
+      trace("in here Random()");
+      r = new Random();
+    }
+    else {
+      trace("in here Random(1)");
+      r = new Random(1);
+    }
     float[][][] g = mul(2.0f,sub(randfloat(r,n1,n2,n3),0.5f));
     RecursiveGaussianFilter rgf = new RecursiveGaussianFilter(1.0);
     rgf.apply100(g,g); // 1st derivative enhances high-frequencies
