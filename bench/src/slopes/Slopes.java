@@ -198,17 +198,17 @@ public class Slopes{
   public void estimateLSF(float[][] f, float[][] p, String title) {
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    LocalSlopeFinder lsf = new LocalSlopeFinder(23.0f,1.0f,_pmax);
+    LocalSlopeFinder lsf = new LocalSlopeFinder(6.0f,1.0f,_pmax);
     float[][] pe = new float[n2][n1];
     ZeroMask zm = new ZeroMask(f);
     _sw.restart();
-    //lsf.findSlopesE(f,pe,null);
-    lsf.findSlopes(f,pe);
+    lsf.findSlopesE(f,pe,null);
+    //lsf.findSlopes(f,pe);
     _sw.stop();
     zm.apply(0.0f,pe);
     trace("Structure tensor time = "+_sw.time());    
     Util.writeBinary(pe,PATH+"data/"+title+"_p.dat");
-    trace("Structure tensor:");
+    trace("Structure tensor:"+max(pe)+", "+min(pe));
     float error;
     if (p!=null) {
       error = Util.rmsError(pe,p,T);
@@ -509,7 +509,6 @@ public class Slopes{
   }
 
 /**********************CHOOSING OPTIMAL PARAMETERS**********************/
-
   /**
    * Tests for the parameters that produce the smallest RMS error.
    * for noise = 0.0   14,1
@@ -530,7 +529,7 @@ public class Slopes{
     for(int i2=0; i2<np2; ++i2) {
       for(int i1=0; i1<np1; ++i1) {
         lsf = new LocalSlopeFinder(param1[i1],param2[i2],_pmax);
-        lsf.findSlopes(f,pe);
+        lsf.findSlopesE(f,pe,null);
         rmserror[i2][i1] = Util.rmsError(pe,p,F);
       }
     }
@@ -1312,7 +1311,7 @@ public class Slopes{
   private static final float pi = FLT_PI;      
   private static final float _fw = 0.75f; //fraction width for slide
   private static final float _fh = 0.9f; //fraction height for slide
-  private static final float _cmax = 2.0f;
+  private static final float _cmax = 1.5f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;

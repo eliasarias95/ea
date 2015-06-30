@@ -113,6 +113,30 @@ public class Util {
     return xf;
   }
 
+  public static float[][] rotateR(float[][] x) {
+    int n2 = x.length;
+    int n1 = x[0].length;
+    float[][] xf = new float[n1][n2];
+    for (int i1=0; i1<n1; ++i1) {
+      for (int i2=0; i2<n2; ++i2) {
+        xf[i1][i2] = x[i2][n1-1-i1];
+      }
+    }
+    return xf;
+  }
+
+  public static float[][] rotateL(float[][] x) {
+    int n2 = x.length;
+    int n1 = x[0].length;
+    float[][] xf = new float[n1][n2];
+    for (int i1=0; i1<n1; ++i1) {
+      for (int i2=0; i2<n2; ++i2) {
+        xf[i1][i2] = x[n2-1-i2][i1];
+      }
+    }
+    return xf;
+  }
+
   public static float rms(float[] f) {
     int n1 = f.length;
     double sum = 0.0;
@@ -353,6 +377,27 @@ public class Util {
   }
 
   /**
+   * Reads a binary file.
+   * @param n1 the length of floats in the 1st-dimension
+   * @param n2 the length of floats in the 2nd-dimension
+   * @param n3 the length of floats in the 3rd-dimension
+   * @param fileName the name of the file to be read
+   * @return array[n3][n2][n1] of floats read from file
+   */
+  public static float[][][] readImageL(int n1, int n2, int n3, String fileName) {
+    ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
+    try {
+      ArrayInputStream ais = new ArrayInputStream(fileName,byteOrder);
+      float[][][] x = new float[n3][n2][n1];
+      ais.readFloats(x);
+      ais.close();
+      return x;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Writes seismic data to binary file.
    * @param x array[n1] of data to write to the binary file
    * @param fileName name of output binary file
@@ -386,6 +431,7 @@ public class Util {
 
   /**
    * Writes seismic data to binary file.
+   * Java default byteorder is BIG_ENDIAN.
    * @param x array[n3][n2][n1] of data to write to the binary file
    * @param fileName name of output binary file
    */

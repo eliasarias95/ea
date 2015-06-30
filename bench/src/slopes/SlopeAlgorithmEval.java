@@ -793,7 +793,7 @@ public class SlopeAlgorithmEval {
   private static int num;
   private static final int norder = 15;
   private static final int k = 10;
-  private static final float pmax = 3.0f;
+  private static final float pmax = 9.0f;
   private static final float noise = 0.0f;
   private static final float freq = 0.1f;
   private static final float pc2   = -0.7f;//constant slope
@@ -816,9 +816,9 @@ public class SlopeAlgorithmEval {
         Slopes.makeSyntheticComplex(noise,f2D,p2D,r2D);
 
         //1=lsf  2=pwd  3=sdw  4=all
-        //complex2D(4);
+        //complex2D(1);
         //1=lsf  2=pwd  3=sdw  4=all
-        //complex3D(4);
+        complex3D(1);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant2D(4);
         //1=lsf  2=pwd  3=sdw  4=all
@@ -834,11 +834,11 @@ public class SlopeAlgorithmEval {
         //1=lsf  2=pwd  3=sdw  4=all, test?
         //rmsErrorCurves2(4,true);
         //1=lsf  2=pwd  3=sdw  4=all, test?
-        rmsErrorCurves3(4,false);
+        //rmsErrorCurves3(4,false);
         //1=lsf  2=pwd  3=sdw  4=all, test?
         //meanErrorCurves(4,false,nni);
         //1=lsf  2=pwd  3=sdw  4=all, test?, n1, n2
-        //optimal(4,false,80,15);
+        //optimal(1,true,15, 3);
         //1=lsf  2=pwd  3=sdw  4=all, test?
         //mean(4,false,nni);
         //1=lsf  2=pwd  3=sdw  4=all, test?

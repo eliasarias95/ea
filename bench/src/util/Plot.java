@@ -413,7 +413,7 @@ public class Plot {
     pp.getPixelsView23().getTile().addTiledView(pv23);
     PlotFrame pf = new PlotFrame(pp);
     pf.setBackground(background);
-    pp.setColorBarWidthMinimum(110);
+    pp.setColorBarWidthMinimum(150);
     //pf.setFontSize(18) //for print
     //pf.setFontSize(30); //for slices
     //pf.setFontSizeForPrint(1.0,0.8)

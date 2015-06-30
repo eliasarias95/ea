@@ -83,9 +83,9 @@ public class LocalOrientFilter {
    */
   public LocalOrientFilter(double sigma1, double sigma2, double sigma3) {
     _rgfSmoother1 = (sigma1>=1.0)?new RecursiveGaussianFilter(sigma1):null;
-    _c1 = (float)(sigma1*sigma1/2.0f);
-    _c2 = (float)(sigma2*sigma2/2.0f);
-    _c3 = (float)(sigma3*sigma3/2.0f);
+    _c1 = (float)(sigma1*sigma1*0.5f);
+    _c2 = (float)(sigma2*sigma2*0.5f);
+    _c3 = (float)(sigma3*sigma3*0.5f);
     if (sigma2==sigma1) {
       _rgfSmoother2 = _rgfSmoother1;
     } else {
@@ -414,6 +414,7 @@ public class LocalOrientFilter {
       for (float[][] g:gs) {
         if (_lsfSmoother1!=null) {
           _lsfSmoother1.apply(_c1,s,g,h);
+          //copy(h,g);
         } else {
           copy(g,h);
         }
@@ -496,7 +497,7 @@ public class LocalOrientFilter {
     applyForNormalPlanar(x,u1,u2,u3,ep);
     zm.apply(0.01f,ep);
     ep = pow(ep,_epow);
-    ep = div(1.0f,add(1.0f,pow(mul(_alpha,ep),2.0f)));
+    ep = div(1.0f,add(1.0f,mul(pow(_alpha,2.0f),ep)));
     applyE(x,ep,
       null,null,
       u1,u2,u3,
@@ -626,7 +627,7 @@ public class LocalOrientFilter {
     applyForNormalPlanar(x,u1p,u2p,u3p,ep);
     zm.apply(0.01f,ep);
     ep = pow(ep,_epow);
-    ep = div(1.0f,add(1.0f,pow(mul(_alpha,ep),2.0f)));
+    ep = div(1.0f,add(1.0f,mul(pow(_alpha,2.0f),ep)));
 
     applyE(x,ep,
       null,null,
