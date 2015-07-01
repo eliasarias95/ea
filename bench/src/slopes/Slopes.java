@@ -135,7 +135,7 @@ public class Slopes{
   public static void makeRealGOM(float[][] f) {
     int n1 = f[0].length;
     int n2 = f.length;
-    float[][] temp = (Util.readImage(n1,n2,PATH+"data/gom.dat"));
+    float[][] temp = (Util.readImage(n1,n2,PATH+"/data/gom.dat"));
     for (int i2=0; i2<n2; ++i2){
       for (int i1=0; i1<n1; ++i1){
         f[i2][i1] = temp[i2][i1];
@@ -150,7 +150,7 @@ public class Slopes{
   public static void makeRealTp(float[][] f) {
     int n1 = f[0].length;
     int n2 = f.length;
-    float[][] temp = (Util.readImage(n1,n2,PATH+"data/tp/tp73.dat"));
+    float[][] temp = (Util.readImage(n1,n2,PATH+"/data/tp/tp73.dat"));
     //temp = Util.addNoise(0.0,temp);
     for (int i2=0; i2<n2; ++i2){
       for (int i1=0; i1<n1; ++i1){
@@ -169,8 +169,8 @@ public class Slopes{
     int n3 = f.length;
     //float[][] g = new float[n3][n1];
     float[][][] temp = Util.readImage(n1,n2,n3,PATH+
-          //"data/tp/tpsz_subz_51_4_1400.dat");
-          "data/tp/tpsz_subz_401_4_400.dat");
+          //"/data/tp/tpsz_subz_51_4_1400.dat");
+          "/data/tp/tpsz_subz_401_4_400.dat");
     //temp = Util.addNoise(0.0001,temp);
     for (int i3=0; i3<n3; ++i3){
       for (int i2=0; i2<n2; ++i2){
@@ -186,7 +186,7 @@ public class Slopes{
         g[i3][i1] = f[i3][317][i1];
       }
     }
-    Util.writeBinary(g,PATH+"data/tp/tp317.dat");
+    Util.writeBinary(g,PATH+"/data/tp/tp317.dat");
     */
   }
 
@@ -207,7 +207,7 @@ public class Slopes{
     _sw.stop();
     zm.apply(0.0f,pe);
     trace("Structure tensor time = "+_sw.time());    
-    Util.writeBinary(pe,PATH+"data/"+title+"_p.dat");
+    Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
     trace("Structure tensor:"+max(pe)+", "+min(pe));
     float error;
     if (p!=null) {
@@ -235,8 +235,8 @@ public class Slopes{
     zm.apply(0.0f,p2e);
     zm.apply(0.0f,p3e);
     trace("Structure tensor time = "+_sw.time());    
-    Util.writeBinary(p2e,PATH+"data/"+title+"_p2.dat");
-    Util.writeBinary(p3e,PATH+"data/"+title+"_p3.dat");
+    Util.writeBinary(p2e,PATH+"/data/"+title+"_p2.dat");
+    Util.writeBinary(p3e,PATH+"/data/"+title+"_p3.dat");
     trace("Structure tensor:");
     float error2,error3;
     if (p2!=null && p3!=null) {
@@ -267,8 +267,8 @@ public class Slopes{
     zm.apply(0.0f,p2);
     zm.apply(0.0f,p3);
     trace("Structure tensor time = "+_sw.time());    
-    Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
-    Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+    Util.writeBinary(p2,PATH+"/data/"+title+"_p2.dat");
+    Util.writeBinary(p3,PATH+"/data/"+title+"_p3.dat");
   }
 
   /**
@@ -288,7 +288,7 @@ public class Slopes{
     sd.findSlopes(_s1,_s2,f,pe);
     _sw.stop();
     trace("Madagascar PWD time = "+_sw.time());    
-    Util.writeBinary(pe,PATH+"data/"+title+"_p.dat");
+    Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
     trace("Madagascar PWD:");
     float error;
     if (p!=null) error = Util.rmsError(pe,p,T);
@@ -315,8 +315,8 @@ public class Slopes{
     //sd.ffindSlopes(_s1,_s2,_s3,f,p2e,p3e); //fast 3D find slopes
     _sw.stop();
     trace("Madagascar PWD time = "+_sw.time());    
-    Util.writeBinary(p2e,PATH+"data/"+title+"_p2.dat");
-    Util.writeBinary(p3e,PATH+"data/"+title+"_p3.dat");
+    Util.writeBinary(p2e,PATH+"/data/"+title+"_p2.dat");
+    Util.writeBinary(p3e,PATH+"/data/"+title+"_p3.dat");
     trace("Madagascar PWD:");
     float error2,error3;
     if (p2!=null && p3!=null) {
@@ -347,8 +347,8 @@ public class Slopes{
     //sd.ffindSlopes(_s1,_s2,_s3,f,p2,p3); //fast 3D find slopes
     _sw.stop();
     trace("Madagascar PWD time = "+_sw.time());    
-    Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
-    Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+    Util.writeBinary(p2,PATH+"/data/"+title+"_p2.dat");
+    Util.writeBinary(p3,PATH+"/data/"+title+"_p3.dat");
   }
 
   /**
@@ -369,7 +369,7 @@ public class Slopes{
     pwd.updateSlopes(f,pe);
     _sw.stop();
     trace("Dave's PWD time = "+_sw.time());    
-    Util.writeBinary(pe,PATH+"data/"+title+"_p.dat");
+    Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
     trace("Dave's PWD:");
     float error;
     if (p!=null) error = Util.rmsError(pe,p,T);
@@ -390,7 +390,7 @@ public class Slopes{
     float[][] pe = dws.findSlopes(f);
     _sw.stop();
     trace("Dynamic warping time = "+_sw.time());    
-    Util.writeBinary(pe,PATH+"data/"+title+"_p.dat");
+    Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
     trace("Dynamic warping:");
     float error;
     if (p!=null) error = Util.rmsError(pe,p,T);
@@ -418,7 +418,7 @@ public class Slopes{
     _sw.stop();
     zm.apply(0.0f,pe);
     trace("Smooth dynamic warping time = "+_sw.time());    
-    Util.writeBinary(pe,PATH+"data/"+title+"_p.dat");
+    Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
     trace("Smooth dynamic warping:");
     float error;
     if (p!=null) error = Util.rmsError(pe,p,T);
@@ -453,8 +453,8 @@ public class Slopes{
     zm.apply(0.0f,p2e);
     zm.apply(0.0f,p3e);
     trace("Smooth dynamic warping time = "+_sw.time());    
-    Util.writeBinary(p2e,PATH+"data/"+title+"_p2.dat");
-    Util.writeBinary(p3e,PATH+"data/"+title+"_p3.dat");
+    Util.writeBinary(p2e,PATH+"/data/"+title+"_p2.dat");
+    Util.writeBinary(p3e,PATH+"/data/"+title+"_p3.dat");
     trace("Smooth dynamic warping:");
     float error2,error3;
     if (p2!=null && p3!=null) {
@@ -490,22 +490,22 @@ public class Slopes{
     zm.apply(0.0f,p2);
     zm.apply(0.0f,p3);
     trace("Smooth dynamic warping time = "+_sw.time());    
-    Util.writeBinary(p2,PATH+"data/"+title+"_p2.dat");
-    Util.writeBinary(p3,PATH+"data/"+title+"_p3.dat");
+    Util.writeBinary(p2,PATH+"/data/"+title+"_p2.dat");
+    Util.writeBinary(p3,PATH+"/data/"+title+"_p3.dat");
   }
 
   public void retranspose(String title) {
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
-    float[][][] p2 = Util.readImage(n1,n3,n2,PATH+"data/"+title+"_p2.dat");
-    float[][][] p3 = Util.readImage(n1,n3,n2,PATH+"data/"+title+"_p3.dat");
+    float[][][] p2 = Util.readImage(n1,n3,n2,PATH+"/data/"+title+"_p2.dat");
+    float[][][] p3 = Util.readImage(n1,n3,n2,PATH+"/data/"+title+"_p3.dat");
     float[][][] p2t = new float[n3][n2][n1];
     float[][][] p3t = new float[n3][n2][n1];
     Util.transpose23(p2,p3t);
     Util.transpose23(p3,p2t);
-    Util.writeBinary(p2t,PATH+"data/"+title+"_p2.dat");
-    Util.writeBinary(p3t,PATH+"data/"+title+"_p3.dat");
+    Util.writeBinary(p2t,PATH+"/data/"+title+"_p2.dat");
+    Util.writeBinary(p3t,PATH+"/data/"+title+"_p3.dat");
   }
 
 /**********************CHOOSING OPTIMAL PARAMETERS**********************/
@@ -533,7 +533,7 @@ public class Slopes{
         rmserror[i2][i1] = Util.rmsError(pe,p,F);
       }
     }
-    Util.writeBinary(rmserror,PATH+"data/"+fileName);
+    Util.writeBinary(rmserror,PATH+"/data/"+fileName);
   }
 
   /**
@@ -561,7 +561,7 @@ public class Slopes{
         rmserror[i2][i1] = Util.rmsError(pe,p,F);
       }
     }
-    Util.writeBinary(rmserror,PATH+"data/"+fileName);
+    Util.writeBinary(rmserror,PATH+"/data/"+fileName);
   }
 
   /**
@@ -588,7 +588,7 @@ public class Slopes{
         rmserror[i2][i1] = Util.rmsError(pe,p,F);
       }
     }
-    Util.writeBinary(rmserror,PATH+"data/"+fileName);
+    Util.writeBinary(rmserror,PATH+"/data/"+fileName);
   }
 
   /**
@@ -620,7 +620,7 @@ public class Slopes{
         rmserror[i2][i1] = Util.rmsError(pe,p,F);
       }
     }
-    Util.writeBinary(rmserror,PATH+"data/"+fileName);
+    Util.writeBinary(rmserror,PATH+"/data/"+fileName);
   }
 
   /**
@@ -652,7 +652,7 @@ public class Slopes{
         rmserror[i2][i1] = Util.rmsError(pe,p,F);
       }
     }
-    Util.writeBinary(rmserror,PATH+"data/"+fileName);
+    Util.writeBinary(rmserror,PATH+"/data/"+fileName);
   }
 
 /**********************OTHER EVALUATION METHODS**********************/
@@ -1114,7 +1114,7 @@ public class Slopes{
     boolean one = true;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    float[][] p = Util.readImage(n1,n2,PATH+"data/"+title+"_p.dat");
+    float[][] p = Util.readImage(n1,n2,PATH+"/data/"+title+"_p.dat");
     // clip, interp, title, paint, color
     String cbl = "slope (samples/trace)"; //colorbar label
     Plot.plot(_s1,_s2,f,p,title+num,cbl,_fw,_fh,-_cmax,_cmax,_clip,_title,
@@ -1126,10 +1126,10 @@ public class Slopes{
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
-    float[][][] p2 = Util.readImage(n1,n2,n3,PATH+"data/"+title1+"_p2.dat");
-    float[][][] p3 = Util.readImage(n1,n2,n3,PATH+"data/"+title1+"_p3.dat");
-    float[][][] p2t = Util.readImage(n1,n2,n3,PATH+"data/"+title2+"_p2.dat");
-    float[][][] p3t = Util.readImage(n1,n2,n3,PATH+"data/"+title2+"_p3.dat");
+    float[][][] p2 = Util.readImage(n1,n2,n3,PATH+"/data/"+title1+"_p2.dat");
+    float[][][] p3 = Util.readImage(n1,n2,n3,PATH+"/data/"+title1+"_p3.dat");
+    float[][][] p2t = Util.readImage(n1,n2,n3,PATH+"/data/"+title2+"_p2.dat");
+    float[][][] p3t = Util.readImage(n1,n2,n3,PATH+"/data/"+title2+"_p3.dat");
     //Plot.plot(_s1,_s2,_s3,f,sub(p2,p2t),title1+"_p2_slices",-_cmax,_cmax,
     //_paint);
     //Plot.plot(_s1,_s2,_s3,f,sub(p3,p3t),title1+"_p3_slices",-_cmax,_cmax,
@@ -1146,8 +1146,8 @@ public class Slopes{
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
-    float[][][] p2 = Util.readImage(n1,n2,n3,PATH+"data/"+title+"_p2.dat");
-    float[][][] p3 = Util.readImage(n1,n2,n3,PATH+"data/"+title+"_p3.dat");
+    float[][][] p2 = Util.readImage(n1,n2,n3,PATH+"/data/"+title+"_p2.dat");
+    float[][][] p3 = Util.readImage(n1,n2,n3,PATH+"/data/"+title+"_p3.dat");
     Plot.plot(_s1,_s2,_s3,f,p2,title+"_p2_slices",-_cmax,_cmax,_paint);
     Plot.plot(_s1,_s2,_s3,f,p3,title+"_p3_slices",-_cmax,_cmax,_paint);
     Plot.plot(_s1,_s2,_s3,f,p2,"slope (samples/trace)",title+"_p2_panels",
@@ -1161,12 +1161,12 @@ public class Slopes{
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
-    float[][][] p2t1 = Util.readImage(n1,n2,n3,PATH+"data/"+t1+"_p2.dat");
-    float[][][] p3t1 = Util.readImage(n1,n2,n3,PATH+"data/"+t1+"_p3.dat");
-    float[][][] p2t2 = Util.readImage(n1,n2,n3,PATH+"data/"+t2+"_p2.dat");
-    float[][][] p3t2 = Util.readImage(n1,n2,n3,PATH+"data/"+t2+"_p3.dat");
-    float[][][] p2t3 = Util.readImage(n1,n2,n3,PATH+"data/"+t3+"_p2.dat");
-    float[][][] p3t3 = Util.readImage(n1,n2,n3,PATH+"data/"+t3+"_p3.dat");
+    float[][][] p2t1 = Util.readImage(n1,n2,n3,PATH+"/data/"+t1+"_p2.dat");
+    float[][][] p3t1 = Util.readImage(n1,n2,n3,PATH+"/data/"+t1+"_p3.dat");
+    float[][][] p2t2 = Util.readImage(n1,n2,n3,PATH+"/data/"+t2+"_p2.dat");
+    float[][][] p3t2 = Util.readImage(n1,n2,n3,PATH+"/data/"+t2+"_p3.dat");
+    float[][][] p2t3 = Util.readImage(n1,n2,n3,PATH+"/data/"+t3+"_p2.dat");
+    float[][][] p3t3 = Util.readImage(n1,n2,n3,PATH+"/data/"+t3+"_p3.dat");
     Sampling s = new Sampling(n,1,1);
     float[] p   = new float[n];
     float[] pbar  = new float[n];
@@ -1218,9 +1218,9 @@ public class Slopes{
     boolean paint = true;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    float[][] pe_lsf = Util.readImage(n1,n2,PATH+"data/lsf_"+title+".dat");
-    float[][] pe_pwd = Util.readImage(n1,n2,PATH+"data/pwdm_"+title+".dat");
-    float[][] pe_sdw = Util.readImage(n1,n2,PATH+"data/sdw_"+title+".dat");
+    float[][] pe_lsf = Util.readImage(n1,n2,PATH+"/data/lsf_"+title+".dat");
+    float[][] pe_pwd = Util.readImage(n1,n2,PATH+"/data/pwdm_"+title+".dat");
+    float[][] pe_sdw = Util.readImage(n1,n2,PATH+"/data/sdw_"+title+".dat");
     Plot.plot(_s1,_s2,f,pe_lsf,pe_pwd,pe_sdw,"teaser",_fw,_fh,_slide,paint);
   }
 
@@ -1232,7 +1232,7 @@ public class Slopes{
     float[] param1 = Util.f(sp1.getValues());
     float[] param2 = Util.f(sp2.getValues());
     int[] error_index = new int[2];    
-    float[][] rmserror = Util.readImage(np1,np2,PATH+"data/"+fileName);
+    float[][] rmserror = Util.readImage(np1,np2,PATH+"/data/"+fileName);
     float min_error = min(rmserror,error_index);
     trace(vl+"= "+param1[error_index[0]]+" "+hl+"= "+param2[error_index[1]]+
         " "+" Minimum Error Value= "+min_error);    
@@ -1243,62 +1243,37 @@ public class Slopes{
         T,T,_title,_paint,T,_slide,one);
   }
 
-  /*
-  private static void goTestSlopeVsError() {
-    int n1 = 501;
-    int n2 = 501;
+  public void goTestSlopeVsError(float[][] p, String ttl) {
+    int n1 = _s1.getCount();
+    int n2 = _s2.getCount();
+    int n  = n1*n2;
+    Sampling s = new Sampling(n);
+    float[][] mean = Util.readImage(n1,n2,PATH+"/data/mean_"+ttl+".dat");
+    float[][] sd = Util.readImage(n1,n2,PATH+"/data/stddev_"+ttl+".dat");
+    float[][] abs = sub(mean,p); 
 
-    float noise = 0.5f;
-
-    float[][][] synthAndSlope = FakeData.seismicAndSlopes2d2014A(noise,F);
-    float[][] exact_slope = synthAndSlope[1];
-    float[][] lsf_mean = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/lsf_mean.dat");
-    float[][] mad_mean = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/mad_mean.dat");
-    float[][] lsf_sd = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/lsf_sd.dat");
-    float[][] mad_sd = Util.readImage(n1,n2,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/mad_sd.dat");
-
-    float[][] mad_abs = sub(mad_mean,exact_slope); 
-    float[][] lsf_abs = sub(lsf_mean,exact_slope); 
-
-    float[] mad_1Dslope = new float[n2*n1];
-    float[] lsf_1Dslope = new float[n2*n1];
-    float[] mad_1Dabs = new float[n2*n1];
-    float[] lsf_1Dabs = new float[n2*n1];
-    float[] exact_1Dslope= new float[n2*n1];
+    float[] slope1D = new float[n];
+    float[] abs1D = new float[n];
+    float[] p1D = new float[n];
     for (int i2=0; i2<n2; ++i2) {
       for (int i1=0; i1<n1; ++i1) {
-        mad_1Dslope[i1+i2*n1] = abs(atan(mad_mean[i2][i1]));
-        lsf_1Dslope[i1+i2*n1] = abs(atan(lsf_mean[i2][i1]));
-        mad_1Dabs[i1+i2*n1] = abs(mad_sd[i2][i1]);
-        lsf_1Dabs[i1+i2*n1] = abs(lsf_sd[i2][i1]);
-        exact_1Dslope[i1+i2*n1] = exact_slope[i2][i1];
+        slope1D[i1+i2*n1] = abs(atan(mean[i2][i1]));
+        abs1D[i1+i2*n1] = abs(sd[i2][i1]);
+        p1D[i1+i2*n1] = p[i2][i1];
       }
     }
-    Util.writeBinary(exact_1Dslope,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/exact_slope1D.dat");
-    Util.writeBinary(lsf_1Dslope,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/struct_tens1D.dat");
-    Util.writeBinary(mad_1Dslope,
-        "/Users/earias/Home/git/ea/bench/src/slopes/data/plane_wave1D.dat");
-    float fw = 0.75f; //fraction width for slide
-    float fh = 0.8f; //fraction height for slide
+
+    Util.writeBinary(p1D,PATH+"/data/p1D.dat");
+    Util.writeBinary(slope1D,PATH+"/data/"+ttl+"_slope1D.dat");
     //Plot.plotHistogram(exact_1Dslope, lsf_1Dslope, mad_1Dslope,
     //  "Histogram",fw,fh,F);
 
-    // paint
-    //Plot.plot(mad_1Dslope,mad_1Dabs,"PWD Slope vs Absolute Error",
+    //Plot.plot(slope1D,abs1D,"LSF Slope vs Absolute Error",
     //"Slope (samples/trace)","(samples/trace)",fw,fh,T);
-    //Plot.plot(lsf_1Dslope,lsf_1Dabs,"LSF Slope vs Absolute Error",
-    //"Slope (samples/trace)","(samples/trace)",fw,fh,T);
-    Plot.plot(exact_1Dslope,mad_1Dabs,"PWD Slope vs Absolute Error",
-    "Slope (samples/trace)","(samples/trace)",fw,fh,T);
-    Plot.plot(exact_1Dslope,lsf_1Dabs,"LSF Slope vs Absolute Error",
-    "Slope (samples/trace)","(samples/trace)",fw,fh,T);
-  }*/
+    Plot.plot(s,p1D,abs1D,p1D,ttl+"_slope_vs_absolute_error",
+        "Slope (samples/trace)","(samples/trace)",
+        _fw,_fh,-_cmax,_cmax,_slide,F,_paint);
+  }
 
   private static void trace(String s) {
     System.out.println(s);
@@ -1306,12 +1281,12 @@ public class Slopes{
 
   ///////////////////PRIVATE VARIABLES///////////////////////
   private static final String PATH = 
-    "/users/elias.arias/Home/git/ea/bench/src/util/";
+    System.getProperty("user.home")+"/Home/git/ea/bench/src/util";
   private static final int _niter = 5;
   private static final float pi = FLT_PI;      
   private static final float _fw = 0.75f; //fraction width for slide
   private static final float _fh = 0.9f; //fraction height for slide
-  private static final float _cmax = 1.5f;
+  private static final float _cmax = 4.0f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;
