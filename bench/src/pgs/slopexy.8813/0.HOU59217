@@ -1,0 +1,131 @@
+
+prt_mark(c(i5start:prt_flt) t(FFFFFFFF82D06720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+Start date: Tue Jun 30 14:14:37 2015 -0500                           
+
+prt_mark(c(i5start:user) t(FFFFFFFF82D06720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+
+*******************************************************************
+*                                                                 *
+*                        PGS                                      *
+*                                                                 *
+* DDSROOT-compile time : /pgsdev/mde/mde132                                    *
+* DDSROOT-run time     : /pgsdev/mde/mde132                                    *
+* Project : eliasp                                                *
+* Job Name : slopexy                                              *
+*******************************************************************
+* Program : mpi-pgm                                               *
+* Binary  : ./slopexy                                             *
+* Date    : Tue Jun 30 10:04:55 2015                              *
+*******************************************************************
+* User: elias.arias                                               *
+* Host: HOU59217                                                  *
+* Cwd : /users/elias.arias/Home/git/ea/bench/src/pgs              *
+* Date: Tue Jun 30 14:14:37 2015 -0500  Start of Job                    *
+*******************************************************************
+
+prt_mark(c(i7start:load) t(FFFFFFFF82D06720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+Environment LD_LIBRARY_PATH= /pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/compiler/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/mkl/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/ipp/../compiler/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/ipp/lib/intel64:/pgsdev/com/intel/intel2012.032/impi/4.0.3.008/intel64/lib:/opt/intel/impi/4.0.3.008/intel64/lib:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/compiler/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/ipp/../compiler/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/ipp/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/compiler/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/mkl/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/tbb/lib/intel64//cc4.1.0_libc2.4_kernel2.6.16.21:/pgs/com/gcc/4.4.6/x86.64_C62_gcc.4.4/lib64:/pgsdev/open_source/madagascar/lib:/pgsdev/mde/mde132/dist/Linux/2.6/mbs/prod/x86_64/lib:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/mpirt/lib/intel64:/pgsdev/etc/mde/mde132/spark/mysql/lib/mysql
+
+prt_mark(c(i5par:user) t(FFFFFFFF82D06720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+**************************** PARAMETERS ***************************
+*
+*   dds_par{= elias.par
+*   in= /users/elias.arias/Home/git/ea/bench/src/pgs/synth3D_mdvd
+*   project= eliasp
+*   in_type= mdvd
+*   #grid= 3504ctx
+*   sparse_and_dense= No
+*   window_size= 10
+*   ntr_fit= 10
+*   max_dip= 4.0
+*   smbl_threshold= 0.1
+*   start_depth= 0
+*   end_depth= 1000
+*   binx= 10.0
+*   biny= 10.0
+*   lsmooth= 0
+*   out_type= mdvd
+*   output_filename= /users/elias.arias/Home/git/ea/bench/src/pgs/pgs_slope_out
+*   dds_par}= elias.par
+*   par= elias.par
+*
+*******************************************************************
+
+prt_mark(c(i4omp:sys) t(FFFFFFFF82D06720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+initopenmp: nproc= 4 == omp_set_num_threads
+
+prt_mark(c(m5) t(FFFFFFFF82D06720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+Parameter par             specified as "elias.par".
+input data format is mdvd.   itype=0   
+output data format is mdvd.   itype=0   
+Project: eliasp
+Parameter in              specified as "/users/elias.arias/Home/git/ea/bench/src/pgs/synth3D_mdvd".
+The output file name: /users/elias.arias/Home/git/ea/bench/src/pgs/pgs_slope_out.
+semblance threshold=   0.1000 
+delta z is 10.000000 0.000000 
+in_type=0  nsamp=101 delta_z=10.000000 #ofsubline=103 #ofxline=102 
+Input: subline-1, 103, 1 xline-1,102,1
+subline spacing=10.000000  xline spacing=10.000000 
+The header string: SUBLINE 1 1 1 XLINE 2 1 1 CDP 3 1 1. 
+                       
+Slope out:samp=101 nhdr=3 /users/elias.arias/Home/git/ea/bench/src/pgs/pgs_slope_out_dzdx. 
+Slope out:samp=101 nhdr=3 /users/elias.arias/Home/git/ea/bench/src/pgs/pgs_slope_out_dzdy. 
+Parameter nprocess =      4.
+inode=0 trc_start=0 ntrcs=10506 trin_iyimin=0 iyimax=102 no=103 trout_iyomin=0 iyomax=102 no=103 
+Allocate stk buffer 4370496 bytes header=3 samp=101 nlr=103 nyo=103...
+Allocate slopexy buffer 4370496 bytes 
+Allocate wb array 10506 traces.   
+Node needs to read 4370496 bytes(probably, need 4 times more), available memory is 16723689472 bytes!
+Begin reading stack 4370496 bytes ...
+Reading 4370496 stack traces successful!!! 
+
+prt_mark(c(m5) t(FFFFFFFF81880700) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+Node 0 processing subline 1, xline 1 iy=0 st22=5  
+
+prt_mark(c(m5) t(FFFFFFFF81880700) w(51) u(203) s(0) cu(0) cs(0))prt_mark
+Node 0 processing subline 50, xline 3 iy=49 st22=5  
+
+prt_mark(c(m5) t(FFFFFFFF81880700) w(103) u(358) s(0) cu(0) cs(0))prt_mark
+Node 0 processing subline 99, xline 5 iy=98 st22=5  
+
+prt_mark(c(m5) t(FFFFFFFF82D06720) w(108) u(363) s(0) cu(0) cs(0))prt_mark
+Out_mdvd: node=0 iyomin=0 iyimin=0 #traces=10506 
+NODE=    0  finished
+All the jobs on 1 nodes finished successfully.
+
+prt_mark(c(i2info:jobok) t(FFFFFFFF82D06720) w(108) u(363) s(0) cu(0) cs(0))prt_mark
+Successful Task 1 of 1
+
+prt_mark(c(i3close:user) t(FFFFFFFF82D06720) w(108) u(363) s(0) cu(0) cs(0))prt_mark
+exit_code= 0  Normal Termination
+Date: Tue Jun 30 14:16:25 2015  End of Job
+
+prt_mark(c(i5close:user) t(FFFFFFFF82D06720) w(108) u(363) s(0) cu(0) cs(0))prt_mark
+***************************** SUMMARY *****************************
+*
+*                        NORMAL Termination                        
+*
+*
+*      Unused Parameters:
+*         #grid=3504ctx
+*         sparse_and_dense=No
+*
+*      Tue Jun 30 14:16:25 2015  End of Job
+*
+*******************************************************************
+
+prt_mark(c(i5close:stats) t(FFFFFFFF82D06720) w(108) u(363) s(0) cu(0) cs(0))prt_mark
+*  CPU Time     : 363 seconds == 0 days 0:6:3 (this process only)
+*  Elapsed Time : 108 seconds == 0 days 0:1:48 (this process only)
+
+* This product includes software developed by BP America Inc. and its contributors *
+
+prt_mark(c(i5mem:user) t(FFFFFFFF82D06720) w(108) u(363) s(0) cu(0) cs(0))prt_mark
+Memory usage= 84 Megabytes
+
+prt_mark(c(i5bin:user) t(FFFFFFFF82D06720) w(108) u(363) s(0) cu(0) cs(0))prt_mark
+GLOBAL READ  record count= 0  bytes= 0  rate=          0 MB/sec
+GLOBAL WRITE record count= 0  bytes= 0  rate=          0 MB/sec
+
+prt_mark(c(i7proc:stat) t(FFFFFFFF82D06720) w(108) u(363) s(0) cu(0) cs(0))prt_mark
+8813 (slopexy) R 4350 8813 4350 34816 8813 4202496 2646 0 0 0 36304 8 0 0 20 0 1 0 2128632 61018112 1882 18446744073709551615 4194304 9300592 140736535803072 140736535790400 267777848541 0 0 0 0 0 0 0 17 1 0 0 13 0 0

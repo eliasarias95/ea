@@ -1,0 +1,65 @@
+
+prt_mark(c(i5start:prt_flt) t(268A7720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+Start date: Tue Jun 30 13:59:43 2015 -0500                           
+
+prt_mark(c(i5start:user) t(268A7720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+
+*******************************************************************
+*                                                                 *
+*                        PGS                                      *
+*                                                                 *
+* DDSROOT-compile time : /pgsdev/mde/mde132                                    *
+* DDSROOT-run time     : /pgsdev/mde/mde132                                    *
+* Project : eliasp                                                *
+* Job Name : slopexy                                              *
+*******************************************************************
+* Program : mpi-pgm                                               *
+* Binary  : ./slopexy                                             *
+* Date    : Tue Jun 30 10:04:55 2015                              *
+*******************************************************************
+* User: elias.arias                                               *
+* Host: HOU59217                                                  *
+* Cwd : /users/elias.arias/Home/git/ea/bench/src/pgs              *
+* Date: Tue Jun 30 13:59:43 2015 -0500  Start of Job                    *
+*******************************************************************
+
+prt_mark(c(i7start:load) t(268A7720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+Environment LD_LIBRARY_PATH= /pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/compiler/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/mkl/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/ipp/../compiler/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/ipp/lib/intel64:/pgsdev/com/intel/intel2012.032/impi/4.0.3.008/intel64/lib:/opt/intel/impi/4.0.3.008/intel64/lib:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/compiler/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/ipp/../compiler/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/ipp/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/compiler/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/mkl/lib/intel64:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/tbb/lib/intel64//cc4.1.0_libc2.4_kernel2.6.16.21:/pgs/com/gcc/4.4.6/x86.64_C62_gcc.4.4/lib64:/pgsdev/open_source/madagascar/lib:/pgsdev/mde/mde132/dist/Linux/2.6/mbs/prod/x86_64/lib:/pgsdev/com/intel/intel2012.032/composer_xe_2011_sp1.6.233/mpirt/lib/intel64:/pgsdev/etc/mde/mde132/spark/mysql/lib/mysql
+
+prt_mark(c(i5par:user) t(268A7720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+**************************** PARAMETERS ***************************
+*
+*   dds_par{= elias.par
+*   in= synth3D_mdvd
+*   project= eliasp
+*   in_type= mdvd
+*   #grid= 3504ctx
+*   sparse_and_dense= No
+*   window_size= 5
+*   ntr_fit= 5
+*   max_dip= 4.0
+*   smbl_threshold= 0.1
+*   start_depth= 0
+*   end_depth= 1000
+*   binx= 10.0
+*   biny= 10.0
+*   lsmooth= 0
+*   out_type= mdvd
+*   output_filename= pgs_slope_out
+*   dds_par}= elias.par
+*   par= elias.par
+*
+*******************************************************************
+
+prt_mark(c(i4omp:sys) t(268A7720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+initopenmp: nproc= 4 == omp_set_num_threads
+
+prt_mark(c(m5) t(268A7720) w(0) u(0) s(0) cu(0) cs(0))prt_mark
+Parameter par             specified as "elias.par".
+input data format is mdvd.   itype=0   
+output data format is mdvd.   itype=0   
+Project: eliasp
+Parameter in              specified as "/cfs/eliasp/synth3D_mdvd".
+The output file name: /cfs/eliasp/pgs_slope_out.
+semblance threshold=   0.1000 
+ERROR: error opening MDVD stack file : /cfs/eliasp/synth3D_mdvd

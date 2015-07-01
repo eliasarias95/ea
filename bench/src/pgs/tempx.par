@@ -1,0 +1,7 @@
+#in=/datadb/sfrolov/synth3D.bin
+#out=/datadb/sfrolov/synth3D_mdvd
+in=pgs_slope_out_dzdx
+out=pgs_slope_out_dzdx.bin
+subline_seq=1 103 1
+xline_seq=1 102 1
+z_seq=0 1000 10
