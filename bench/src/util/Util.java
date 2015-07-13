@@ -3,14 +3,7 @@ package util;
 import edu.mines.jtk.io.*;
 import edu.mines.jtk.dsp.*;
 import edu.mines.jtk.util.RandomFloat;
-import edu.mines.jtk.util.Parallel;
-import edu.mines.jtk.mosaic.SimplePlot;
 import edu.mines.jtk.util.SimpleFloat3;
-
-import dnp.LocalSlopeFinder;
-import dnp.PlaneWaveDestructor;
-
-import slopes.*;
 
 import static edu.mines.jtk.util.ArrayMath.*;
 

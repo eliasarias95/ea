@@ -1,17 +1,10 @@
 package slopes;
 
+import util.Util;
 import edu.mines.jtk.dsp.*;
-import edu.mines.jtk.util.*;
-import edu.mines.jtk.mosaic.*;
-import edu.mines.jtk.util.Stopwatch;
+import edu.mines.jtk.util.Check;
 
 import static edu.mines.jtk.util.ArrayMath.*;
-
-import dnp.LocalSlopeFinder;
-import dnp.PlaneWaveDestructor;
-import util.Plot;
-import util.Util;
-import util.FakeData;
 
 import javax.swing.*;
 

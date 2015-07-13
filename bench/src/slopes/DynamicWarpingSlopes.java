@@ -1,7 +1,5 @@
 package slopes;
 
-import util.Plot;
-import util.Util;
 import edu.mines.jtk.dsp.*;
 import edu.mines.jtk.interp.*;
 import static edu.mines.jtk.util.ArrayMath.*;

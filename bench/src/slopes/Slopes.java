@@ -1,19 +1,11 @@
 package slopes;
 
-import edu.mines.jtk.dsp.*;
-import edu.mines.jtk.sgl.*;
-import edu.mines.jtk.util.Check;
-import edu.mines.jtk.util.Stopwatch;
-
-
-import static edu.mines.jtk.util.ArrayMath.*;
-
 import util.*;
 import dnp.PlaneWaveDestructor;
+import edu.mines.jtk.dsp.*;
+import edu.mines.jtk.util.Stopwatch;
 
-import java.awt.Color;
-import java.util.Random;
-import javax.swing.*;
+import static edu.mines.jtk.util.ArrayMath.*;
 
 /**
  *  

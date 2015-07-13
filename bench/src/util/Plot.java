@@ -8,8 +8,6 @@ import edu.mines.jtk.sgl.*;
 import static edu.mines.jtk.util.ArrayMath.*;
 
 import java.awt.Color;
-import java.text.DecimalFormat;
-import java.io.IOException;
 import javax.swing.*;
 
 /**
