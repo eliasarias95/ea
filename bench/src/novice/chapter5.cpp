@@ -30,7 +30,7 @@ void section3Question1() {
   cout << "Enter an operator (+, -, *, /): ";
   char op;
   cin >> op;
-  
+
   cout << x << " " << op << " " << y << " = " << calculate(x,y,op) << "\n";
 }
 
@@ -88,9 +88,61 @@ void section3Question2() {
   printNumberOfLegs(chicken);
 }
 
+void section5Question2() {
+  using namespace std;
+  const int n = 26;
+  char abc[n];
+  for (int i=0; i<n; ++i) {
+    abc[i] = 97+i;
+    cout << abc[i] << " has ASCII code " << static_cast<int>(abc[i]) << "\n";
+  }
+}
+
+/* other implementation
+   void section5Question2() {
+   char chValue = 'a';
+   while (chValue <= 'z') {
+   std::cout << chValue << " " << static_cast<int>(chValue) << "\n";
+   chValue++;
+   }
+   }
+   */
+
+void section5Question3() {
+  int outer = 5;
+  while (outer >= 1) {
+    int inner = outer;
+    while (inner >= 1)
+      std::cout << inner-- << " ";
+    // print a newline at the end of each row
+    std::cout << "\n";
+    --outer;
+  }
+}
+
+void section7Question1() {
+  for (int i=0; i<=20; i+=2)
+    std::cout << i << " ";
+  std::cout << "\n";
+}
+
+int sumTo(int value) {
+  int sum = 0;
+  for (int i=0; i<=value; ++i)
+    sum +=i;
+  return sum;
+}
+
+void section7Question2() {
+  std::cout << sumTo(5) << "\n";
+}
 
 int main() {
   //section3Question1();
-  section3Question2();
+  //section3Question2();
+  //section5Question2();
+  //section5Question3();
+  //section7Question1();
+  section7Question2();
   return 0;
 }
