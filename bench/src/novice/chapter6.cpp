@@ -41,15 +41,46 @@ void section3Question2() {
     if (anArray[jjj] == nNumber) {
       cout << "The number " << nNumber << " has index " << jjj << endl;
       break; // since each # in the array is unique, 
-             //no need to search rest of array
+      //no need to search rest of array
     }
   }
+}
+
+/**
+ * A pointer (pnPtr) can be set equal to an array (i.e. point to the 
+ * beginning of the array) (e.g. pnPtr = szName). By adding integers to the
+ * array, you are accessing different elements of the array 
+ * (e.g. pnPtr = szName + 1 is equivalent to szName[1]).
+ */
+void section8() {
+  const int nArraySize = 7;
+  char szName[nArraySize] = "Mollie";
+  int nVowels = 0;
+  for (char *pnPtr = szName; pnPtr < szName + nArraySize; ++pnPtr) {
+    switch (*pnPtr) {
+      case 'A':
+      case 'a':
+      case 'E':
+      case 'e':
+      case 'I':
+      case 'i':
+      case 'O':
+      case 'o':
+      case 'U':
+      case 'u':
+        ++nVowels;
+        break;
+    }
+  }
+  std::cout << "szName+nArraySize = " << (szName) << "\n";
+  std::cout << szName << " has " << nVowels << " vowels\n";
 }
 
 int main() {
   //section2Question1();
   //section2Question2();
   //section3Question1();
-  section3Question2();
+  //section3Question2();
+  section8();
   return 0;
 }
