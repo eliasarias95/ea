@@ -1,0 +1,6 @@
+class SmoothDynamicWarping {
+  public:
+
+  private:
+
+};
