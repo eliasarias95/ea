@@ -137,7 +137,6 @@ public class DynamicWarpingSlopes {
 
 /////////////////////////PRIVATE/////////////////////////
 
-  private static final float pi = FLT_PI;
   private int _k;
   private double _pmax,_h1,_h2,_h3,_r1,_r2,_r3;
   private Sampling _s1,_s2,_s3;

@@ -292,7 +292,6 @@ public class DynamicWarpingK {
     final Sampling ss = _ss;
     final Sampling s1 = _s1;
     final Sampling s2 = sampling2(f);
-    final int ns = ss.getCount();
     final int n1 = s1.getCount();
     final int n2 = s2.getCount();
 
@@ -351,7 +350,6 @@ public class DynamicWarpingK {
     final Sampling s1 = _s1;
     final Sampling s2 = sampling2(f);
     final Sampling s3 = sampling3(f); 
-    final int ns = ss.getCount();
     final int n1 = s1.getCount();
     final int n2 = s2.getCount();
     final int n3 = s3.getCount();
