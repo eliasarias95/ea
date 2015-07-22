@@ -1,8 +1,8 @@
 #ifndef SDW_SLOPE_H
 #define SDW_SLOPE_H
 #include <ucsl.h>
-#include <iostream>
 #include <sdw_obj.h>
+#include <iostream>
 
 class sdw_slope {
   private:

@@ -359,7 +359,7 @@ public class SincInterpolator {
   }
 
   /**
-   * Design parameters.
+   * Design parameters (can be turned into a struct cpp).
    */
   private static class Design {
     double emax;
@@ -369,19 +369,6 @@ public class SincInterpolator {
       this.emax = emax;
       this.fmax = fmax;
       this.lmax = lmax;
-    }
-    public int hashCode() {
-      long lemax = Double.doubleToLongBits(emax);
-      long lfmax = Double.doubleToLongBits(fmax);
-      return (int)(lemax^(lemax>>>32)) ^
-        (int)(lfmax^(lfmax>>>32)) ^
-        lmax;
-    }
-    public boolean equals(Object object) {
-      Design that = (Design)object;
-      return this.emax==that.emax &&
-        this.fmax==that.fmax &&
-        this.lmax==that.lmax;
     }
   }
 

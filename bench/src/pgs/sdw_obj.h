@@ -1,19 +1,35 @@
 #ifndef SDW_H
 #define SDW_H
 #include <ucsl.h>
-#include <iostream>
+#include <math.h>
+#include <assert.h>
+#include <cmath>
 #include <vector>
+#include <iostream>
 
 class sdw_obj {
   private:
     axis *_ax1, *_ax2, *_ax3, *_axs;
+    sinc_interp *_si;
     double _r1min, _r2min, _r3min;
     double _r1max, _r2max, _r3max;
     float _epow = 1.00f;
     int _k1min, _k2min, _k3min;
     int _esmooth = 1;
     void trace(std::string s);
-    static int *subsample(int n, int kmin);
+    void fill(double val, float *x, int nx);
+    static std::vector<int> subsample(int n, int kmin);
+    float error(float f, float g);
+    static void subsampleErrors(double rmin, double rmax, 
+        std::vector<int> *kes, axis axs, axis axe, float **e, float **d);
+    static void accumulate(
+        int dir, double rmin, double rmax, std::vector<int> kes, 
+        axis axs, axis axe, float **e, float **d, int **m);
+    static void accumulate(
+        int dir, double rmin, double rmax, int me, 
+        axis axs, axis axe, float **e, float **d);
+    static void updateSumsOfErrors(int ie, int je, int ms, float **e, 
+        std::vector<float> d, float *dmin, int *mmin);
 
   public:
     void init(int k, double smin, double smax, 
