@@ -1,9 +1,8 @@
 #ifndef SDW_H
 #define SDW_H
-
 #include <ucsl.h>
-#include <vector>
 #include <iostream>
+#include <vector>
 
 class sdw_obj {
   private:

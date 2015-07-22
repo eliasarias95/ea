@@ -1278,7 +1278,7 @@ public class Slopes{
   private static final float pi = FLT_PI;      
   private static final float _fw = 0.75f; //fraction width for slide
   private static final float _fh = 0.9f; //fraction height for slide
-  private static final float _cmax = 4.0f;
+  private static final float _cmax = 1.0f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;

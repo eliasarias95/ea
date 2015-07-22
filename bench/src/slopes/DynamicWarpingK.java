@@ -6,7 +6,9 @@ available at http://www.eclipse.org/legal/cpl-v10.html
 ****************************************************************************/
 package slopes;
 
-import edu.mines.jtk.dsp.*;
+import edu.mines.jtk.dsp.Sampling;
+import edu.mines.jtk.dsp.Tensors2;
+import edu.mines.jtk.dsp.EigenTensors2;
 import edu.mines.jtk.interp.*;
 import edu.mines.jtk.util.*;
 import static edu.mines.jtk.util.ArrayMath.*;
@@ -100,6 +102,7 @@ public class DynamicWarpingK {
     int ismin = (int) ceil(smin/ds);
     int ismax = (int)floor(smax/ds);
     _ss = new Sampling(1+ismax-ismin,ds,ismin*ds);
+    trace("_ss.getValue(0)= "+_ss.getValue(0));
     _s1 = s1;
     _s2 = s2;
     _s3 = s3;
@@ -434,16 +437,14 @@ public class DynamicWarpingK {
     for (int is=0; is<ns; ++is) {
       _si.interpolate(
         ng,sg.getDelta(),sg.getFirst(),g,
-        ne,se.getDelta(),se.getFirst()+ss.getValue(is),gi);
+        ng,sg.getDelta(),sg.getFirst()+ss.getValue(is),gi);
+      //gi = add((float)(ss.getValue(is)+se.getFirst()),g);
       for (int ie=0; ie<ne; ++ie) {
-        e[ie][is] = error(fi[ie],gi[ie]);
+        e[ie][is] = error(f[ie],gi[ie]);
         //if (e[ie][is]>= 2.0f)
         //  ++sum;
       }
     }
-    //trace("e length = "+e[0].length*e.length);
-    //trace("sum= "+sum);
-    //trace("max error= "+max(e));
     return e;
   }
 

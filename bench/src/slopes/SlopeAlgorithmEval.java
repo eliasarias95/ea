@@ -786,7 +786,7 @@ public class SlopeAlgorithmEval {
   private static int num;
   private static final int norder = 15;
   private static final int k = 10;
-  private static final float pmax = 9.0f;
+  private static final float pmax = 2.0f;
   private static final float noise = 0.0f;
   private static final float freq = 0.1f;
   private static final float pc2   = -0.7f;//constant slope
@@ -811,7 +811,7 @@ public class SlopeAlgorithmEval {
         //1=lsf  2=pwd  3=sdw  4=all
         //complex2D(1);
         //1=lsf  2=pwd  3=sdw  4=all
-        complex3D(1);
+        complex3D(3);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant2D(4);
         //1=lsf  2=pwd  3=sdw  4=all
