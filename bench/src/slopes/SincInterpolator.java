@@ -234,21 +234,15 @@ public class SincInterpolator {
    */
   public void interpolate(
       Sampling sxu, float[] yu, 
-      Sampling sxi, float[] yi) 
-  {
-    if (sxi.isUniform()) {
-      interpolate(sxu.getCount(),sxu.getDelta(),sxu.getFirst(),yu,
-          sxi.getCount(),sxi.getDelta(),sxi.getFirst(),yi);
-    } else {
-      int nxu = sxu.getCount();
-      int nxi = sxi.getCount();
-      double xscale = 1.0/sxu.getDelta();
-      double xshift = _lsinc-sxu.getFirst()*xscale;
-      int nxum = nxu-_lsinc;
-      for (int ixi=0; ixi<nxi; ++ixi) {
-        double xi = sxi.getValue(ixi);
-        yi[ixi] = interpolate(xscale,xshift,nxum,nxu,yu,xi);
-      }
+      Sampling sxi, float[] yi) {
+    int nxu = sxu.getCount();
+    int nxi = sxi.getCount();
+    double xscale = 1.0/sxu.getDelta();
+    double xshift = _lsinc-sxu.getFirst()*xscale;
+    int nxum = nxu-_lsinc;
+    for (int ixi=0; ixi<nxi; ++ixi) {
+      double xi = sxi.getValue(ixi);
+      yi[ixi] = interpolate(xscale,xshift,nxum,nxu,yu,xi);
     }
   }
 
@@ -464,15 +458,14 @@ public class SincInterpolator {
    * Map from design parameters to tables of coefficients.
    * This map saves both time and space required to compute the tables.
    */
-  private final static HashMap<Design,Table> _tables = new HashMap<Design,Table>();
+  private final static HashMap<Design,Table> _tables = 
+    new HashMap<Design,Table>();
   private static Table getTable(double emax, double fmax, int lmax) {
     Design design = new Design(emax,fmax,lmax);
-    synchronized(_tables) {
-      Table table = _tables.get(design);
-      if (table==null)
-        table = makeTable(design);
-      return table;
-    }
+    Table table = _tables.get(design);
+    if (table==null)
+      table = makeTable(design);
+    return table;
   }
 
   private float interpolate(

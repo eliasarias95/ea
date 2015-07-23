@@ -259,8 +259,8 @@ void sdw_obj::init(int k, double smin, double smax,
   _k1min = 10;
   _k2min = 10;
   _k3min = 10;
-  _si = new sinc_interp();
-  _si.setExtrapolation(sinc_interp.Extrapolation.CONSTANT);
+  //_si = new sinc_interp();
+  //_si.setExtrapolation(sinc_interp::Extrapolation::CONSTANT);
 }
 
 void sdw_obj::findShifts(axis axf, float **f, axis axg, float **g, float **s) {
@@ -278,6 +278,7 @@ void sdw_obj::findShifts(axis axf, float **f, axis axg, float **g, float **s) {
     computeErrors(axf,f[i2],axg,g[i2],e1);
     ek[i2] = subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1);
   }
+  /*
   normalizeErrors(ek);
 
   trace("finsShifts: smoothing in 2nd dimension ...");
@@ -293,6 +294,7 @@ void sdw_obj::findShifts(axis axf, float **f, axis axg, float **g, float **s) {
   trace("findShifts: interpolating shifts ...");
   float **u = interpolateShiftsBl(_ax1,_ax2,k1s,k2s,ukk);
   trace("findShifts: ... done");
+  */
 }
 
 /**
@@ -310,12 +312,12 @@ void computeErrors(axis axf, float *f, axis axg, float *g, float **e) {
   int ng =  axg->n;
   float *fi = static_cast<float*>(mem_alloc(ne,sizeof(float)));
   float *gi = static_cast<float*>(mem_alloc(ne,sizeof(float)));
-  _si.interpolate(axf,f,_ax1,fi);
+  //_si.interpolate(axf,f,_ax1,fi);
   float sum = 0.0f;
   for (int is=0; is<ns; ++is) {
-    _si.interpolate(
-        ng,axg->d,axg->o,g,
-        ne,_ax1->d,_ax1->o+_axs.get_val(is),gi);
+    //_si.interpolate(
+    //    ng,axg->d,axg->o,g,
+    //    ne,_ax1->d,_ax1->o+_axs.get_val(is),gi);
     for (int ie=0; ie<ne; ++ie) {
       e[ie][is] = error(fi[ie],gi[ie]);
     }

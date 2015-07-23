@@ -3,6 +3,7 @@
 #include <ucsl.h>
 #include <math.h>
 #include <assert.h>
+//#include <sinc_interp.h>
 #include <cmath>
 #include <vector>
 #include <iostream>
@@ -10,10 +11,10 @@
 class sdw_obj {
   private:
     axis *_ax1, *_ax2, *_ax3, *_axs;
-    sinc_interp *_si;
+    //sinc_interp *_si;
     double _r1min, _r2min, _r3min;
     double _r1max, _r2max, _r3max;
-    float _epow = 1.00f;
+    float _epow;
     int _k1min, _k2min, _k3min;
     int _esmooth = 1;
     void trace(std::string s);
@@ -53,5 +54,4 @@ class sdw_obj {
     void findShifts(axis axf, float **f, asix axg, float **g, float **s);
     void computeErrors(axis axf, float *f, axis axg, float *g, float *e);
 };
-
 #endif

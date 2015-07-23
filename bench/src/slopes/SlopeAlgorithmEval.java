@@ -357,7 +357,7 @@ public class SlopeAlgorithmEval {
       //s2D.plot2D(Util.slice13(317,p3),"pwd_TP2D");
     }
     if (method==3) {
-      //s3D.estimateSDW(k,f,null,null,sdw_title);
+      s3D.estimateSDW(k,f,null,null,sdw_title);
       //s3D.estimateTransSDW(k,g,sdw_title+"_trans");
       s3D.plot3D(f,sdw_title);
       //s3D.retranspose(sdw_title+"_trans");
@@ -811,7 +811,7 @@ public class SlopeAlgorithmEval {
         //1=lsf  2=pwd  3=sdw  4=all
         //complex2D(1);
         //1=lsf  2=pwd  3=sdw  4=all
-        complex3D(3);
+        //complex3D(3);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant2D(4);
         //1=lsf  2=pwd  3=sdw  4=all
@@ -821,7 +821,7 @@ public class SlopeAlgorithmEval {
         //1=lsf  2=pwd  3=sdw  4=all
         //TP2(4);
         //1=lsf  2=pwd  3=sdw  4=all
-        //TP3(4);
+        //TP3(3);
 
         int nni = 100;
         //1=lsf  2=pwd  3=sdw  4=all, test?
