@@ -1,11 +1,167 @@
 #include <sdw_obj.h>
 
-/*****************PRIVATE*****************/
-//Need to fix this method.
-void sdw_obj::trace(std::string s) {
-  std::cout << s << "\n";
+/*****************PUBLIC*****************/
+void sdw_obj::init(int k, double smin, double smax, 
+    axis *ax1, axis *ax2, axis *ax3) {
+  double ds = (ax1->d)/k;
+  int ismin = ceil(smin/ds);
+  int ismax = floor(smin/ds);
+  _axs = new axis(ismin*ds,ds,1+ismax-ismin);
+  _ax1 = ax1;
+  _ax2 = ax2;
+  _ax3 = ax3;
+  _r1min = -1.0;
+  _r2min = -1.0;
+  _r3min = -1.0;
+  _r1max = 1.0;
+  _r2max = 1.0;
+  _r3max = 1.0;
+  _k1min = 10;
+  _k2min = 10;
+  _k3min = 10;
+  _epow = 1.0f;
+  _esmooth = 1;
+  //_si = new sinc_interp();
+  //_si.setExtrapolation(sinc_interp::Extrapolation::CONSTANT);
 }
 
+//Constructors
+sdw_obj::sdw_obj(int k, double smin, double smax,
+    axis *ax1) {
+  init(k,smin,smax,ax1,NULL,NULL);
+}
+
+sdw_obj::sdw_obj(int k, double smin, double smax,
+    axis *ax1, axis *ax2) {
+  init(k,smin,smax,ax1,ax2,NULL);
+}
+
+sdw_obj::sdw_obj(int k, double smin, double smax, 
+    axis *ax1, axis *ax2, axis *ax3) {
+  init(k,smin,smax,ax1,ax2,ax3);
+}
+
+void sdw_obj::setStrainLimits(double r1min, double r1max) {
+  setStrainLimits(r1min,r1max,-1.0,1.0,-1.0,1.0);  
+}
+
+void sdw_obj::setStrainLimits(double r1min, double r1max,
+                              double r2min, double r2max) {
+  setStrainLimits(r1min,r1max,r2min,r2max,-1.0,1.0);  
+}
+
+void sdw_obj::setStrainLimits(double r1min, double r1max,
+                              double r2min, double r2max,
+                              double r3min, double r3max) {
+  _r1min = r1min; _r1max = r1max;
+  _r2min = r2min; _r2max = r2max;
+  _r3min = r3min; _r3max = r3max;
+}
+
+void sdw_obj::setErrorSmoothing(int esmooth) {
+  _esmooth = esmooth;
+}
+
+void sdw_obj::setSmoothness(double d1min) {
+  double d2 = (_ax2!=NULL)?_ax2->d:1.0;
+  setSmoothness(d1min,10.0*d2);
+}
+
+void sdw_obj::setSmoothness(double d1min, double d2min) {
+  double d3 = (_ax3!=NULL)?_ax3->d:1.0;
+  setSmoothness(d1min,d2min,10.0*d3);
+}
+
+void sdw_obj::setSmoothness(double d1min, double d2min, double d3min) {
+  double d1 = (_ax1!=null)?_ax1->d:1.0;
+  double d2 = (_ax2!=null)?_ax2->d:1.0;
+  double d3 = (_ax3!=null)?_ax3->d:1.0;
+  _k1min = fmax(1,(int)ceil(d1min/d1));
+  _k2min = fmax(1,(int)ceil(d2min/d2));
+  _k3min = fmax(1,(int)ceil(d3min/d3));
+}
+
+void sdw_obj::findShifts(float **e, float *s) {
+  int ns = _axs->n;
+  int n1 = _ax1->n;
+  double ds = _axs->d;
+  double d1 = _ax1->d;
+  int k1min = fmin(_k1min,n1-1);
+  std::vector<int> i1k = subsample(n1,k1min);
+  int n1k = i1k.size();
+  return findShiftsFromErrors(_r1min,_r1max,i1k,_ss,_s1,e);
+}
+
+void sdw_obj::findShifts(axis *axf, float *f, axis *axg, float *g, float *s) {
+  float **e = (float**)mem_alloc2(_axs->n,_ax1->n,sizeof(float));
+  computeErrors(axf,f,axg,g,e);
+  findShifts(e,s);
+}
+
+void sdw_obj::findShifts(
+    axis *axf, float **f, axis *axg, float **g, float **s) {
+  int n1 = _ax1->n;
+  int n2 = _ax2->n;
+  std::vector<int> k1s = subsample(n1,_k1min);
+  std::vector<int> k2s = subsample(n2,_k2min);
+  int nk1 = k1s.size();
+  int nk2 = k2s.size();
+
+  trace("finsShifts: smoothing in 1st dimension ...");
+  float ***ek = (float***)mem_alloc(n2,sizeof(float**));
+  float **e1 = (float**)mem_alloc2(_axs->n,n1,sizeof(float));
+  for (int i2=0; i2<n2; ++i2) {
+    computeErrors(axf,f[i2],axg,g[i2],e1);
+    subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,ek[i2]);
+  }
+  /*
+  normalizeErrors(ek);
+
+  trace("finsShifts: smoothing in 2nd dimension ...");
+  float ***ekk = smoothErrors(_r2min,_r2max,k2s,_axs,_ax2,ek);
+  normalizeErrors(ekk);
+
+  trace("findShifts: finding shifts ...");
+  float **ukk = new float[nk2][];
+  for (int ik2=0; ik2<nk2; ++ik2) {
+    ukk[ik2] = findShiftsFromSubsampledErrors(
+        _r1min,_r1max,k1s,_axs,_ax1,ekk[ik2]);
+  }
+  trace("findShifts: interpolating shifts ...");
+  float **u = interpolateShiftsBl(_ax1,_ax2,k1s,k2s,ukk);
+  trace("findShifts: ... done");
+  */
+}
+
+/**
+ * Returns alignment errors computed for specified sequences.
+ * @param sf sampling of 1st dimension for the seqeunce f.
+ * @param f array of values for sequence f.
+ * @param sg sampling of 1st dimension for the seqeunce g.
+ * @param g array of values for sequence g.
+ * @return array of alignment errors.
+ */
+void sdw_obj::computeErrors(
+    axis *axf, float *f, axis *axg, float *g, float **e) {
+  int ns = _axs->n;
+  int ne = _ax1->n;
+  int nf =  axf->n;
+  int ng =  axg->n;
+  float *fi = (float*)mem_alloc(ne,sizeof(float));
+  float *gi = (float*)mem_alloc(ne,sizeof(float));
+  //_si.interpolate(axf,f,_ax1,fi);
+  float sum = 0.0f;
+  for (int is=0; is<ns; ++is) {
+    //_si.interpolate(
+    //    ng,axg->d,axg->o,g,
+    //    ne,_ax1->d,_ax1->o+_axs.get_val(is),gi);
+    for (int ie=0; ie<ne; ++ie) {
+      e[ie][is] = error(fi[ie],gi[ie]);
+    }
+  }
+}
+
+/*****************PRIVATE*****************/
 void sdw_obj::fill(double val, float *x, int nx) {
   for (int i=0; i<nx; ++i)
     x[i] = val;
@@ -220,108 +376,6 @@ void sdw_obj::updateSumsOfErrors(int ie, int je, int ms, float **e,
       dmin[is] = d[is];
       if (mmin!=NULL)
         mmin[is] = ms;
-    }
-  }
-}
-
-/*****************PUBLIC*****************/
-//Constructors
-sdw_obj::sdw_obj(int k, double smin, double smax,
-    axis *ax1) {
-  init(k,smin,smax,ax1,NULL,NULL);
-}
-
-sdw_obj::sdw_obj(int k, double smin, double smax,
-    axis *ax1, axis *ax2) {
-  init(k,smin,smax,ax1,ax2,NULL);
-}
-
-sdw_obj::sdw_obj(int k, double smin, double smax, 
-    axis *ax1, axis *ax2, axis *ax3) {
-  init(k,smin,smax,ax1,ax2,ax3);
-}
-
-void sdw_obj::init(int k, double smin, double smax, 
-    axis *ax1, axis *ax2, axis *ax3) {
-  double ds = (ax1->d)/k;
-  int ismin = ceil(smin/ds);
-  int ismax = floor(smin/ds);
-  _axs = new axis(ismin*ds,ds,1+ismax-ismin);
-  _ax1 = ax1;
-  _ax2 = ax2;
-  _ax3 = ax3;
-  _r1min = -1.0;
-  _r2min = -1.0;
-  _r3min = -1.0;
-  _r1max = 1.0;
-  _r2max = 1.0;
-  _r3max = 1.0;
-  _k1min = 10;
-  _k2min = 10;
-  _k3min = 10;
-  _epow = 1.0f;
-  _esmooth = 1;
-  //_si = new sinc_interp();
-  //_si.setExtrapolation(sinc_interp::Extrapolation::CONSTANT);
-}
-
-void sdw_obj::findShifts(axis *axf, float **f, axis *axg, float **g, float **s) {
-  int n1 = _ax1->n;
-  int n2 = _ax2->n;
-  std::vector<int> k1s = subsample(n1,_k1min);
-  std::vector<int> k2s = subsample(n2,_k2min);
-  int nk1 = k1s.size();
-  int nk2 = k2s.size();
-
-  trace("finsShifts: smoothing in 1st dimension ...");
-  float ***ek = (float***)mem_alloc(n2,sizeof(float**));
-  float **e1 = (float**)mem_alloc2(_axs->n,n1,sizeof(float));
-  for (int i2=0; i2<n2; ++i2) {
-    computeErrors(axf,f[i2],axg,g[i2],e1);
-    subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,ek[i2]);
-  }
-  /*
-  normalizeErrors(ek);
-
-  trace("finsShifts: smoothing in 2nd dimension ...");
-  float ***ekk = smoothErrors(_r2min,_r2max,k2s,_axs,_ax2,ek);
-  normalizeErrors(ekk);
-
-  trace("findShifts: finding shifts ...");
-  float **ukk = new float[nk2][];
-  for (int ik2=0; ik2<nk2; ++ik2) {
-    ukk[ik2] = findShiftsFromSubsampledErrors(
-        _r1min,_r1max,k1s,_axs,_ax1,ekk[ik2]);
-  }
-  trace("findShifts: interpolating shifts ...");
-  float **u = interpolateShiftsBl(_ax1,_ax2,k1s,k2s,ukk);
-  trace("findShifts: ... done");
-  */
-}
-
-/**
- * Returns alignment errors computed for specified sequences.
- * @param sf sampling of 1st dimension for the seqeunce f.
- * @param f array of values for sequence f.
- * @param sg sampling of 1st dimension for the seqeunce g.
- * @param g array of values for sequence g.
- * @return array of alignment errors.
- */
-void sdw_obj::computeErrors(axis *axf, float *f, axis *axg, float *g, float **e) {
-  int ns = _axs->n;
-  int ne = _ax1->n;
-  int nf =  axf->n;
-  int ng =  axg->n;
-  float *fi = (float*)mem_alloc(ne,sizeof(float));
-  float *gi = (float*)mem_alloc(ne,sizeof(float));
-  //_si.interpolate(axf,f,_ax1,fi);
-  float sum = 0.0f;
-  for (int is=0; is<ns; ++is) {
-    //_si.interpolate(
-    //    ng,axg->d,axg->o,g,
-    //    ne,_ax1->d,_ax1->o+_axs.get_val(is),gi);
-    for (int ie=0; ie<ne; ++ie) {
-      e[ie][is] = error(fi[ie],gi[ie]);
     }
   }
 }
