@@ -1,4 +1,5 @@
 #include <ucsl.h>
+#include <sdw_obj.h>
 #include <cart_volume_io.h>
 #include <ctime>
 #ifdef _USE_OMP
@@ -118,6 +119,7 @@ void do_filter2d(prog_data *pd, parlist *par) {
   cart_plane *pln(0), *pln_qc(0);
   hdr_map *hdr;
   float **tbuf, **dbuf;
+  float **data, **sdata, **slopes;
   axis *ax1, *ax2;
   int i, j;
   int res;
@@ -128,25 +130,36 @@ void do_filter2d(prog_data *pd, parlist *par) {
   pln = new cart_plane(ax1, ax2);
 
   tbuf = (float**)mem_alloc2(pd->fd_in->get_bytes_trace(),pd->axes_in[1]->n,1);
-  ucsl_printf("%d, %d\n",pd->fd_in->get_bytes_trace(),pd->axes_in[1]->n);
+  data = (float**)mem_alloc2(pd->fd_in->get_bytes_trace(),pd->axes_in[1]->n,1);
+  sdata = (float**)mem_alloc2(pd->fd_in->get_bytes_trace(),pd->axes_in[1]->n,1);
+  slopes = (float**)mem_alloc2(pd->fd_in->get_bytes_trace(),pd->axes_in[1]->n,1);
+
   hdr = pd->fd_in->get_hdr_map();
   if(hdr) dbuf = hdr->get_data_ptr(tbuf,pd->axes_in[1]->n);
   else dbuf = tbuf;
+
   pd->fd_in->read_traces(tbuf[0],pd->axes_in[1]->n,0);
 
   for(j=0; j<pd->axes_in[1]->n; ++j) {
     for(i=0; i<pd->axes_in[0]->n; ++i) {
-      pln->data[j][i] = dbuf[j][i];
+      //pln->data[j][i] = dbuf[j][i];
+      data[j][i] = dbuf[j][i];
     }
   }
 
-  pln->extend_axes();
-
   //Smooth dynamic warping routine
+  int k = 10;
+  double pmax = 4.0;
+  double r1 = 0.1,  r2 = 0.3;
+  sdw_obj *sdw = new sdw_obj(k,-pmax,pmax,ax1,ax2);
+  sdw->setStrainLimits(-r1,r1,-r2,r2);
+  sdw->setSmoothness(pd->h1,pd->h2);
+  sdw->findShifts(ax1,data,ax1,sdata,slopes);
 
   for(j=0; j<pd->axes_in[1]->n; ++j) {
     for(i=0; i<pd->axes_in[0]->n; ++i) {
-      dbuf[j][i] = pln->data[j][i];
+      //dbuf[j][i] = pln->data[j][i];
+      dbuf[j][i] = slopes[j][i];
     }
   }
   fd_out = new file_trace(pd->fd_in,pd->fn_out,NULL);

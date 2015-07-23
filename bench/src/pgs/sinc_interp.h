@@ -1,9 +1,9 @@
 #ifndef SINC_INTERP_H
 #define SINC_INTERP_H
 #include <cmath>
-#include <unordered_map>
+//#include <unordered_map>
 #include <math.h>
-#include <axis.h>
+#include <ucsl.h>
 #include <kaiser_window.h>
 
 /**************************************************************************

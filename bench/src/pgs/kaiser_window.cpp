@@ -12,7 +12,7 @@
  *@version 2005.08.04
  *@version 2015.07.23
  */
-static kaiser_window* kaiser_window::fromWidthAndLength(
+kaiser_window* kaiser_window::fromWidthAndLength(
     double width, double length) {
   double d = width*length;
   double a = 14.36*d+7.95;
@@ -20,12 +20,12 @@ static kaiser_window* kaiser_window::fromWidthAndLength(
   return new kaiser_window(error,width,length);
 }
 
-virtual double kaiser_window::evaluate(double x) {
+double kaiser_window::evaluate(double x) {
   double xx = x*x;
   return (xx <= _xxmax)?_scale*ino(_alpha*sqrt(1.0-xx/_xxmax)):0.0;
 }
 
-virtual double kaiser_window::getError() {
+double kaiser_window::getError() {
   return _error;
 }
 

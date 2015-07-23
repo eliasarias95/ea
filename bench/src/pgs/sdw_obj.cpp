@@ -22,7 +22,7 @@ void sdw_obj::fill(double val, float *x, int nx) {
  * @param kmin minimum increment between indices in the subset.
  * @return array of indices in the subset.
  */
-static std::vector<int> sdw_obj::subsample(int n, int kmin) {
+std::vector<int> sdw_obj::subsample(int n, int kmin) {
   if (kmin>=n)
     kmin = n-1;
   int m = 1+(n-1)/kmin;
@@ -47,16 +47,16 @@ float sdw_obj::error(float f, float g) {
  * @param e input array[ne][ns] of alignment errors.
  * @return array[nke][ns] of subsampled errors.
  */
-static void sdw_obj::subsampleErrors(double rmin, double rmax, 
-    std::vector<int> *kes, axis axs, axis axe, float **e, float **d) {
+void sdw_obj::subsampleErrors(double rmin, double rmax, 
+    std::vector<int> kes, axis *axs, axis *axe, float **e, float **d) {
   int ns = axs->n;
   int ne = axe->n;
   int nke = kes.size();
-  float **df = static_cast<float**>(mem_alloc2(ns,nke,sizeof(float)));
-  float **dr = static_cast<float**>(mem_alloc2(ns,nke,sizeof(float)));
-  accumulate( 1,rmin,rmax,kes,ss,se,e,df,NULL);
-  accumulate(-1,rmin,rmax,kes,ss,se,e,dr,NULL);
-  float **d = df; // is this correct??
+  float **df = (float**)mem_alloc2(ns,nke,sizeof(float));
+  float **dr = (float**)mem_alloc2(ns,nke,sizeof(float));
+  accumulate( 1,rmin,rmax,kes,axs,axe,e,df,NULL);
+  accumulate(-1,rmin,rmax,kes,axs,axe,e,dr,NULL);
+  d = df; // is this correct??
   float scale = 1.0f/ne;
   for (int ike=0; ike<nke; ++ike) {
     int ke = kes[ike];
@@ -78,9 +78,9 @@ static void sdw_obj::subsampleErrors(double rmin, double rmax,
  * @param d output array[nke][ns] of accumulated errors.
  * @param m output array[nke][ns] of minimizing moves; or null.
  */
-static void sdw_obj::accumulate(
+void sdw_obj::accumulate(
     int dir, double rmin, double rmax, std::vector<int> kes, 
-    axis axs, axis axe, float **e, float **d, int **m) {
+    axis *axs, axis *axe, float **e, float **d, int **m) {
   int ns = axs->n;
   double ds = axs->d;
   double de = axe->d;
@@ -104,7 +104,7 @@ static void sdw_obj::accumulate(
       msmax = static_cast<int>(floor(-rmax*me*de/ds));
     }
     if (msmin>msmax) {
-      trace("ie="+ie+" je="+je+" me="+me+" msmin="+msmin+" msmax="+msmax);
+      //trace("ie="+ie+" je="+je+" me="+me+" msmin="+msmin+" msmax="+msmax);
     }
     assert(msmin<=msmax);
     fill(HUGE_VAL,d[ike],ns);
@@ -133,9 +133,9 @@ static void sdw_obj::accumulate(
  * @param e input array[ne][ns] of alignment errors.
  * @param d output array[ne][ns] of accumulated errors.
  */
-static void sdw_obj::accumulate(
+void sdw_obj::accumulate(
     int dir, double rmin, double rmax, int me, 
-    axis axs, axis axe, float **e, float **d) {
+    axis *axs, axis *axe, float **e, float **d) {
   int ns = axs->n;
   int ne = axe->n;
   double ds = axs->d;
@@ -186,7 +186,7 @@ static void sdw_obj::accumulate(
  * @param dmin[ns] input/output array of minimum accumulated errors.
  * @param mmin[ns] input/output array of minimizing moves; or null.
  */
-static void sdw_obj::updateSumsOfErrors(int ie, int je, int ms, float **e, 
+void sdw_obj::updateSumsOfErrors(int ie, int je, int ms, float **e, 
     std::vector<float> d, float *dmin, int *mmin) {
   int ns = d.size();
   int islo = fmax(0,-ms); // update only for is >= islo
@@ -244,8 +244,8 @@ sdw_obj::sdw_obj(int k, double smin, double smax,
 void sdw_obj::init(int k, double smin, double smax, 
     axis *ax1, axis *ax2, axis *ax3) {
   double ds = (ax1->d)/k;
-  int ismin = static_cast<int>(ceil(smin/ds));
-  int ismin = static_cast<int>(floor(smin/ds));
+  int ismin = ceil(smin/ds);
+  int ismax = floor(smin/ds);
   _axs = new axis(ismin*ds,ds,1+ismax-ismin);
   _ax1 = ax1;
   _ax2 = ax2;
@@ -259,11 +259,13 @@ void sdw_obj::init(int k, double smin, double smax,
   _k1min = 10;
   _k2min = 10;
   _k3min = 10;
+  _epow = 1.0f;
+  _esmooth = 1;
   //_si = new sinc_interp();
   //_si.setExtrapolation(sinc_interp::Extrapolation::CONSTANT);
 }
 
-void sdw_obj::findShifts(axis axf, float **f, axis axg, float **g, float **s) {
+void sdw_obj::findShifts(axis *axf, float **f, axis *axg, float **g, float **s) {
   int n1 = _ax1->n;
   int n2 = _ax2->n;
   std::vector<int> k1s = subsample(n1,_k1min);
@@ -272,11 +274,11 @@ void sdw_obj::findShifts(axis axf, float **f, axis axg, float **g, float **s) {
   int nk2 = k2s.size();
 
   trace("finsShifts: smoothing in 1st dimension ...");
-  float ***ek = new float[n2][][];
-  float **e1 = static_cast<float**>(mem_alloc2(_axs->n,n1,sizeof(float)));
+  float ***ek = (float***)mem_alloc(n2,sizeof(float**));
+  float **e1 = (float**)mem_alloc2(_axs->n,n1,sizeof(float));
   for (int i2=0; i2<n2; ++i2) {
     computeErrors(axf,f[i2],axg,g[i2],e1);
-    ek[i2] = subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1);
+    subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,ek[i2]);
   }
   /*
   normalizeErrors(ek);
@@ -305,13 +307,13 @@ void sdw_obj::findShifts(axis axf, float **f, axis axg, float **g, float **s) {
  * @param g array of values for sequence g.
  * @return array of alignment errors.
  */
-void computeErrors(axis axf, float *f, axis axg, float *g, float **e) {
+void sdw_obj::computeErrors(axis *axf, float *f, axis *axg, float *g, float **e) {
   int ns = _axs->n;
   int ne = _ax1->n;
   int nf =  axf->n;
   int ng =  axg->n;
-  float *fi = static_cast<float*>(mem_alloc(ne,sizeof(float)));
-  float *gi = static_cast<float*>(mem_alloc(ne,sizeof(float)));
+  float *fi = (float*)mem_alloc(ne,sizeof(float));
+  float *gi = (float*)mem_alloc(ne,sizeof(float));
   //_si.interpolate(axf,f,_ax1,fi);
   float sum = 0.0f;
   for (int is=0; is<ns; ++is) {
@@ -322,5 +324,4 @@ void computeErrors(axis axf, float *f, axis axg, float *g, float **e) {
       e[ie][is] = error(fi[ie],gi[ie]);
     }
   }
-  return e;
 }
