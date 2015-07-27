@@ -24,13 +24,17 @@ class sdw_obj {
     void setStrainLimits(double r1min, double r1max, 
                          double r2min, double r2max, 
                          double r3min, double r3max);
+
     void setErrorSmoothing(int esmooth);
+
     void setSmoothness(double d1min);
     void setSmoothness(double d1min, double d2min);
     void setSmoothness(double d1min, double d2min, double d3min);
+
     void findShifts(float **e, float *s);    
     void findShifts(axis *axf, float *f, axis *axg, float *g, float *s);
     void findShifts(axis *axf, float **f, axis *axg, float **g, float **s);
+
     void computeErrors(axis *axf, float *f, axis *axg, float *g, float **e);
 
   private:
@@ -55,6 +59,21 @@ class sdw_obj {
     static void accumulate(
         int dir, double rmin, double rmax, int me, 
         axis *axs, axis *axe, float **e, float **d);
+
+    static void findShiftsFromErrors(double rmin, double rmax,
+        std::vector<int> kes, axis *axs, axis *axe, float **e, float **s);
+    static void findShiftsFromSubsampledErrors(double rmin, double rmax,
+        std::vector<int> kes, axis *axs, axis *axe, float **e, float *s);
+
+    static void interpolateShifts(
+        axis *ax1, std::vector<int> k1s, float *sk, float *s);
+    static void interpolateShifts(
+        axis *ax1, axis *ax2, std::vector<int> k1s, std::vector<int> k2s, 
+        float **skk, float **s);
+    static void interpolateShifts(
+        axis *ax1, axis *ax2, axis *ax3, 
+        std::vector<int> k1s, std::vector<int> k2s, std::vector<int> k3s, 
+        float ***skk, float ***s);
 
     static void updateSumsOfErrors(int ie, int je, int ms, float **e, 
         std::vector<float> d, float *dmin, int *mmin);

@@ -114,7 +114,6 @@ void sdw_obj::findShifts(
     computeErrors(axf,f[i2],axg,g[i2],e1);
     subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,ek[i2]);
   }
-  /*
   normalizeErrors(ek);
 
   trace("finsShifts: smoothing in 2nd dimension ...");
@@ -130,7 +129,6 @@ void sdw_obj::findShifts(
   trace("findShifts: interpolating shifts ...");
   float **u = interpolateShiftsBl(_ax1,_ax2,k1s,k2s,ukk);
   trace("findShifts: ... done");
-  */
 }
 
 /**
