@@ -1,0 +1,4 @@
+in=/users/elias.arias/Home/git/ea/bench/src/pgs/data/constant2D.mdvd
+out=/datadb/eariasp/constant2D_out.mdvd
+h1=30
+h2=30

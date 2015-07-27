@@ -9,8 +9,8 @@ void sdw_slope::interpolateSlopes(float **p) {
   int n1 = _ax1->n;
   int n2 = _ax2->n;
   //float **pi   = (float**)mem_alloc2(n1,n2,sizeof(float));
-  float *x1   = static_cast<float*>(mem_alloc(n1,sizeof(float)));
-  float *x2   = static_cast<float*>(mem_alloc(n2,sizeof(float)));
+  float *x1   = (float*)mem_alloc(n1,sizeof(float));
+  float *x2   = (float*)mem_alloc(n2,sizeof(float));
   for (int i1=0; i1<n1; ++i1)
     x1[i1] = i1;
   for (int i2=0; i2<n2; ++i2)
@@ -68,8 +68,8 @@ void sdw_slope::setErrorSmoothing(int esmooth) {
 void sdw_slope::findSlopes(axis *axf, float **f, float **p) {
   int n1 = _ax1->n;
   int n2 = _ax2->n;
-  float **fm   = static_cast<float**>(mem_alloc2(n1,n2,sizeof(float)));
-  float **temp = static_cast<float**>(mem_alloc2(n1,n2,sizeof(float)));
+  float **fm   = (float**)mem_alloc2(n1,n2,sizeof(float));
+  float **temp = (float**)mem_alloc2(n1,n2,sizeof(float));
 
   memcpy(fm[0],f[0],n1*sizeof(float));
   memcpy(fm[n2-1],f[n2-2],n1*sizeof(float));
@@ -89,10 +89,10 @@ void sdw_slope::findSlopes(axis *axf, float ***f, float ***p2, float ***p3) {
   int n1 = _ax1->n;
   int n2 = _ax2->n;
   int n3 = _ax3->n;
-  float ***f2m   = static_cast<float***>(mem_alloc3(n1,n2,n3,sizeof(float)));
-  float ***f3m   = static_cast<float***>(mem_alloc3(n1,n2,n3,sizeof(float)));
-  float ***temp2 = static_cast<float***>(mem_alloc3(n1,n2,n3,sizeof(float)));
-  float ***temp3 = static_cast<float***>(mem_alloc3(n1,n2,n3,sizeof(float)));
+  float ***f2m   = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
+  float ***f3m   = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
+  float ***temp2 = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
+  float ***temp3 = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
 
   for (int i3=0; i3<n3; ++i3) {
     memcpy(f2m[i3][0],f[i3][0],n1*sizeof(float));

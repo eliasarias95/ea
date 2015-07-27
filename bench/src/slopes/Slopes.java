@@ -194,12 +194,13 @@ public class Slopes{
     float[][] pe = new float[n2][n1];
     ZeroMask zm = new ZeroMask(f);
     _sw.restart();
-    lsf.findSlopesE(f,pe,null);
-    //lsf.findSlopes(f,pe);
+    //lsf.findSlopesE(f,pe,null);
+    lsf.findSlopes(f,pe);
     _sw.stop();
     zm.apply(0.0f,pe);
     trace("Structure tensor time = "+_sw.time());    
     Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
+    Util.writeBinary(f,PATH+"/data/constant2D.dat");
     trace("Structure tensor:"+max(pe)+", "+min(pe));
     float error;
     if (p!=null) {

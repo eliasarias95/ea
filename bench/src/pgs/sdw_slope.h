@@ -16,6 +16,7 @@ class sdw_slope {
     float getValueAt(int i1, int i2);
     float getValueAt(int i1, int i2, int i3);
     void interpolateSlopes(float **p);
+
   public:
     void init(int k, double pmax, double h1, double h2, double h3, 
         double r1, double r2, double r3, axis *ax1, axis *ax2, axis *ax3);

@@ -811,9 +811,9 @@ public class SlopeAlgorithmEval {
         //1=lsf  2=pwd  3=sdw  4=all
         //complex2D(1);
         //1=lsf  2=pwd  3=sdw  4=all
-        complex3D(3);
+        //complex3D(3);
         //1=lsf  2=pwd  3=sdw  4=all
-        //constant2D(4);
+        constant2D(1);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant3D(4);
         //1=lsf  2=pwd  3=sdw  4=all
