@@ -3,7 +3,6 @@
 #include <ucsl.h>
 #include <math.h>
 #include <assert.h>
-//#include <sinc_interp.h>
 #include <cmath>
 #include <vector>
 #include <iostream>
@@ -42,14 +41,17 @@ class sdw_obj {
 
   private:
     axis *_ax1, *_ax2, *_ax3, *_axs;
-    //sinc_interp *_si;
     double _r1min, _r2min, _r3min;
     double _r1max, _r2max, _r3max;
     float _epow;
     int _k1min, _k2min, _k3min;
     int _esmooth;
 
-    static void fill(double val, float *x, int nx);
+    static void interp(axis *axf, float *f, axis *axs, float *fs, float shift);
+    static void interp(
+        axis *axf1, axis *axf2, float **f, axis *axs1, axis *axs2, float **fs,
+        float shift1, float shift2);
+    static void fill(float val, float *x, int nx);
     vector<int> subsample(int n, int kmin);
     float error(float f, float g);
 
@@ -81,7 +83,7 @@ class sdw_obj {
         axis *axs, axis *ax1, axis *ax2, axis *ax3, float ****e);
 
     static void subsampleErrors(double rmin, double rmax, 
-        vector<int> kes, axis *axs, axis *axe, float **e, float **d);
+        vector<int> kes, axis *axs, axis *axe, float **e, float **dr, float **d);
     static void backtrackForShifts(vector<int> kes, axis *axs, axis *axe,
         float *d, int **m, float* ske);    
 
@@ -100,8 +102,9 @@ class sdw_obj {
 
     static void findShiftsFromErrors(double rmin, double rmax,
         vector<int> kes, axis *axs, axis *axe, float **e, float *s);
-    static void findShiftsFromSubsampledErrors(double rmin, double rmax,
-        vector<int> kes, axis *axs, axis *axe, float **e, float *s);
+    static void findShiftsFromSubsampledErrors(
+        double rmin, double rmax, vector<int> kes, axis *axs, axis *axe, int **m,
+        float **d, float **e, float *s);
 
     static void interpolateShifts(
         axis *ax1, vector<int> k1s, float *sk, float *s);
@@ -114,6 +117,6 @@ class sdw_obj {
         float ***skk, float ***s);
 
     static void updateSumsOfErrors(int ie, int je, int ms, float **e, 
-        vector<float> d, float *dmin, int *mmin);
+        float *d, float *dmin, int *mmin, int ns);
 };
 #endif

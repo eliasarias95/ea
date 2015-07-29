@@ -432,7 +432,6 @@ public class DynamicWarpingK {
     float[] fi = new float[ne];
     float[] gi = new float[ne];
     _si.interpolate(sf,f,_s1,fi);
-    float sum = 0;
     for (int is=0; is<ns; ++is) {
       _si.interpolate(
         ng,sg.getDelta(),sg.getFirst(),g,

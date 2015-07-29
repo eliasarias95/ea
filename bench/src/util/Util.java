@@ -424,6 +424,22 @@ public class Util {
 
   /**
    * Writes seismic data to binary file.
+   * @param x array[n2][n1] of data to write to the binary file
+   * @param fileName name of output binary file
+   */
+  public static void writeBinaryL(float[][] x, String fileName) {
+    ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
+    try {
+      ArrayOutputStream aos = new ArrayOutputStream(fileName,byteOrder);
+      aos.writeFloats(x);
+      aos.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Writes seismic data to binary file.
    * Java default byteorder is BIG_ENDIAN.
    * @param x array[n3][n2][n1] of data to write to the binary file
    * @param fileName name of output binary file

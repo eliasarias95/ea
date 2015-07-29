@@ -123,8 +123,8 @@ public class SlopeAlgorithmEval {
   private static void constant2D(int method) {
     Check.argument(method==1 || method==2 || method==3 || method==4,
         "not valid input");
-    int n1 = 501;
-    int n2 = 501;
+    int n1 = 21;
+    int n2 = 15;
     double d1 = 0.5;
     double d2 = 0.25;
     float[][] f  = new float[n2][n1];//2D seismic image
@@ -813,7 +813,7 @@ public class SlopeAlgorithmEval {
         //1=lsf  2=pwd  3=sdw  4=all
         //complex3D(3);
         //1=lsf  2=pwd  3=sdw  4=all
-        constant2D(1);
+        constant2D(3);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant3D(4);
         //1=lsf  2=pwd  3=sdw  4=all

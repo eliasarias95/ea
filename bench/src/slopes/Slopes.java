@@ -200,7 +200,7 @@ public class Slopes{
     zm.apply(0.0f,pe);
     trace("Structure tensor time = "+_sw.time());    
     Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
-    Util.writeBinary(f,PATH+"/data/constant2D.dat");
+    //Util.writeBinaryL(f,PATH+"/../pgs/data/constant2D.dat");
     trace("Structure tensor:"+max(pe)+", "+min(pe));
     float error;
     if (p!=null) {
@@ -396,9 +396,9 @@ public class Slopes{
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     double r1 = 0.1;
-    double r2 = 0.3;
-    double h1 = 72.0;
-    double h2 =  6.0;
+    double r2 = 0.2;
+    double h1 = 3.0;
+    double h2 = 2.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,r1,r2,
@@ -407,12 +407,13 @@ public class Slopes{
     _sw.restart();
     float[][] pe = new float[n2][n1];
     ZeroMask zm = new ZeroMask(f);
-    dws.findSmoothSlopes(ss1,f,pe);
+    dws.findSmoothSlopes(_s1,f,pe);
     _sw.stop();
     zm.apply(0.0f,pe);
     trace("Smooth dynamic warping time = "+_sw.time());    
     Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
     trace("Smooth dynamic warping:");
+    trace("mean slope= "+sum(pe)/(n1*n2));
     float error;
     if (p!=null) error = Util.rmsError(pe,p,T);
   }
