@@ -82,8 +82,9 @@ class sdw_obj {
         double r3min, double r3max, vector<int> k3s,
         axis *axs, axis *ax1, axis *ax2, axis *ax3, float ****e);
 
-    static void subsampleErrors(double rmin, double rmax, 
-        vector<int> kes, axis *axs, axis *axe, float **e, float **dr, float **d);
+    static void subsampleErrors(double rmin, double rmax, vector<int> kes,
+        axis *axs, axis *axe, int n, 
+        float **e, float **df, float **dr, float **d);
     static void backtrackForShifts(vector<int> kes, axis *axs, axis *axe,
         float *d, int **m, float* ske);    
 
@@ -98,13 +99,16 @@ class sdw_obj {
         axis *axs, axis *axe, float **e, float **d, int **m);
     static void accumulateSubsampled(
         int dir, double rmin, double rmax, vector<int> kes,
+        axis *axs, axis *axe, float **e, float **d);
+    static void accumulateSubsampled(
+        int dir, double rmin, double rmax, vector<int> kes,
         axis *axs, axis *axe, float **e, float **d, int **m);
 
     static void findShiftsFromErrors(double rmin, double rmax,
         vector<int> kes, axis *axs, axis *axe, float **e, float *s);
     static void findShiftsFromSubsampledErrors(
-        double rmin, double rmax, vector<int> kes, axis *axs, axis *axe, int **m,
-        float **d, float **e, float *s);
+        double rmin, double rmax, vector<int> kes, axis *axs, axis *axe,
+        int **m, float **d, float **e, float *s);
 
     static void interpolateShifts(
         axis *ax1, vector<int> k1s, float *sk, float *s);

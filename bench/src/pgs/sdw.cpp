@@ -116,11 +116,10 @@ int main (int argc, char *argv[]) {
 
 void do_filter2d(prog_data *pd, parlist *par) {
   file_trace *fd_out;
-  cart_plane *pln(0), *pln_qc(0);
   hdr_map *hdr;
   float **tbuf, **dbuf;
   float **data, **sdata, **slopes;
-  axis *ax1, *ax2, *axs1, *axs2;
+  axis *ax1, *axs1, *axs2;
   int i, j;
   int res;
   float binxl;
@@ -136,8 +135,6 @@ void do_filter2d(prog_data *pd, parlist *par) {
   axs1 = new axis(0.0f,1.0f,n1); // axis for shifts in 1st dimension
   axs2 = new axis(0.0f,1.0f,n2); // axis for shifts in 2nd dimension
   ax1  = new axis(o1,d1,n1,0,0); // axis for data in 1st dimension
-  ax2  = new axis(o2,d2,n2,0,0); // axis for data in 2nd dimension
-  pln  = new cart_plane(ax1, ax2);
 
   tbuf   = (float**)mem_alloc2(bytes_trace,n2,1);
   data   = (float**)mem_alloc2(n1,n2,sizeof(float));
@@ -186,7 +183,6 @@ void do_filter2d(prog_data *pd, parlist *par) {
   delete fd_out;
 
   mem_free2((void***)&tbuf);
-  delete pln;
 }
 
 

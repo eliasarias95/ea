@@ -302,6 +302,10 @@ public class DynamicWarpingK {
     final int[] k2s = subsample(n2,_k2min);
     final int nk1 = k1s.length;
     final int nk2 = k2s.length;
+    //trace("k1s:");
+    //dump(k1s);
+    //trace("k2s:");
+    //dump(k2s);
 
     trace("findShifts: smoothing in 1st dimension ...");
     final float[][][] ek = new float[n2][][];
@@ -1020,8 +1024,9 @@ public class DynamicWarpingK {
     int ikee = dir>0?nke:-1;
     for (int is=0; is<ns; ++is)
       d[ikeb][is] = e[ikeb][is];
+    float[] dprev = new float[ns]; //CHECK HERE IF ERRORS
     for (int ike=ikeb+iked; ike!=ikee; ike+=iked) {
-      float[] dprev = d[ike-iked];
+      dprev = d[ike-iked];
       int me = kes[ike]-kes[ike-iked];
       int msmin,msmax;
       if (me>0) {
@@ -1049,6 +1054,7 @@ public class DynamicWarpingK {
         }
       }
     }
+    dump(m);
   }
 
   /**
@@ -1082,6 +1088,7 @@ public class DynamicWarpingK {
       is += m[ike+1][is];
       uke[ike] = (float)ss.getValue(is);
     }
+    dump(uke);
     return uke;
   }
 
@@ -1118,6 +1125,10 @@ public class DynamicWarpingK {
     for (int jk2=0; jk2<nk2; ++jk2)
       xk2[jk2] = (float)s2.getValue(k2s[jk2]);
 
+    trace("xk1:");
+    dump(xk1);
+    trace("xk2:");
+    dump(xk2);
     // Interpolate.
     BicubicInterpolator2 bc = new BicubicInterpolator2(
       BicubicInterpolator2.Method.MONOTONIC,
