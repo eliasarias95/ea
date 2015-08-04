@@ -35,6 +35,7 @@ class sdw_obj {
     void findShifts(float **e, float *s);    
     void findShifts(axis *axf, float *f, axis *axg, float *g, float *s);
     void findShifts(axis *axf, float **f, axis *axg, float **g, float **s);
+    void findShifts(axis *axf, float ***f, axis *axg, float ***g, float ***s);
 
     void computeErrors(axis *axf, float *f, axis *axg, float *g, float **e);
     static void normalizeErrors(int n1, int n2, float **e);
@@ -47,10 +48,7 @@ class sdw_obj {
     int _k1min, _k2min, _k3min;
     int _esmooth;
 
-    static void interp(axis *axf, float *f, axis *axs, float *fs, float shift);
-    static void interp(
-        axis *axf1, axis *axf2, float **f, axis *axs1, axis *axs2, float **fs,
-        float shift1, float shift2);
+    static void interp(axis *axf, float *f, axis *axs, float *fi, float shift);
     static void fill(float val, float *x, int nx);
     vector<int> subsample(int n, int kmin);
     float error(float f, float g);
@@ -62,12 +60,15 @@ class sdw_obj {
     static void shiftAndScale(
         float emin, float emax, int n1, int n2, int n3, int n4, float ****e);
 
-    static void smoothErrors2(double r2min, double r2max, vector<int> k2s,
-        axis *axs, axis *axe, int nk1, int n2, float ***e, float ***es);
-    static void smoothErrors2(double r2min, double r2max, vector<int> k2s,
-        axis *axs, axis *axe, float ****e, float ****es);
-    static void smoothErrors3(double r3min, double r3max, vector<int> k3s,
-        axis *axs, axis *axe, float ****e, float ****es);
+    static void smoothErrors2(
+        double r2min, double r2max, vector<int> k2s,axis *axs, axis *axe, 
+        int nk1, int n2, float ***e, float ***es);
+    static void smoothErrors2(
+        double r2min, double r2max, vector<int> k2s, axis *axs, axis *axe, 
+        int nk1, int n2, int n3, float ****e, float ****es);
+    static void smoothErrors3(
+        double r3min, double r3max, vector<int> k3s, axis *axs, axis *axe, 
+        int nk1, int nk2, int n3, float ****e, float ****es);
 
     static void smoothSubsampledErrors(
         double rmin, double rmax, vector<int> kes,
@@ -83,8 +84,7 @@ class sdw_obj {
         axis *axs, axis *ax1, axis *ax2, axis *ax3, float ****e);
 
     static void subsampleErrors(double rmin, double rmax, vector<int> kes,
-        axis *axs, axis *axe, int n, 
-        float **e, float **df, float **dr, float **d);
+        axis *axs, axis *axe, float **e, float **df, float **dr, float **d);
     static void backtrackForShifts(vector<int> kes, axis *axs, axis *axe,
         float *d, int **m, float* ske);    
 
@@ -97,9 +97,6 @@ class sdw_obj {
     static void accumulate(
         int dir, double rmin, double rmax, vector<int> kes, 
         axis *axs, axis *axe, float **e, float **d, int **m);
-    static void accumulateSubsampled(
-        int dir, double rmin, double rmax, vector<int> kes,
-        axis *axs, axis *axe, float **e, float **d);
     static void accumulateSubsampled(
         int dir, double rmin, double rmax, vector<int> kes,
         axis *axs, axis *axe, float **e, float **d, int **m);

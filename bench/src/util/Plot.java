@@ -17,9 +17,9 @@ import javax.swing.*;
  */
 public class Plot {
 
-  private static int k1 = 85;
+  private static int k1 = 5;
   private static int k2 = 0;
-  private static int k3 = 83;
+  private static int k3 = 0;
   //private static int k1 = 99;
   //private static int k2 = 90;
   //private static int k3 = 90;

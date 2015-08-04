@@ -397,8 +397,8 @@ public class Slopes{
     int n2 = _s2.getCount();
     double r1 = 0.1;
     double r2 = 0.2;
-    double h1 = 3.0;
-    double h2 = 2.0;
+    double h1 = 1.0;
+    double h2 = 1.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,r1,r2,

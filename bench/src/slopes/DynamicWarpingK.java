@@ -9,6 +9,7 @@ package slopes;
 import edu.mines.jtk.dsp.Sampling;
 import edu.mines.jtk.dsp.Tensors2;
 import edu.mines.jtk.dsp.EigenTensors2;
+import edu.mines.jtk.dsp.SincInterpolator;
 import edu.mines.jtk.interp.*;
 import edu.mines.jtk.util.*;
 import static edu.mines.jtk.util.ArrayMath.*;
@@ -302,10 +303,6 @@ public class DynamicWarpingK {
     final int[] k2s = subsample(n2,_k2min);
     final int nk1 = k1s.length;
     final int nk2 = k2s.length;
-    //trace("k1s:");
-    //dump(k1s);
-    //trace("k2s:");
-    //dump(k2s);
 
     trace("findShifts: smoothing in 1st dimension ...");
     final float[][][] ek = new float[n2][][];
@@ -426,22 +423,22 @@ public class DynamicWarpingK {
     Sampling sf, float[] f,
     Sampling sg, float[] g)
   {
-    //Sampling ss = _ss;
-    //Sampling se = _s1;
-    int ns = _ss.getCount();
-    int ne = _s1.getCount();
+    Sampling ss = _ss;
+    Sampling se = _s1;
+    int ns = ss.getCount();
+    int ne = se.getCount();
     int nf = sf.getCount();
     int ng = sg.getCount();
     float[][] e = new float[ne][ns];
     float[] fi = new float[ne];
     float[] gi = new float[ne];
-    _si.interpolate(sf,f,_s1,fi);
+    _si.interpolate(sf,f,se,fi);
     for (int is=0; is<ns; ++is) {
       _si.interpolate(
         ng,sg.getDelta(),sg.getFirst(),g,
-        ne,_s1.getDelta(),_s1.getFirst()+_ss.getValue(is),gi);
+        ne,se.getDelta(),se.getFirst()+ss.getValue(is),gi);
       for (int ie=0; ie<ne; ++ie) {
-        e[ie][is] = error(f[ie],gi[ie]);
+        e[ie][is] = error(fi[ie],gi[ie]);
       }
     }
     return e;
@@ -478,7 +475,6 @@ public class DynamicWarpingK {
     double d1 = _s1.getDelta();
     int k1min = min(_k1min,n1-1);
     int[] i1k = subsample(n1,k1min);
-    //dump(i1k);
     int n1k = i1k.length;
     return findShiftsFromErrors(_r1min,_r1max,i1k,_ss,_s1,e);
   }
@@ -1054,7 +1050,6 @@ public class DynamicWarpingK {
         }
       }
     }
-    dump(m);
   }
 
   /**
@@ -1088,7 +1083,6 @@ public class DynamicWarpingK {
       is += m[ike+1][is];
       uke[ike] = (float)ss.getValue(is);
     }
-    dump(uke);
     return uke;
   }
 
@@ -1125,10 +1119,6 @@ public class DynamicWarpingK {
     for (int jk2=0; jk2<nk2; ++jk2)
       xk2[jk2] = (float)s2.getValue(k2s[jk2]);
 
-    trace("xk1:");
-    dump(xk1);
-    trace("xk2:");
-    dump(xk2);
     // Interpolate.
     BicubicInterpolator2 bc = new BicubicInterpolator2(
       BicubicInterpolator2.Method.MONOTONIC,

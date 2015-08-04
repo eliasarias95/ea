@@ -115,19 +115,23 @@ void sdw_obj::findShifts(
   float **dr = (float**)mem_alloc2(ns,n1,sizeof(float));
   for (int i2=0; i2<n2; ++i2) {
     computeErrors(axf,f[i2],axg,g[i2],e1);
-    subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,n1,e1,df,dr,ek[i2]);
+    subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,df,dr,ek[i2]);
   }
   normalizeErrors(ns,nk1,n2,ek);
 
   ucsl_printf("findShifts: smoothing in 2nd dimension ...\n");
   float ***ekk = (float***)mem_alloc3(ns,nk1,nk2,sizeof(float));
   smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,ek,ekk);
+  mem_free2((void***)&e1);
+  mem_free2((void***)&dr);
+  mem_free2((void***)&df);
+  mem_free3((void****)&ek);
   normalizeErrors(ns,nk1,nk2,ekk);
 
   ucsl_printf("findShifts: finding shifts ...\n");
+  int **m = (int**)mem_alloc2(ns,nk1,sizeof(int));
   float **d   = (float**)mem_alloc2(ns,nk1,sizeof(float));
   float **skk = (float**)mem_alloc2(nk1,nk2,sizeof(float));
-  int **m = (int**)mem_alloc2(ns,nk1,sizeof(int));
   for (int ik2=0; ik2<nk2; ++ik2) {
     findShiftsFromSubsampledErrors(
         _r1min,_r1max,k1s,_axs,_ax1,m,d,ekk[ik2],skk[ik2]);
@@ -135,6 +139,80 @@ void sdw_obj::findShifts(
   ucsl_printf("findShifts: interpolating shifts ...\n");
   interpolateShifts(_ax1,_ax2,k1s,k2s,skk,s);
   ucsl_printf("findShifts: ... done\n");
+  mem_free3((void****)&ekk);
+  mem_free2((void***)&skk);
+  mem_free2((void***)&d);
+  mem_free2((void***)&m);
+}
+
+void sdw_obj::findShifts(
+    axis *axf, float ***f, axis *axg, float ***g, float *** s) {
+  int ns = _axs->n;
+  int n1 = _ax1->n;
+  int n2 = _ax2->n;
+  int n3 = _ax3->n;
+  vector<int> k1s = subsample(n1,_k1min);
+  vector<int> k2s = subsample(n2,_k2min);
+  vector<int> k3s = subsample(n3,_k3min);
+  int nk1 = k1s.size();
+  int nk2 = k2s.size();
+  int nk3 = k3s.size();
+  
+  ucsl_printf("findShifts: smoothing in 1st dimension ...\n");
+  float ****ek = (float****)mem_alloc4(ns,nk1,n2,n3,sizeof(float));
+  float **e1 = (float**)mem_alloc2(ns,n1,sizeof(float));
+  float **df = (float**)mem_alloc2(ns,n1,sizeof(float));
+  float **dr = (float**)mem_alloc2(ns,n1,sizeof(float));
+  int n23 = n2*n3;
+  for (int i23=0; i23<n23; ++i23) {
+    int i2 = i23%n2;
+    int i3 = i23/n2;
+    computeErrors(axf,f[i3][i2],axg,g[i3][i2],e1);
+    subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,df,dr,ek[i3][i2]);
+  }
+  normalizeErrors(ns,nk1,n2,n3,ek);
+
+  ucsl_printf("findShifts: smoothing in 2nd dimension ...\n");
+  float ****ekk = (float****)mem_alloc4(ns,nk1,nk2,n3,sizeof(float));
+  smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,n3,ek,ekk);
+  mem_free2((void***)&e1);
+  mem_free2((void***)&dr);
+  mem_free2((void***)&df);
+  mem_free4((void*****)&ek);
+  normalizeErrors(ns,nk1,nk2,n3,ekk);
+
+  ucsl_printf("findShifts: smoothing in 3rd dimension ...\n");
+  float ****ekkk = (float****)mem_alloc4(ns,nk1,nk2,nk3,sizeof(float));
+  smoothErrors3(_r3min,_r3max,k3s,_axs,_ax3,nk1,nk2,n3,ekk,ekkk);
+  mem_free4((void*****)&ekk);
+  normalizeErrors(ns,nk1,nk2,nk3,ekkk);
+
+  for (int is=0; is<_esmooth-1; ++is) {
+    smoothSubsampledErrors(_r1min,_r1max,k1s,_r2min,_r2max,k2s,_r3min,_r3max,k3s,
+        _axs,_ax1,_ax2,_ax3,ekkk);
+    normalizeErrors(ns,nk1,nk2,nk3,ekkk);
+  }
+
+  ucsl_printf("findShifts: finding shifts ...\n");
+  int **m = (int**)mem_alloc2(ns,nk1,sizeof(int));
+  float **d   = (float**)mem_alloc2(ns,nk1,sizeof(float));
+  float ***skk = (float***)mem_alloc3(nk1,nk2,nk3,sizeof(float));
+  int nk23 = nk2*nk3;
+  for (int ik23=0; ik23<nk23; ++ik23) {
+    int ik2 = ik23%nk2;
+    int ik3 = ik23/nk2;
+    findShiftsFromSubsampledErrors(
+        _r1min,_r1max,k1s,_axs,_ax1,m,d,ekkk[ik3][ik2],skk[ik3][ik2]);
+  }
+
+  ucsl_printf("findShifts: interpolating shifts ...\n");
+  interpolateShifts(_ax1,_ax2,_ax3,k1s,k2s,k3s,skk,s);
+  ucsl_printf("findShifts: ... done\n");
+
+  mem_free4((void*****)&ekkk);
+  mem_free3((void****)&skk);
+  mem_free2((void***)&d);
+  mem_free2((void***)&m);
 }
 
 /**
@@ -149,12 +227,6 @@ void sdw_obj::computeErrors(
     axis *axf, float *f, axis *axg, float *g, float **e) {
   int ns = _axs->n;
   int ne = _ax1->n;
-  int nf =  axf->n;
-  int ng =  axg->n;
-  float ds = _axs->d;
-  float de = _ax1->d;
-  float df =  axf->d;
-  float dg =  axg->d;
   float *fi = (float*)mem_alloc(ne,sizeof(float));
   float *gi = (float*)mem_alloc(ne,sizeof(float));
   interp(axf,f,_ax1,fi,0.0f);
@@ -164,6 +236,8 @@ void sdw_obj::computeErrors(
       e[ie][is] = error(fi[ie],gi[ie]);
     }
   }
+  mem_free((void**)&fi);
+  mem_free((void**)&gi);
 }
 
 //is there overhead with using the fmin and fmax methods from math?
@@ -183,7 +257,7 @@ void sdw_obj::normalizeErrors(int n1, int n2, float **e) {
 /***********************************PRIVATE***********************************/
 float BIG = 9999999999.9f;
 
-void sdw_obj::interp(axis *axf, float *f, axis *axs, float *fs, float shift) {
+void sdw_obj::interp(axis *axf, float *f, axis *axs, float *fi, float shift) {
   int nf = axf->n;
   int ns = axs->n;
   float df = axf->d;
@@ -192,44 +266,14 @@ void sdw_obj::interp(axis *axf, float *f, axis *axs, float *fs, float shift) {
   float fsamp;
   int isamp;
   for (int is=0; is<ns; ++is) {
-    isamp = fsamp = (is*ds)/df + shift;
+    isamp = fsamp = (is*ds)/df - shift;
     w = fsamp - isamp;
-    if (isamp>=0 && isamp+1<ns)
-      fs[is] = (1.0f-w)*f[isamp] + w*f[isamp+1];
+    if (fsamp<0)
+      fi[is] = f[0];
+    else if (fsamp>=0 && (fsamp+1)<ns)
+      fi[is] = (1.0f-w)*f[isamp] + w*f[isamp+1];
     else
-      fs[is] = 0.0f;
-  }
-}
-
-void sdw_obj::interp(
-    axis *axf1, axis *axf2, float **f, axis *axs1, axis *axs2, float **fs,
-    float shift1, float shift2) {
-  int nf1 = axf1->n;
-  int nf2 = axf2->n;
-  int ns1 = axs1->n;
-  int ns2 = axs2->n;
-  float df1 = axf1->d;
-  float df2 = axf2->d;
-  float ds1 = axs1->d;
-  float ds2 = axs2->d;
-  float w1, w2;
-  float x1, x2;
-  int isamp1, isamp2;
-  for (int is2=0; is2<ns2; ++is2) {
-    isamp2 = x2 = (is2*ds2)/df2 + shift2;
-    for (int is1=0; is1<ns1; ++is1) {
-      isamp1 = x1 = (is1*ds1)/df1 + shift1;
-      w1 = x1 - isamp1;
-      w2 = x2 - isamp2;
-      if (isamp1>=0 && isamp1+1<ns1 && isamp2>=0 && isamp2+1<ns2) {
-        fs[is2][is1] = (1.0f-w2)*(1.0f-w1)*f[isamp2  ][isamp1  ] + 
-                              w2*(1.0f-w1)*f[isamp2+1][isamp1  ] +
-                              (1.0f-w2)*w1*f[isamp2  ][isamp1+1] +
-                                     w2*w1*f[isamp2+1][isamp1+1];
-      }
-      else
-        fs[is2][is1] = 0.0f;
-    }
+      fi[is] = f[ns-1];
   }
 }
 
@@ -261,7 +305,8 @@ vector<int> sdw_obj::subsample(int n, int kmin) {
 }
 
 float sdw_obj::error(float f, float g) {
-  return pow(abs(f-g),_epow);
+  //return pow(abs(f-g),_epow);
+  return abs(f-g);
 }
 
 void sdw_obj::shiftAndScale(float emin, float emax, int n1, int n2, float **e) {
@@ -306,35 +351,118 @@ void sdw_obj::smoothErrors2(double r2min, double r2max, vector<int> k2s,
     axis *axs, axis *axe, int nk1, int n2, float ***e, float ***es) {
   int ns = axs->n;
   int nk2 = k2s.size();
-  //float[][][] es = new float[nk2][nk1][ns]; // smoothed errors
+  float **e2  = (float**)mem_alloc2(ns,n2,sizeof(float));// errors at index ik1
+  float **df  = (float**)mem_alloc2(ns,n2,sizeof(float));// errors at index ik1
+  float **dr  = (float**)mem_alloc2(ns,n2,sizeof(float));// errors at index ik1
   float **es2 = (float**)mem_alloc2(ns,nk2,sizeof(float));
-  float **e2 = (float**)mem_alloc2(ns,n2,sizeof(float));// errors at index ik1
-  float **df = (float**)mem_alloc2(ns,n2,sizeof(float));// errors at index ik1
-  float **dr = (float**)mem_alloc2(ns,n2,sizeof(float));// errors at index ik1
   for (int ik1=0; ik1<nk1; ++ik1) {
-    memset(e2[0],0,ns*n2*sizeof(float));
-    memset(dr[0],0,ns*n2*sizeof(float));
-    memset(df[0],0,ns*n2*sizeof(float));
     for (int i2=0; i2<n2; ++i2) {
       memcpy(e2[i2],e[i2][ik1],ns*sizeof(float));
     }
-    memset(es2[0],0,ns*nk2*sizeof(float));
-    subsampleErrors(r2min,r2max,k2s,axs,axe,n2,e2,df,dr,es2);
+    subsampleErrors(r2min,r2max,k2s,axs,axe,e2,df,dr,es2);
     for (int ik2=0; ik2<nk2; ++ik2)
       memcpy(es[ik2][ik1],es2[ik2],ns*sizeof(float));
   }
+  mem_free2((void***)&dr);
+  mem_free2((void***)&df);
+  mem_free2((void***)&e2);
+  mem_free2((void***)&es2);
 }
 
 void sdw_obj::smoothErrors2(
     double r2min, double r2max, vector<int> k2s,
-    axis *axs, axis *axe, float ****e, float ****es) {
-
+    axis *axs, axis *axe, int nk1, int n2, int n3, float ****e, float ****es) {
+  for (int i3=0; i3<n3; ++i3)
+    smoothErrors2(r2min,r2max,k2s,axs,axe,nk1,n2,e[i3],es[i3]);
 }
 
 void sdw_obj::smoothErrors3(
     double r3min, double r3max, vector<int> k3s,
-    axis *axs, axis *axe, float ****e, float ****es) {
+    axis *axs, axis *axe, int nk1, int nk2, int n3, float ****e, float ****es) {
+  int ns = axs->n;
+  int nk3 = k3s.size();
+  float **e3  = (float**)mem_alloc2(ns,n3,sizeof(float));//smooth errors at i1,i2
+  float **df  = (float**)mem_alloc2(ns,n3,sizeof(float));
+  float **dr  = (float**)mem_alloc2(ns,n3,sizeof(float));
+  float **es3 = (float**)mem_alloc2(ns,nk3,sizeof(float));
+  for (int ik1=0; ik1<nk1; ++ik1) {
+    for (int ik2=0; ik2<nk2; ++ik2) {
+      for (int i3=0; i3<n3; ++i3)
+        memcpy(e3[i3],e[i3][ik2][ik1],ns*sizeof(float));
+      subsampleErrors(r3min,r3max,k3s,axs,axe,e3,df,dr,es3);
+      for (int ik3=0; ik3<nk3; ++ik3)
+        memcpy(es[ik3][ik2][ik1],es3[ik3],ns*sizeof(float));
+    }
+  }
+  mem_free2((void***)&dr);
+  mem_free2((void***)&df);
+  mem_free2((void***)&e3);
+  mem_free2((void***)&es3);
+}
 
+void sdw_obj::smoothSubsampledErrors(
+    double rmin, double rmax, vector<int> kes,
+    axis *axs, axis *axe, float **e) {
+  int ns = axs->n;
+  int nke = kes.size();
+  float **ef  = (float**)mem_alloc2(ns,nke,sizeof(float));
+  float **er  = (float**)mem_alloc2(ns,nke,sizeof(float));
+  accumulateSubsampled( 1,rmin,rmax,kes,axs,axe,e,ef,NULL);
+  accumulateSubsampled(-1,rmin,rmax,kes,axs,axe,e,er,NULL);
+  float scale = 1.0f/nke;
+  for (int ike=0; ike<nke; ++ike) {
+    int ke = kes[ike];
+    for (int is=0; is<ns; ++is) {
+      e[ike][is] = scale*(ef[ike][is]+er[ike][is]-e[ike][is]);
+    }
+  }
+  mem_free2((void***)&er);
+  mem_free2((void***)&ef);
+}
+
+void sdw_obj::smoothSubsampledErrors(
+    double r1min, double r1max, vector<int> k1s,
+    double r2min, double r2max, vector<int> k2s,
+    axis *axs, axis *ax1, axis *ax2, float ***e) {
+  int ns = axs->n;
+  int nk1 = k1s.size();
+  int nk2 = k2s.size();
+  float **e2 = (float**)mem_alloc2(ns,nk2,sizeof(float));
+  for (int ik1=0; ik1<nk1; ++ik1) {
+    for (int ik2=0; ik2<nk2; ++ik2)
+      memcpy(e2[ik2],e[ik2][ik1],ns*sizeof(float));
+    smoothSubsampledErrors(r2min,r2max,k2s,axs,ax2,e2);
+    for (int ik2=0; ik2<nk2; ++ik2)
+      memcpy(e[ik2][ik1],e2[ik2],ns*sizeof(float));
+  }
+  for (int ik2=0; ik2<nk2; ++ik2) {
+    smoothSubsampledErrors(r1min,r1max,k1s,axs,ax1,e[ik2]);
+  }
+}
+
+void sdw_obj::smoothSubsampledErrors(
+    double r1min, double r1max, vector<int> k1s,
+    double r2min, double r2max, vector<int> k2s,
+    double r3min, double r3max, vector<int> k3s,
+    axis *axs, axis *ax1, axis *ax2, axis *ax3, float ****e) {
+  int ns = axs->n;
+  int nk1 = k1s.size();
+  int nk2 = k2s.size();
+  int nk3 = k3s.size();
+  float **e3 = (float**)mem_alloc2(ns,nk3,sizeof(float));
+  for (int ik1=0; ik1<nk1; ++ik1) {
+    for (int ik2=0; ik2<nk2; ++ik2) {
+      for (int ik3=0; ik3<nk3; ++ik3)
+        memcpy(e3[ik3],e[ik3][ik2][ik1],ns*sizeof(float));
+      smoothSubsampledErrors(r3min,r3max,k3s,axs,ax3,e3);
+      for (int ik3=0; ik3<nk3; ++ik3)
+        memcpy(e[ik3][ik2][ik1],e3[ik3],ns*sizeof(float));
+    }
+  }
+  for (int ik3=0; ik3<nk3; ++ik3) {
+    smoothSubsampledErrors(
+        r1min,r1max,k1s,r2min,r2max,k2s,axs,ax1,ax2,e[ik3]);
+  }
 }
 
 /**
@@ -348,14 +476,13 @@ void sdw_obj::smoothErrors3(
  * @return array[nke][ns] of subsampled errors.
  */
 void sdw_obj::subsampleErrors(
-    double rmin, double rmax, vector<int> kes, axis *axs, axis *axe, int n,
+    double rmin, double rmax, vector<int> kes, axis *axs, axis *axe,
     float **e, float **df, float **dr, float **d) {
   int ns =  axs->n;
   int ne =  axe->n;
   int nke = kes.size();
   accumulate( 1,rmin,rmax,kes,axs,axe,e,df,NULL);
   accumulate(-1,rmin,rmax,kes,axs,axe,e,dr,NULL);
-  memcpy(d,df,ns*n*sizeof(float));
   //d = df;
   float scale = 1.0f/ne;
   for (int ike=0; ike<nke; ++ike) {
@@ -390,7 +517,6 @@ void sdw_obj::backtrackForShifts(
     }
   }
   int is = imin;
-  memset(ske,0,nke*sizeof(float));
   ske[ike] = axs->get_val(is);
   for (--ike; ike>=0; --ike) {
     is += m[ike+1][is];
@@ -400,8 +526,7 @@ void sdw_obj::backtrackForShifts(
 
 void sdw_obj::normalizeErrors(int n1, int n2, int n3, float ***e) {
   float emin = BIG;
-  float emax = BIG*-1.0f;
-  ucsl_printf("in normalize errors\n");
+  float emax = -1.0f*BIG;
   for (int i3=0; i3<n3; ++i3) {
     for (int i2=0; i2<n2; ++i2) {
       for (int i1=0; i1<n1; ++i1) {
@@ -416,7 +541,7 @@ void sdw_obj::normalizeErrors(int n1, int n2, int n3, float ***e) {
 
 void sdw_obj::normalizeErrors(int n1, int n2, int n3, int n4, float ****e) {
   float emin = BIG;
-  float emax = BIG*-1.0f;
+  float emax = -1.0f*BIG;
   for (int i4=0; i4<n4; ++i4) {
     for (int i3=0; i3<n3; ++i3) {
       for (int i2=0; i2<n2; ++i2) {
@@ -455,7 +580,9 @@ void sdw_obj::accumulate(
   int iee = dir>0?ne:-1;
   for (int is=0; is<ns; ++is)
     d[ieb][is] = e[ieb][is];
-  float *dprev = (float*)mem_alloc(ns,sizeof(float));
+  static float *dprev = NULL;
+  if (!dprev) dprev = (float*)mem_alloc(ns,sizeof(float));
+  
   for (int ie=ieb+ied; ie!=iee; ie+=ied) {
     int je = fmax(0,fmin(ne-1,ie-dir*me));
     int ke = ie-je;
@@ -502,7 +629,9 @@ void sdw_obj::accumulate(
   int ikee = dir>0?nke:-1;
   for (int is=0; is<ns; ++is)
     d[ikeb][is] = e[kes[ikeb]][is];
-  float *dprev = (float*)mem_alloc(ns,sizeof(float));
+  static float *dprev = NULL;
+  if (!dprev) dprev = (float*)mem_alloc(ns,sizeof(float));
+
   for (int ike=ikeb+iked; ike!=ikee; ike+=iked) {
     int je = kes[ike-iked];
     int ie = kes[ike];
@@ -526,63 +655,13 @@ void sdw_obj::accumulate(
       int ishi = fmin(ns,ns-ms);
       for (int is=islo; is<ishi; ++is)
         dprev[is] = d[ike-iked][is+ms];
-      if (m!=NULL)
-          updateSumsOfErrors(ie,je,ms,e,dprev,d[ike],m[ike],ns);
-        else
-          updateSumsOfErrors(ie,je,ms,e,dprev,d[ike],NULL,ns);
-    }
-  }
-}
-
-/**
- * Accumulates subsampled errors in forward or reverse direction.
- * @param dir direction, 1 for forward, -1 for reverse.
- * @param rmin lower bound on strain.
- * @param rmax upper bound on strain.
- * @param kes array[nke] of indices for quasi-uniform subsampling.
- * @param ss uniform sampling of ns shifts.
- * @param se uniform sampling of ne errors.
- * @param e input array[nke][ns] of subsampled errors.
- * @param d output array[nke][ns] of accumulated errors.
- */
-void sdw_obj::accumulateSubsampled(
-    int dir, double rmin, double rmax, vector<int> kes,
-    axis *axs, axis *axe, float **e, float **d) {
-  int ns = axs->n;
-  double ds = axs->d;
-  double de = axe->d;
-  int nke = kes.size();
-  int iked = dir>0?1:-1;
-  int ikeb = dir>0?0:nke-1;
-  int ikee = dir>0?nke:-1;
-  float *dprev = (float*)mem_alloc(ns,sizeof(float));  
-  for (int is=0; is<ns; ++is)
-    d[ikeb][is] = e[ikeb][is];
-  for (int ike=ikeb+iked; ike!=ikee; ike+=iked) {
-    //memcpy(dprev,d[ike-iked],ns*sizeof(float));
-    dprev = d[ike-iked];
-    int me = kes[ike]-kes[ike-iked];
-    int msmin,msmax;
-    if (me>0) {
-      msmin = (int) ceil(-rmax*me*de/ds);
-      msmax = (int)floor(-rmin*me*de/ds);
-    } else {
-      msmin = (int) ceil(-rmin*me*de/ds);
-      msmax = (int)floor(-rmax*me*de/ds);
-    }
-    for (int is=0; is<ns; ++is) {
-      float dmin = BIG;
-      int mmin = -1;
-      for (int ms=msmin; ms<=msmax; ++ms) {
-        int js = is+ms;
-        if (0<=js && js<ns) {
-          float dj = dprev[js];
-          if (dj<dmin) {
-            dmin = dj;
-            mmin = ms;
-          }
-        }
-        d[ike][is] = dmin+e[ike][is];
+      if (m!=NULL) {
+        updateSumsOfErrors(ie,je,ms,e,dprev,d[ike],m[ike],ns);
+        //cout << "m!=NULL\n";
+      }
+      else {
+        updateSumsOfErrors(ie,je,ms,e,dprev,d[ike],NULL,ns);
+        //cout << "m==NULL\n";
       }
     }
   }
@@ -598,7 +677,7 @@ void sdw_obj::accumulateSubsampled(
  * @param se uniform sampling of ne errors.
  * @param e input array[nke][ns] of subsampled errors.
  * @param d output array[nke][ns] of accumulated errors.
- * @param m output array[nke][ns] of minimizing moves.
+ * @param m output array[nke][ns] of minimizing moves; or NULL.
  */
 void sdw_obj::accumulateSubsampled(
     int dir, double rmin, double rmax, vector<int> kes,
@@ -610,12 +689,13 @@ void sdw_obj::accumulateSubsampled(
   int iked = dir>0?1:-1;
   int ikeb = dir>0?0:nke-1;
   int ikee = dir>0?nke:-1;
-  float *dprev = (float*)mem_alloc(ns,sizeof(float));  
   for (int is=0; is<ns; ++is)
     d[ikeb][is] = e[ikeb][is];
+  static float *dprev = NULL;
+  if (!dprev) dprev = (float*)mem_alloc(ns,sizeof(float));  
+
   for (int ike=ikeb+iked; ike!=ikee; ike+=iked) {
-    //memcpy(dprev,d[ike-iked],ns*sizeof(float));
-    dprev = d[ike-iked];
+    memcpy(dprev,d[ike-iked],ns*sizeof(float));
     int me = kes[ike]-kes[ike-iked];
     int msmin,msmax;
     if (me>0) {
@@ -637,10 +717,11 @@ void sdw_obj::accumulateSubsampled(
             mmin = ms;
           }
         }
-        //cout << "mmin= " << mmin << "\n";
       }
       d[ike][is] = dmin+e[ike][is];
-      m[ike][is] = mmin;
+      if (m!=NULL) {
+        m[ike][is] = mmin;
+      }
     }
   }
 }
@@ -662,7 +743,6 @@ void sdw_obj::findShiftsFromSubsampledErrors(
     float **d, float **e, float *s) {
   int nke = kes.size();
   int ns = axs->n;
-  memset(d[0],0,ns*nke*sizeof(float));
   accumulateSubsampled(1,rmin,rmax,kes,axs,axe,e,d,m);
   backtrackForShifts(kes,axs,axe,d[nke-1],m,s);
 }
@@ -671,16 +751,17 @@ void sdw_obj::interpolateShifts(
     axis *ax1, vector<int> k1s, float *sk, float *s) {
   int n1 = ax1->n;
   int nk1 = k1s.size();
-  float* xk1 = (float*)mem_alloc(nk1,sizeof(float));
-  for (int jk1=0; jk1<nk1; ++jk1)
-    xk1[jk1] = ax1->get_val(k1s[jk1]);
-  //Some interpolation routine
-  //CubicInterpolator ci = makeInterpolator1(xk1,uk);
-  for (int j1=0; j1<n1; ++j1) {
-    float x1 = ax1->get_val(j1);
-    s[j1] = sk[j1];
-    //Some interpolation routine
-    //s[j1] = ci.interpolate(x1);
+  double d1 = ax1->d;
+  double dk1 = k1s[1] - k1s[0];
+  float w1;
+  float x1;
+  int isamp1, isamp1p;
+  for (int i1=0; i1<n1; ++i1) {
+    isamp1 = x1 = i1*d1/dk1;
+    if (x1<0 || (x1+1)>=nk1) {isamp1p = isamp1;}
+    else {isamp1p = isamp1+1;}
+    w1 = x1 - isamp1;
+    s[i1] = (1.0f-w1)*sk[isamp1] + w1*sk[isamp1p];
   }
 }
 
@@ -688,31 +769,31 @@ void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, vector<int> k1s,
     vector<int> k2s, float **skk, float **s) {
   int n1 = ax1->n;
   int n2 = ax2->n;
+  double d1 = ax1->d;
+  double d2 = ax2->d;
   int nk1 = k1s.size();
   int nk2 = k2s.size();
-
-  // Coarse sampling of 1st and 2nd dimensions.
-  float* xk1 = (float*)mem_alloc(nk1,sizeof(float));
-  for (int jk1=0; jk1<nk1; ++jk1)
-    xk1[jk1] = ax1->get_val(k1s[jk1]);
-  float* xk2 = (float*)mem_alloc(nk2,sizeof(float));
-  for (int jk2=0; jk2<nk2; ++jk2)
-    xk2[jk2] = ax2->get_val(k2s[jk2]);
+  double dk1 = k1s[1] - k1s[0];
+  double dk2 = k2s[1] - k2s[0];
 
   // Interpolate.
-  //interp(axf1,axf2,);
-  //Some interpolation routine
-  //BicubicInterpolator2 bc = new BicubicInterpolator2(
-  //  BicubicInterpolator2.Method.MONOTONIC,
-  //  BicubicInterpolator2.Method.SPLINE,
-  //  xk1,xk2,skk);
-  for (int j2=0; j2<nk2; ++j2) { // should be n2
-    float x2 = ax2->get_val(j2);
-    for (int j1=0; j1<n1; ++j1) {
-      float x1 = ax1->get_val(j1);
-      s[j2][j1] = skk[j2][j1];
-      //Some interpolation routine
-      //s[j2][j1] = bc.interpolate(x1,x2);
+  float w1, w2;
+  float x1, x2;
+  int isamp1, isamp1p, isamp2, isamp2p;
+  for (int i2=0; i2<n2; ++i2) {
+    isamp2 = x2 = i2*d2/dk2;
+    if (x2<0 || (x2+1)>=nk2) {isamp2p = isamp2;}
+    else {isamp2p = isamp2+1;}
+    w2 = x2 - isamp2;
+    for (int i1=0; i1<n1; ++i1) {
+      isamp1 = x1 = i1*d1/dk1;
+      if (x1<0 || (x1+1)>=nk1) {isamp1p = isamp1;}
+      else {isamp1p = isamp1+1;}
+      w1 = x1 - isamp1;
+      s[i2][i1] = (1.0f-w2)*(1.0f-w1)*skk[isamp2 ][isamp1 ] + 
+                         w2*(1.0f-w1)*skk[isamp2p][isamp1 ] +
+                         (1.0f-w2)*w1*skk[isamp2 ][isamp1p] +
+                                w2*w1*skk[isamp2p][isamp1p];
     }
   }
 }
@@ -720,7 +801,30 @@ void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, vector<int> k1s,
 void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, axis *ax3, 
     vector<int> k1s, vector<int> k2s, vector<int> k3s,
     float ***skk, float ***s) {
-  
+  int n2 = ax2->n;
+  int n3 = ax3->n;
+  int nk1 = k1s.size();
+  int nk2 = k2s.size();
+  int nk3 = k3s.size();
+
+  float **sk23 = (float**)mem_alloc2(nk2,nk3,sizeof(float));
+  float ***s23 = (float***)mem_alloc3(nk1,n2,n3,sizeof(float));
+  for (int ik1=0; ik1<nk1; ++ik1) {
+    for (int ik3=0; ik3<nk3; ++ik3) {
+      for (int ik2=0; ik2<nk2; ++ik2) {
+        sk23[ik3][ik2] = skk[ik3][ik2][ik1];
+      }
+    }
+    interpolateShifts(ax2,ax3,k2s,k3s,sk23,s23[ik1]);
+  }
+
+  for (int i3=0; i3<n3; ++i3) {
+    for (int i2=0; i2<n2; ++i2) {
+      interpolateShifts(ax1,k1s,s23[i3][i2],s[i3][i2]);
+    }
+  }
+  mem_free2((void***)&sk23);
+  mem_free3((void****)&s23);
 }
 
 /**

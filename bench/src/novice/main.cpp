@@ -1,6 +1,7 @@
 /* assert example */
 #include <stdio.h>      /* printf */
 #include <assert.h>     /* assert */
+#include <ucsl.h>
 #include <iostream>
 
 void print_number(int* myInt) {
@@ -8,21 +9,17 @@ void print_number(int* myInt) {
   printf ("%d\n",*myInt);
 }
 
-void trace(std::string s) {
-  std::cout << s << "\n";
-}
-
 int main ()
 {
-  int a=10;
-  int * b = NULL;
-  int * c = NULL;
+  int n  = 10;
+  int *b = mem_alloc(n,sizeof(int));
+  int *c = mem_alloc(n,sizeof(int));
 
-  b=&a;
-
+  memset(b,1,n*sizeof(int));
+  c = b;
+  std::cout << c[4] << "\n";
   //print_number (b);
   //print_number (c);
-  trace("a= "+a);
 
   return 0;
 }

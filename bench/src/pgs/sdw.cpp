@@ -149,6 +149,7 @@ void do_filter2d(prog_data *pd, parlist *par) {
 
   for(j=0; j<n2; ++j) {
     for(i=0; i<n1; ++i) {
+      //data[j][i] = dbuf[n2-j-1][i];
       data[j][i] = dbuf[j][i];
     }
   }
@@ -168,7 +169,7 @@ void do_filter2d(prog_data *pd, parlist *par) {
   sdw->setStrainLimits(-r1,r1,-r2,r2);
   sdw->setSmoothness((double)pd->h1,(double)pd->h2);
   // use axes for data when finding shifts
-  sdw->findShifts(ax1,data,ax1,sdata,slopes);
+  sdw->findShifts(axs1,data,axs1,sdata,slopes);
 
   float sum = 0.0f;
   for(j=0; j<n2; ++j) {
@@ -177,7 +178,7 @@ void do_filter2d(prog_data *pd, parlist *par) {
       dbuf[j][i] = slopes[j][i];
     }
   }
-  std::cout << "mean slope= " << sum/(8.0f*20.0f) << "\n";
+  std::cout << "mean slope= " << sum/(n1*n2) << "\n";
   fd_out = new file_trace(pd->fd_in,pd->fn_out,NULL);
   fd_out->write_traces(tbuf[0],n2,0);
   delete fd_out;
