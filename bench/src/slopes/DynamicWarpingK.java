@@ -265,9 +265,9 @@ public class DynamicWarpingK {
 
   /**
    * Returns shifts computed for specified 1D sequences.
-   * @param sf sampling of 1st dimension for the seqeunce f.
+   * @param sf sampling of 1st dimension for the sequence f.
    * @param f array of values for sequence f.
-   * @param sg sampling of 1st dimension for the seqeunce g.
+   * @param sg sampling of 1st dimension for the sequence g.
    * @param g array of values for sequence g.
    * @return array of shifts.
    */
@@ -317,12 +317,12 @@ public class DynamicWarpingK {
     float[][][] ekk = smoothErrors2(_r2min,_r2max,k2s,ss,s2,ek);
     normalizeErrors(ekk);
 
-    /*
     float[][][] es = new float[nk2][][];
     for (int is=0; is<_esmooth-1; ++is) {
-
+      smoothSubsampledErrors(_r1min,_r1max,k1s,
+                                   _r2min,_r2max,k2s,ss,s1,s2,es);
+      normalizeErrors(es);
     }
-    */
 
     trace("findShifts: finding shifts ...");
     float[][] ukk = new float[nk2][];

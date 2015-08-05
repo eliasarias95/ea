@@ -353,6 +353,26 @@ public class Util {
    * Reads a binary file.
    * @param n1 the length of floats in the 1st-dimension
    * @param n2 the length of floats in the 2nd-dimension
+   * @param fileName the name of the file to be read
+   * @return array[n2][n1] of floats read from file
+   */
+  public static float[][] readImageL(int n1, int n2, String fileName) {
+    ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
+    try {
+      ArrayInputStream ais = new ArrayInputStream(fileName,byteOrder);
+      float[][] x = new float[n2][n1];
+      ais.readFloats(x);
+      ais.close();
+      return x;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Reads a binary file.
+   * @param n1 the length of floats in the 1st-dimension
+   * @param n2 the length of floats in the 2nd-dimension
    * @param n3 the length of floats in the 3rd-dimension
    * @param fileName the name of the file to be read
    * @return array[n3][n2][n1] of floats read from file

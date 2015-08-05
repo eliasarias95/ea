@@ -1,5 +1,6 @@
 #include <ucsl.h>
 #include <sdw_obj.h>
+#include <sdw_slope.h>
 #include <cart_volume_io.h>
 #include <ctime>
 #ifdef _USE_OMP
@@ -128,9 +129,7 @@ void do_filter2d(prog_data *pd, parlist *par) {
   int n1 = pd->axes_in[0]->n; // 21
   int n2 = pd->axes_in[1]->n; // 15
   float d1 = pd->axes_in[0]->d;
-  float d2 = pd->axes_in[1]->d;
   float o1 = pd->axes_in[0]->o;
-  float o2 = pd->axes_in[1]->o;
 
   axs1 = new axis(0.0f,1.0f,n1); // axis for shifts in 1st dimension
   axs2 = new axis(0.0f,1.0f,n2); // axis for shifts in 2nd dimension
@@ -138,7 +137,6 @@ void do_filter2d(prog_data *pd, parlist *par) {
 
   tbuf   = (float**)mem_alloc2(bytes_trace,n2,1);
   data   = (float**)mem_alloc2(n1,n2,sizeof(float));
-  sdata  = (float**)mem_alloc2(n1,n2,sizeof(float));
   slopes = (float**)mem_alloc2(n1,n2,sizeof(float));
 
   hdr = pd->fd_in->get_hdr_map();
@@ -154,22 +152,17 @@ void do_filter2d(prog_data *pd, parlist *par) {
     }
   }
 
-  memcpy(sdata[0],data[0],n1*sizeof(float));
-  memcpy(sdata[n2-1],data[n2-2],n1*sizeof(float));
-  for (int i2=1; i2<n2-1; ++i2) {
-    memcpy(sdata[i2],data[i2-1],n1*sizeof(float));
-  }
-
   //Smooth dynamic warping routine
-  int k = 10;
-  double pmax = 2.0;
-  double r1 = 0.1, r2 = 0.2;
-  // use axes for shifts when creating sdw_obj
-  sdw_obj *sdw = new sdw_obj(k,-pmax,pmax,axs1,axs2);
-  sdw->setStrainLimits(-r1,r1,-r2,r2);
-  sdw->setSmoothness((double)pd->h1,(double)pd->h2);
-  // use axes for data when finding shifts
-  sdw->findShifts(axs1,data,axs1,sdata,slopes);
+  int k = 10; //shifts are tested in increments of 1/k
+  double pmax = 2.0; //max slope in (samples/trace)
+  //max strain in 1st and 2nd dimensions
+  double r1 = 0.1, r2 = 0.2; //e.g. 0.1 = 10% max stretch or squeeze
+
+  // use axes for shifts when creating sdw_slope
+  sdw_slope *sdws = new sdw_slope(k,pmax,pd->h1,pd->h2,r1,r2,axs1,axs2);
+  sdws->setErrorSmoothing(1);
+  // use axes for data when finding slopes
+  sdws->findSlopes(ax1,data,slopes);
 
   float sum = 0.0f;
   for(j=0; j<n2; ++j) {

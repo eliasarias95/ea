@@ -23,7 +23,7 @@ void sdw_obj::init(int k, double smin, double smax,
   _esmooth = 1;
 }
 
-//Constructors
+/*******************constructors*******************/
 sdw_obj::sdw_obj(int k, double smin, double smax,
     axis *ax1) {
   init(k,smin,smax,ax1,NULL,NULL);
@@ -39,7 +39,7 @@ sdw_obj::sdw_obj(int k, double smin, double smax,
   init(k,smin,smax,ax1,ax2,ax3);
 }
 
-//Setter methods
+/*******************setter methods*******************/
 void sdw_obj::setStrainLimits(double r1min, double r1max) {
   setStrainLimits(r1min,r1max,-1.0,1.0,-1.0,1.0);  
 }
@@ -80,7 +80,7 @@ void sdw_obj::setSmoothness(double d1min, double d2min, double d3min) {
   _k3min = fmax(1,(int)ceil(d3min/d3));
 }
 
-//Other public methods
+/*******************other public methods*******************/
 void sdw_obj::findShifts(float **e, float *s) {
   int ns = _axs->n;
   int n1 = _ax1->n;
@@ -122,11 +122,12 @@ void sdw_obj::findShifts(
   ucsl_printf("findShifts: smoothing in 2nd dimension ...\n");
   float ***ekk = (float***)mem_alloc3(ns,nk1,nk2,sizeof(float));
   smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,ek,ekk);
+  normalizeErrors(ns,nk1,nk2,ekk);
+
   mem_free2((void***)&e1);
   mem_free2((void***)&dr);
   mem_free2((void***)&df);
   mem_free3((void****)&ek);
-  normalizeErrors(ns,nk1,nk2,ekk);
 
   ucsl_printf("findShifts: finding shifts ...\n");
   int **m = (int**)mem_alloc2(ns,nk1,sizeof(int));
@@ -163,12 +164,11 @@ void sdw_obj::findShifts(
   float **e1 = (float**)mem_alloc2(ns,n1,sizeof(float));
   float **df = (float**)mem_alloc2(ns,n1,sizeof(float));
   float **dr = (float**)mem_alloc2(ns,n1,sizeof(float));
-  int n23 = n2*n3;
-  for (int i23=0; i23<n23; ++i23) {
-    int i2 = i23%n2;
-    int i3 = i23/n2;
-    computeErrors(axf,f[i3][i2],axg,g[i3][i2],e1);
-    subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,df,dr,ek[i3][i2]);
+  for (int i3=0; i3<n3; ++i3) {
+    for (int i2=0; i2<n2; ++i2) {
+      computeErrors(axf,f[i3][i2],axg,g[i3][i2],e1);
+      subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,df,dr,ek[i3][i2]);
+    }
   }
   normalizeErrors(ns,nk1,n2,n3,ek);
 
@@ -197,12 +197,11 @@ void sdw_obj::findShifts(
   int **m = (int**)mem_alloc2(ns,nk1,sizeof(int));
   float **d   = (float**)mem_alloc2(ns,nk1,sizeof(float));
   float ***skk = (float***)mem_alloc3(nk1,nk2,nk3,sizeof(float));
-  int nk23 = nk2*nk3;
-  for (int ik23=0; ik23<nk23; ++ik23) {
-    int ik2 = ik23%nk2;
-    int ik3 = ik23/nk2;
-    findShiftsFromSubsampledErrors(
-        _r1min,_r1max,k1s,_axs,_ax1,m,d,ekkk[ik3][ik2],skk[ik3][ik2]);
+  for (int ik3=0; ik3<nk3; ++ik3) {
+    for (int ik2=0; ik2<nk2; ++ik2) {
+      findShiftsFromSubsampledErrors(
+          _r1min,_r1max,k1s,_axs,_ax1,m,d,ekkk[ik3][ik2],skk[ik3][ik2]);
+    }
   }
 
   ucsl_printf("findShifts: interpolating shifts ...\n");
@@ -217,11 +216,12 @@ void sdw_obj::findShifts(
 
 /**
  * Returns alignment errors computed for specified sequences.
- * @param sf sampling of 1st dimension for the seqeunce f.
+ *
+ * @param axf axis object of 1st dimension for the sequence f.
  * @param f array of values for sequence f.
- * @param sg sampling of 1st dimension for the seqeunce g.
+ * @param axg axis object of 1st dimension for the sequence g.
  * @param g array of values for sequence g.
- * @return array of alignment errors.
+ * @param e output array of alignment errors.
  */
 void sdw_obj::computeErrors(
     axis *axf, float *f, axis *axg, float *g, float **e) {
@@ -240,7 +240,6 @@ void sdw_obj::computeErrors(
   mem_free((void**)&gi);
 }
 
-//is there overhead with using the fmin and fmax methods from math?
 void sdw_obj::normalizeErrors(int n1, int n2, float **e) {
   float emin = e[0][0];
   float emax = e[0][0];
@@ -254,9 +253,31 @@ void sdw_obj::normalizeErrors(int n1, int n2, float **e) {
   shiftAndScale(emin,emax,n1,n2,e);
 }
 
+void sdw_obj::getMemoryCost2() {
+  int ns = _axs->n; int n1 = _ax1->n; int n2 = _ax2->n;
+  int nk1 = 1+(n1-1)/_k1min; int nk2 = 1+(n2-1)/_k2min;
+  /****allocated and freed once****/
+  float data = n1*n2*4.0f, sdata = n1*n2*4.0f, slopes = n1*n2*4.0f;
+  float ek = ns*nk1*n2*4.0f; float ekk = ns*nk1*nk2*4.0f;
+  float e1 = ns*n1*4.0f; float e2 = ns*n2*4.0f; float es2 = ns*nk2*4.0f;
+  float df1 = ns*n1*4.0f, dr1 = ns*n1*4.0f;
+  float df2 = ns*n2*4.0f, dr2 = ns*n2*4.0f;
+  float dprev = ns*4.0f; float m = ns*nk1*4.0f, d = ns*nk1*4.0f;
+  float skk = nk1*nk2*4.0f;
+  float sum = data+sdata+slopes+ek+ekk+e1+e2+es2+df1+df2+dr1+dr2+dprev+m+d+skk;
+  cout << "size of data in bytes: " << data << ", ";
+  cout << "Mb: " << data/1024.0f/1024.0f << ", ";
+  cout << "Gb: " << data/1024.0f/1024.0f/1024.0f << "\n";
+  cout << "memory cost in bytes: " << sum << ", ";
+  cout << "Mb: " << sum/1024.0f/1024.0f << ", ";
+  cout << "Gb: " << sum/1024.0f/1024.0f/1024.0f << "\n";
+  cout << "Will cost " << sum/data << " times input data size in memory.\n";
+}
+
 /***********************************PRIVATE***********************************/
 float BIG = 9999999999.9f;
 
+/*******************utility methods*******************/
 void sdw_obj::interp(axis *axf, float *f, axis *axs, float *fi, float shift) {
   int nf = axf->n;
   int ns = axs->n;
@@ -266,7 +287,7 @@ void sdw_obj::interp(axis *axf, float *f, axis *axs, float *fi, float shift) {
   float fsamp;
   int isamp;
   for (int is=0; is<ns; ++is) {
-    isamp = fsamp = (is*ds)/df - shift;
+    isamp = fsamp = (is*ds)/df + shift;
     w = fsamp - isamp;
     if (fsamp<0)
       fi[is] = f[0];
@@ -289,9 +310,10 @@ void sdw_obj::fill(float val, float *x, int nx) {
  * minimum increment kmin. Because the first and last indices 0 and n-1 are
  * included in the subset, n must be greater than the minimum increment
  * kmin.
+ *
  * @param n number of indices in the set {0,1,2,...,n-1}.
  * @param kmin minimum increment between indices in the subset.
- * @return array of indices in the subset.
+ * @return vector of indices in the subset.
  */
 vector<int> sdw_obj::subsample(int n, int kmin) {
   if (kmin>=n)
@@ -309,6 +331,7 @@ float sdw_obj::error(float f, float g) {
   return abs(f-g);
 }
 
+/*******************shift and scale*******************/
 void sdw_obj::shiftAndScale(float emin, float emax, int n1, int n2, float **e) {
   float eshift = emin;
   float escale = (emax>emin)?1.0f/(emax-emin):1.0f;
@@ -347,6 +370,7 @@ void sdw_obj::shiftAndScale(
   }
 }
 
+/*******************smooth errors*******************/
 void sdw_obj::smoothErrors2(double r2min, double r2max, vector<int> k2s,
     axis *axs, axis *axe, int nk1, int n2, float ***e, float ***es) {
   int ns = axs->n;
@@ -400,6 +424,7 @@ void sdw_obj::smoothErrors3(
   mem_free2((void***)&es3);
 }
 
+/*******************smooth subsampled errors*******************/
 void sdw_obj::smoothSubsampledErrors(
     double rmin, double rmax, vector<int> kes,
     axis *axs, axis *axe, float **e) {
@@ -465,65 +490,7 @@ void sdw_obj::smoothSubsampledErrors(
   }
 }
 
-/**
- * Subsamples alignment errors.
- * @param rmin lower bound on strain.
- * @param rmax upper bound on strain.
- * @param kes array[nke] of indices for quasi-uniform subsampling.
- * @param ss uniform sampling of ns shifts.
- * @param se uniform sampling of ne errors.
- * @param e input array[ne][ns] of alignment errors.
- * @return array[nke][ns] of subsampled errors.
- */
-void sdw_obj::subsampleErrors(
-    double rmin, double rmax, vector<int> kes, axis *axs, axis *axe,
-    float **e, float **df, float **dr, float **d) {
-  int ns =  axs->n;
-  int ne =  axe->n;
-  int nke = kes.size();
-  accumulate( 1,rmin,rmax,kes,axs,axe,e,df,NULL);
-  accumulate(-1,rmin,rmax,kes,axs,axe,e,dr,NULL);
-  //d = df;
-  float scale = 1.0f/ne;
-  for (int ike=0; ike<nke; ++ike) {
-    int ke = kes[ike];
-    for (int is=0; is<ns; ++is) {
-      d[ike][is] = scale*(df[ike][is]+dr[ike][is]-e[ke][is]);
-    }
-  }
-}
-
-/**
- * Returns shifts found by backtracking with precomputed moves.
- * @param kes array[nke] of indices for quasi-uniform subsampling.
- * @param ss uniform sampling of ns shifts.
- * @param se uniform sampling of ne errors.
- * @param d array[ns] of last forward accumulated errors.
- * @param m array[nke][ns] of moves, changes in shifts.
- * @return array[ne] of shifts.
- */
-void sdw_obj::backtrackForShifts(
-    vector<int> kes, axis *axs, axis *axe, float *d, int **m, float *ske) {
-  int nke = kes.size();
-  int ns = axs->n;
-  int ne = axe->n;
-  int ike = nke-1;
-  float dmin = BIG;
-  int imin = -1;
-  for (int is=0; is<ns; ++is) {
-    if (d[is]<dmin) {
-      dmin = d[is];
-      imin = is;
-    }
-  }
-  int is = imin;
-  ske[ike] = axs->get_val(is);
-  for (--ike; ike>=0; --ike) {
-    is += m[ike+1][is];
-    ske[ike] = axs->get_val(is);
-  }
-}
-
+/*******************normalization*******************/
 void sdw_obj::normalizeErrors(int n1, int n2, int n3, float ***e) {
   float emin = BIG;
   float emax = -1.0f*BIG;
@@ -556,15 +523,18 @@ void sdw_obj::normalizeErrors(int n1, int n2, int n3, int n4, float ****e) {
   shiftAndScale(emin,emax,n1,n2,n3,n4,e);
 }
 
+/*******************accumulation*******************/
+
 /**
  * Accumulates alignment errors in forward or reverse direction.
  * Does not subsample the accumulated errors.
+ *
  * @param dir direction, 1 for forward, -1 for reverse.
  * @param rmin lower bound on strain.
  * @param rmax upper bound on strain.
  * @param me number of errors e summed per accumulated error d
- * @param ss uniform sampling of ns shifts.
- * @param se uniform sampling of ne errors.
+ * @param axs uniform axis object of ns shifts.
+ * @param axe uniform axis object of ne errors.
  * @param e input array[ne][ns] of alignment errors.
  * @param d output array[ne][ns] of accumulated errors.
  */
@@ -607,12 +577,13 @@ void sdw_obj::accumulate(
 
 /**
  * Accumulates alignment errors in forward or reverse direction.
+ *
  * @param dir direction, 1 for forward, -1 for reverse.
  * @param rmin lower bound on strain.
  * @param rmax upper bound on strain.
  * @param kes array[nke] of indices for quasi-uniform subsampling.
- * @param ss uniform sampling of ns shifts.
- * @param se uniform sampling of ne errors.
+ * @param axs uniform axis object of ns shifts.
+ * @param axe uniform axis object of ne errors.
  * @param e input array[ne][ns] of alignment errors.
  * @param d output array[nke][ns] of accumulated errors.
  * @param m output array[nke][ns] of minimizing moves; or null.
@@ -657,11 +628,9 @@ void sdw_obj::accumulate(
         dprev[is] = d[ike-iked][is+ms];
       if (m!=NULL) {
         updateSumsOfErrors(ie,je,ms,e,dprev,d[ike],m[ike],ns);
-        //cout << "m!=NULL\n";
       }
       else {
         updateSumsOfErrors(ie,je,ms,e,dprev,d[ike],NULL,ns);
-        //cout << "m==NULL\n";
       }
     }
   }
@@ -669,12 +638,13 @@ void sdw_obj::accumulate(
 
 /**
  * Accumulates subsampled errors in forward or reverse direction.
+ *
  * @param dir direction, 1 for forward, -1 for reverse.
  * @param rmin lower bound on strain.
  * @param rmax upper bound on strain.
  * @param kes array[nke] of indices for quasi-uniform subsampling.
- * @param ss uniform sampling of ns shifts.
- * @param se uniform sampling of ne errors.
+ * @param axs uniform axis object of ns shifts.
+ * @param axe uniform axis object of ne errors.
  * @param e input array[nke][ns] of subsampled errors.
  * @param d output array[nke][ns] of accumulated errors.
  * @param m output array[nke][ns] of minimizing moves; or NULL.
@@ -726,6 +696,7 @@ void sdw_obj::accumulateSubsampled(
   }
 }
 
+/*******************find shifts from errors*******************/
 void sdw_obj::findShiftsFromErrors(double rmin, double rmax, 
     vector<int> kes, axis *axs, axis *axe, float **e, float *s) {
   int nke = kes.size();
@@ -747,6 +718,7 @@ void sdw_obj::findShiftsFromSubsampledErrors(
   backtrackForShifts(kes,axs,axe,d[nke-1],m,s);
 }
 
+/*******************interpolation*******************/
 void sdw_obj::interpolateShifts(
     axis *ax1, vector<int> k1s, float *sk, float *s) {
   int n1 = ax1->n;
@@ -827,16 +799,79 @@ void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, axis *ax3,
   mem_free3((void****)&s23);
 }
 
+/*******************other private methods*******************/
+
+/**
+ * Subsamples alignment errors.
+ *
+ * @param rmin lower bound on strain.
+ * @param rmax upper bound on strain.
+ * @param kes array[nke] of indices for quasi-uniform subsampling.
+ * @param axs uniform axis object of ns shifts.
+ * @param axe uniform axis object of ne errors.
+ * @param e input array[ne][ns] of alignment errors.
+ * @param df buffer array[ne][ns]
+ * @param dr buffer array[ne][ns]
+ * @param d output array[nke][ns] of subsampled errors.
+ */
+void sdw_obj::subsampleErrors(
+    double rmin, double rmax, vector<int> kes, axis *axs, axis *axe,
+    float **e, float **df, float **dr, float **d) {
+  int ns =  axs->n;
+  int ne =  axe->n;
+  int nke = kes.size();
+  accumulate( 1,rmin,rmax,kes,axs,axe,e,df,NULL);
+  accumulate(-1,rmin,rmax,kes,axs,axe,e,dr,NULL);
+  float scale = 1.0f/ne;
+  for (int ike=0; ike<nke; ++ike) {
+    int ke = kes[ike];
+    for (int is=0; is<ns; ++is) {
+      d[ike][is] = scale*(df[ike][is]+dr[ike][is]-e[ke][is]);
+    }
+  }
+}
+
+/**
+ * Returns shifts found by backtracking with precomputed moves.
+ *
+ * @param kes array[nke] of indices for quasi-uniform subsampling.
+ * @param axs uniform axis object of ns shifts.
+ * @param axe uniform axis object of ne errors.
+ * @param d array[ns] of last forward accumulated errors.
+ * @param m array[nke][ns] of moves, changes in shifts.
+ * @param ske output array[ne] of shifts.
+ */
+void sdw_obj::backtrackForShifts(
+    vector<int> kes, axis *axs, axis *axe, float *d, int **m, float *ske) {
+  int nke = kes.size();
+  int ns = axs->n;
+  int ne = axe->n;
+  int ike = nke-1;
+  float dmin = BIG;
+  int imin = -1;
+  for (int is=0; is<ns; ++is) {
+    if (d[is]<dmin) {
+      dmin = d[is];
+      imin = is;
+    }
+  }
+  int is = imin;
+  ske[ike] = axs->get_val(is);
+  for (--ike; ike>=0; --ike) {
+    is += m[ike+1][is];
+    ske[ike] = axs->get_val(is);
+  }
+}
+
 /**
  * Updates sums of errors for one shift between two error sample indices.
  * Computes sums of errors along linear trajectories according to:
- * <pre>
  * d[is] += sum from ke=ie to ke!=je of e[ke][is+(ie-ke)*ms/(ie-je)]
- * </pre>
  * Where the complicated last subscript (typically) is not an integer, this
  * method uses linear interpolation of the alignment errors e. After the
  * sums of errors have been computed for all shift indices is, this method
  * updates the minimum sum of errors and the corresponding change in shift.
+ *
  * @param ie error sample index at which to begin sum.
  * @param je error sample index at which to end (not) sum.
  * @param ms change in shift at error sample index je, not in sum.
@@ -844,6 +879,7 @@ void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, axis *ax3,
  * @param d[ns] input/output array in which to accumulate errors.
  * @param dmin[ns] input/output array of minimum accumulated errors.
  * @param mmin[ns] input/output array of minimizing moves; or null.
+ * @param ns number of shifts used to compute errors
  */
 void sdw_obj::updateSumsOfErrors(int ie, int je, int ms, float **e, 
     float *d, float *dmin, int *mmin, int ns) {

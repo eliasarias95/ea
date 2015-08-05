@@ -1,5 +1,5 @@
 in=constant2D.dat
 out=constant2D.mdvd
 subline_seq=1 1 1
-xline_seq=1 15 1
-z_seq=0 200 10
+xline_seq=1 1001 1
+z_seq=0 100000 10

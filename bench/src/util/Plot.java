@@ -243,7 +243,7 @@ public class Plot {
     pp.setHLabel("Traces");
     pp.setVLabel("Samples");
     pp.addColorBar(cbl);
-    pp.setColorBarWidthMinimum(110);
+    pp.setColorBarWidthMinimum(150);
     pp.setHInterval(100);
     pp.setVInterval(100);
     PlotFrame pf = new PlotFrame(pp);

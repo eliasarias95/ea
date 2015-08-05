@@ -200,7 +200,7 @@ public class Slopes{
     zm.apply(0.0f,pe);
     trace("Structure tensor time = "+_sw.time());    
     Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
-    //Util.writeBinaryL(f,PATH+"/../pgs/data/constant2D.dat");
+    Util.writeBinaryL(f,PATH+"/../pgs/data/constant2D.dat");
     trace("Structure tensor:"+max(pe)+", "+min(pe));
     float error;
     if (p!=null) {
@@ -397,8 +397,8 @@ public class Slopes{
     int n2 = _s2.getCount();
     double r1 = 0.1;
     double r2 = 0.2;
-    double h1 = 1.0;
-    double h2 = 1.0;
+    double h1 = 40.0;
+    double h2 = 6.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,r1,r2,
