@@ -1,5 +1,5 @@
-in=constant2D.dat
-out=constant2D.mdvd
+in=/users/elias.arias/Home/git/ea/bench/src/pgs/data/constant2D.dat
+out=/users/elias.arias/Home/git/ea/bench/src/pgs/data/constant2D.mdvd
 subline_seq=1 1 1
-xline_seq=1 1001 1
-z_seq=0 100000 10
+xline_seq=1 501 1
+z_seq=0 5000 10

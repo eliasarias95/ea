@@ -109,10 +109,10 @@ void sdw_obj::findShifts(
   int nk2 = k2s.size();
   
   ucsl_printf("findShifts: smoothing in 1st dimension ...\n");
-  float ***ek = (float***)mem_alloc3(ns,nk1,n2,sizeof(float));
   float **e1 = (float**)mem_alloc2(ns,n1,sizeof(float));
   float **df = (float**)mem_alloc2(ns,n1,sizeof(float));
   float **dr = (float**)mem_alloc2(ns,n1,sizeof(float));
+  float ***ek = (float***)mem_alloc3(ns,nk1,n2,sizeof(float));
   for (int i2=0; i2<n2; ++i2) {
     computeErrors(axf,f[i2],axg,g[i2],e1);
     subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,df,dr,ek[i2]);
@@ -129,6 +129,12 @@ void sdw_obj::findShifts(
   mem_free2((void***)&df);
   mem_free3((void****)&ek);
 
+  for (int is=0; is<_esmooth-1; ++is) {
+    smoothSubsampledErrors(_r1min,_r1max,k1s,_r2min,_r2max,k2s,
+        _axs,_ax1,_ax2,ekk);
+    normalizeErrors(ns,nk1,nk2,ekk);
+  }
+
   ucsl_printf("findShifts: finding shifts ...\n");
   int **m = (int**)mem_alloc2(ns,nk1,sizeof(int));
   float **d   = (float**)mem_alloc2(ns,nk1,sizeof(float));
@@ -140,10 +146,11 @@ void sdw_obj::findShifts(
   ucsl_printf("findShifts: interpolating shifts ...\n");
   interpolateShifts(_ax1,_ax2,k1s,k2s,skk,s);
   ucsl_printf("findShifts: ... done\n");
-  mem_free3((void****)&ekk);
-  mem_free2((void***)&skk);
+
   mem_free2((void***)&d);
   mem_free2((void***)&m);
+  mem_free2((void***)&skk);
+  mem_free3((void****)&ekk);
 }
 
 void sdw_obj::findShifts(
@@ -175,11 +182,12 @@ void sdw_obj::findShifts(
   ucsl_printf("findShifts: smoothing in 2nd dimension ...\n");
   float ****ekk = (float****)mem_alloc4(ns,nk1,nk2,n3,sizeof(float));
   smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,n3,ek,ekk);
+  normalizeErrors(ns,nk1,nk2,n3,ekk);
+
   mem_free2((void***)&e1);
   mem_free2((void***)&dr);
   mem_free2((void***)&df);
   mem_free4((void*****)&ek);
-  normalizeErrors(ns,nk1,nk2,n3,ekk);
 
   ucsl_printf("findShifts: smoothing in 3rd dimension ...\n");
   float ****ekkk = (float****)mem_alloc4(ns,nk1,nk2,nk3,sizeof(float));
@@ -265,10 +273,10 @@ void sdw_obj::getMemoryCost2() {
   float dprev = ns*4.0f; float m = ns*nk1*4.0f, d = ns*nk1*4.0f;
   float skk = nk1*nk2*4.0f;
   float sum = data+sdata+slopes+ek+ekk+e1+e2+es2+df1+df2+dr1+dr2+dprev+m+d+skk;
-  cout << "size of data in bytes: " << data << ", ";
+  cout << "size of data in Kb: " << data/1024.0f << ", ";
   cout << "Mb: " << data/1024.0f/1024.0f << ", ";
   cout << "Gb: " << data/1024.0f/1024.0f/1024.0f << "\n";
-  cout << "memory cost in bytes: " << sum << ", ";
+  cout << "memory cost in Kb: " << sum/1024.0f << ", ";
   cout << "Mb: " << sum/1024.0f/1024.0f << ", ";
   cout << "Gb: " << sum/1024.0f/1024.0f/1024.0f << "\n";
   cout << "Will cost " << sum/data << " times input data size in memory.\n";

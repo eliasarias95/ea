@@ -154,9 +154,9 @@ void do_filter2d(prog_data *pd, parlist *par) {
 
   //Smooth dynamic warping routine
   int k = 10; //shifts are tested in increments of 1/k
-  double pmax = 2.0; //max slope in (samples/trace)
+  double pmax = 9.0; //max slope in (samples/trace)
   //max strain in 1st and 2nd dimensions
-  double r1 = 0.1, r2 = 0.2; //e.g. 0.1 = 10% max stretch or squeeze
+  double r1 = 0.4, r2 = 0.4; //e.g. 0.1 = 10% max stretch or squeeze
 
   // use axes for shifts when creating sdw_slope
   sdw_slope *sdws = new sdw_slope(k,pmax,pd->h1,pd->h2,r1,r2,axs1,axs2);

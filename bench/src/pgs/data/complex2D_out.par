@@ -1,0 +1,5 @@
+in=/users/elias.arias/Home/git/ea/bench/src/pgs/data/complex2D_sdw_out.mdvd
+out=/users/elias.arias/Home/git/ea/bench/src/pgs/data/complex2D_sdw_out.dat
+subline_seq=1 1 1
+xline_seq=1 501 1
+z_seq=0 5000 10

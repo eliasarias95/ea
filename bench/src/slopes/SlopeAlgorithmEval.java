@@ -123,8 +123,8 @@ public class SlopeAlgorithmEval {
   private static void constant2D(int method) {
     Check.argument(method==1 || method==2 || method==3 || method==4,
         "not valid input");
-    int n1 = 10001;
-    int n2 = 1001;
+    int n1 = 501;
+    int n2 = 501;
     double d1 = 0.5;
     double d2 = 0.25;
     float[][] f  = new float[n2][n1];//2D seismic image
@@ -786,7 +786,7 @@ public class SlopeAlgorithmEval {
   private static int num;
   private static final int norder = 15;
   private static final int k = 10;
-  private static final float pmax = 2.0f;
+  private static final float pmax = 9.0f;
   private static final float noise = 0.0f;
   private static final float freq = 0.1f;
   private static final float pc2   = -0.7f;//constant slope
@@ -809,11 +809,11 @@ public class SlopeAlgorithmEval {
         Slopes.makeSyntheticComplex(noise,f2D,p2D,r2D);
 
         //1=lsf  2=pwd  3=sdw  4=all
-        //complex2D(1);
+        complex2D(3);
         //1=lsf  2=pwd  3=sdw  4=all
         //complex3D(3);
         //1=lsf  2=pwd  3=sdw  4=all
-        constant2D(1);
+        //constant2D(3);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant3D(4);
         //1=lsf  2=pwd  3=sdw  4=all

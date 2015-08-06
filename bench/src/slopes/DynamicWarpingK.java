@@ -317,11 +317,10 @@ public class DynamicWarpingK {
     float[][][] ekk = smoothErrors2(_r2min,_r2max,k2s,ss,s2,ek);
     normalizeErrors(ekk);
 
-    float[][][] es = new float[nk2][][];
     for (int is=0; is<_esmooth-1; ++is) {
       smoothSubsampledErrors(_r1min,_r1max,k1s,
-                                   _r2min,_r2max,k2s,ss,s1,s2,es);
-      normalizeErrors(es);
+                                   _r2min,_r2max,k2s,ss,s1,s2,ekk);
+      normalizeErrors(ekk);
     }
 
     trace("findShifts: finding shifts ...");
@@ -385,14 +384,13 @@ public class DynamicWarpingK {
     final float[][][][] ekkk = smoothErrors3(_r3min,_r3max,k3s,ss,s3,ekk);
     normalizeErrors(ekkk);
 
-    float[][][][] es = ekkk;
     for (int is=0; is<_esmooth-1; ++is) {
       smoothSubsampledErrors(_r1min,_r1max,k1s,
                                    _r2min,_r2max,k2s,
-                                   _r3min,_r3max,k3s,ss,s1,s2,s3,es);
-      normalizeErrors(es);
+                                   _r3min,_r3max,k3s,ss,s1,s2,s3,ekkk);
+      normalizeErrors(ekkk);
     }
-    final float[][][][] e = es;
+    final float[][][][] e = ekkk;
 
     trace("findShifts: finding shifts ...");
     final float[][][] ukk = new float[nk3][nk2][];
