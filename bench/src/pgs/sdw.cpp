@@ -15,14 +15,11 @@ char *usage[] = {
   " in=",
   " out=",
   " q:=",
-  " type=(alpha-trim,median,boxcar,gaussian,kuwahara,std_dev,set_mask,curv)",
   " h1=2",
   " h2=2",
   " h3=2",
-  " slowness=0",
   " niter=1",
   " nthread=number of cores",
-  " alpha=(if type == alpha-trim)",
   " mask_val=1",
   " mask_option=eq (eq,lt,le,gt,ge)",
   "************************************************************",
@@ -34,25 +31,20 @@ typedef struct {
   char *fn_qc;
   char *mask_option;
   file_trace *fd_in;
-  axis ** axes_in;
-  char *filter_type;
-  float mask_val;
-  float binil, binxl;
-  int pad3;
+  axis **axes_in;
   int h1;
   int h2;
   int h3;
+  int pad3;
+  int mype;
   int niter; 
   int naxes;
-  int slowness;
-  float alpha;
-  float threshold;
-  int mype;
   int nthread;
   int verbose;
+  float mask_val;
 } prog_data;
 
-int init_cart_volume(cart_volume ** vol_out, axis **axes_in, 
+int init_cart_volume(cart_volume **vol_out, axis **axes_in, 
     size_t const& naxes, int h1, int h2, int h3, MPI_Comm comm);
 void do_filter3d(prog_data *pd, parlist *par); 
 void do_filter2d(prog_data *pd, parlist *par); 
@@ -62,7 +54,7 @@ int main (int argc, char *argv[]) {
   prog_data *pd;
   parlist *par;
 
-  par = ucsl_initialize(usage, argv, argc, 1);
+  par = ucsl_initialize(usage,argv,argc,1);
   if(!par->get_status()) return _ERROR_PAR;
   global_time_start = MPI_Wtime();
 
@@ -70,25 +62,24 @@ int main (int argc, char *argv[]) {
   pd->mype = ucsl_mype();
 
   par->get_string_req("in", &(pd->fn_in));
-  par->get_string_req("out", &(pd->fn_out));
+  par->get_string_req("out",&(pd->fn_out));
   pd->fn_qc = NULL;
   par->get_string("qc", &(pd->fn_qc));
-  par->get_int_def("h1", &(pd->h1), 2);
-  par->get_int_def("h2", &(pd->h2), 2);
-  par->get_int_def("h3", &(pd->h3), 2);
+  par->get_int_def("h1",&(pd->h1),2);
+  par->get_int_def("h2",&(pd->h2),2);
+  par->get_int_def("h3",&(pd->h3),2);
   //add checks for positive h values and also check pad against size of
   //total model
-  par->get_int_def("pad_subline", &(pd->pad3),pd->h3);
-  //par->get_string_req("type", &(pd->filter_type));
-  par->get_int_def("nthread", &(pd->nthread), ucsl_get_n_cores());
-  par->get_int_def("verbose", &(pd->verbose), 1); 
-  par->get_string_def("mask_option", &(pd->mask_option), "eq");
-  par->get_float_def("mask_val", &(pd->mask_val), 1.f);
+  par->get_int_def("pad_subline",&(pd->pad3),pd->h3);
+  par->get_int_def("nthread",&(pd->nthread),ucsl_get_n_cores());
+  par->get_int_def("verbose",&(pd->verbose),1); 
+  par->get_string_def("mask_option",&(pd->mask_option),"eq");
+  par->get_float_def("mask_val",&(pd->mask_val),1.0f);
   if(pd->verbose && !pd->mype) {
     ucsl_print("**********************************************************\n");
-    ucsl_printf("ufilter version %s\n", _UCSL_VERSION);
+    ucsl_printf("ufilter version %s\n",_UCSL_VERSION);
     par->print(_UCSL_LOG);
-    ucsl_printf("using %d threads\n", pd->nthread);
+    ucsl_printf("using %d threads\n",pd->nthread);
     ucsl_print("**********************************************************\n");
   }
 #ifdef _USE_OMP
@@ -108,10 +99,8 @@ int main (int argc, char *argv[]) {
 
   global_time_end = MPI_Wtime();
   double const global_elapsed_time = global_time_end - global_time_start;
-  ucsl_printf("(PE: %d) Elapsed time: %.3f\n", pd->mype, global_elapsed_time);
-
+  ucsl_printf("(PE: %d) Elapsed time: %.3f\n",pd->mype,global_elapsed_time);
   ucsl_finalize();
-
   return EXIT_SUCCESS;
 }
 
@@ -119,21 +108,18 @@ void do_filter2d(prog_data *pd, parlist *par) {
   file_trace *fd_out;
   hdr_map *hdr;
   float **tbuf, **dbuf;
-  float **data, **sdata, **slopes;
-  axis *ax1, *axs1, *axs2;
+  float **data, **slopes;
+  axis *axs1, *axs2;
   int i, j;
-  int res;
-  float binxl;
 
-  int bytes_trace = pd->fd_in->get_bytes_trace(); // 96
-  int n1 = pd->axes_in[0]->n; // 21
-  int n2 = pd->axes_in[1]->n; // 15
+  int bytes_trace = pd->fd_in->get_bytes_trace();
+  int n1 = pd->axes_in[0]->n;
+  int n2 = pd->axes_in[1]->n;
   float d1 = pd->axes_in[0]->d;
   float o1 = pd->axes_in[0]->o;
 
   axs1 = new axis(0.0f,1.0f,n1); // axis for shifts in 1st dimension
   axs2 = new axis(0.0f,1.0f,n2); // axis for shifts in 2nd dimension
-  ax1  = new axis(o1,d1,n1,0,0); // axis for data in 1st dimension
 
   tbuf   = (float**)mem_alloc2(bytes_trace,n2,1);
   data   = (float**)mem_alloc2(n1,n2,sizeof(float));
@@ -147,22 +133,19 @@ void do_filter2d(prog_data *pd, parlist *par) {
 
   for(j=0; j<n2; ++j) {
     for(i=0; i<n1; ++i) {
-      //data[j][i] = dbuf[n2-j-1][i];
       data[j][i] = dbuf[j][i];
     }
   }
 
   //Smooth dynamic warping routine
   int k = 10; //shifts are tested in increments of 1/k
-  double pmax = 9.0; //max slope in (samples/trace)
+  double pmax = 6.0; //max slope in (samples/trace)
   //max strain in 1st and 2nd dimensions
-  double r1 = 0.4, r2 = 0.4; //e.g. 0.1 = 10% max stretch or squeeze
+  double r1 = 0.1, r2 = 0.4; //e.g. 0.1 = 10% max stretch or squeeze
 
-  // use axes for shifts when creating sdw_slope
   sdw_slope *sdws = new sdw_slope(k,pmax,pd->h1,pd->h2,r1,r2,axs1,axs2);
   sdws->setErrorSmoothing(1);
-  // use axes for data when finding slopes
-  sdws->findSlopes(ax1,data,slopes);
+  sdws->findSlopes(axs1,data,slopes);
 
   float sum = 0.0f;
   for(j=0; j<n2; ++j) {
@@ -181,68 +164,76 @@ void do_filter2d(prog_data *pd, parlist *par) {
 
 
 void do_filter3d(prog_data *pd, parlist *par) {
-  /*filter_base *filter;
-  cart_volume * vol(0);
-  char * hdr_buffer(0);
+  file_trace *fd_out_slopex, *fd_out_slopey;
+  cart_volume *vol(0);
+  char *hdr_buffer(0);
+  char *fn_out_slopex, *fn_out_slopey;
   int res;
-  float binxl, binil;
+  axis *ax1, *ax2, *ax3;
+  axis *axs1, *axs2, *axs3;
+  float ***slopex, ***slopey;
 
-  res = init_cart_volume(&vol, pd->axes_in, pd->naxes, pd->h1, pd->h2, pd->h3, MPI_COMM_WORLD);
-  if(res) ucsl_errorf("(me: %d) Failed to initialize cart_volume\n", pd->mype);
+  res = init_cart_volume(&vol,pd->axes_in,pd->naxes,0,0,pd->h3,MPI_COMM_WORLD);
+  if(res) ucsl_errorf("(me: %d) Failed to initialize cart_volume\n",pd->mype);
   ucsl_abort_if_error();
 
-  res = fill_cart_volume(vol, &hdr_buffer, pd->fd_in, MPI_COMM_WORLD);
-  if(res) ucsl_errorf("(me: %d) Failed to read input\n", pd->mype);
+  res = fill_cart_volume(vol,&hdr_buffer,pd->fd_in,MPI_COMM_WORLD);
+  if(res) ucsl_errorf("(me: %d) Failed to read input\n",pd->mype);
   ucsl_abort_if_error();
 
-  if(pd->slowness) vol->invert();
-  ucsl_abort_if_error();
+  fn_out_slopex = (char*)calloc(strlen(pd->fn_out)+6,sizeof(char));
+  fn_out_slopey = (char*)calloc(strlen(pd->fn_out)+6,sizeof(char));
+  sprintf(fn_out_slopex,"%s_dzdx",pd->fn_out);
+  sprintf(fn_out_slopey,"%s_dzdy",pd->fn_out);
+  fd_out_slopex = new file_trace(pd->fd_in,fn_out_slopex,MPI_COMM_WORLD);
+  fd_out_slopey = new file_trace(pd->fd_in,fn_out_slopey,MPI_COMM_WORLD);
 
-  if(strcmp(pd->filter_type, "boxcar") == 0)
-    filter = new filter_boxcar(pd->h1, pd->h2, pd->h3);
-  else if(strcmp(pd->filter_type, "gaussian") == 0)
-    filter = new filter_gaussian(pd->h1, pd->h2, pd->h3);
-  else if(strcmp(pd->filter_type, "kuwahara") == 0) 
-    filter = new filter_kuwahara(pd->h1, pd->h2, pd->h3, pd->nthread);
-  else if(strcmp(pd->filter_type, "median") == 0)
-    filter = new filter_median(pd->h1, pd->h2, pd->h3, pd->nthread);
-  else if(strcmp(pd->filter_type, "curv") == 0) {
-    par->get_float_req("binxl", &binxl);
-    par->get_float_req("binil", &binil);
-    filter = new filter_curv(vol->ax1->d, vol->ax2->d*binxl, vol->ax3->d*binil, 1.f);
-  }
-  else if(strcmp(pd->filter_type, "alpha-trim") == 0) {
-    if(pd->alpha == ALPHA_UNDEFINED) 
-      ucsl_errorf("ERROR: alpha must be defined for alpha-trim filter\n");
-    filter = new filter_alphatrim(pd->h1, pd->h2, pd->h3, pd->alpha, pd->nthread);
-  }
-  else if(strcmp(pd->filter_type, "set_mask") == 0)
-    filter = new filter_set_mask(pd->mask_option, pd->mask_val);
-  else ucsl_errorf("type = '%s' is not a supported filter.\n", pd->filter_type);
-  ucsl_abort_if_error();
+  //Smooth dynamic warping routine
+  int k = 10; //shifts are tested in increments of 1/k
+  double pmax = 6.0; //max slope (samples/trace)
+  //max strain in 1st, 2nd, and 3rd dimensions
+  double r1 = 0.1, r2 = 0.6, r3 = 0.6; //e.g. 0.1 = 10% max stretch or squeeze
+  ax1 = vol->ax1;
+  ax2 = vol->ax2;
+  ax3 = vol->ax3;
+  int n1 = ax1->ntot;
+  int n2 = ax2->ntot;
+  int n3 = ax3->ntot;
+  axs1 = new axis(0.0f,1.0f,n1);
+  axs2 = new axis(0.0f,1.0f,n2);
+  axs3 = new axis(0.0f,1.0f,n3);
 
-  if(!pd->mype) filter->print(_UCSL_LOG);
-  filter_loop loop;
-  res = loop.run(filter, pd->niter, vol);
-  if(res) ucsl_errorf("(PE: %d) Failed to apply filter\n", pd->mype);
-  ucsl_abort_if_error();
-  delete filter;
+  slopex = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
+  slopey = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
+  sdw_slope *sdws = new sdw_slope(k,pmax,pd->h1,pd->h2,pd->h3,r1,r2,r3,
+      axs1,axs2,axs3);
+  sdws->setErrorSmoothing(1);
+  sdws->findSlopes(axs1,vol->data,slopex,slopey);
 
-  file_trace * fd_out = new file_trace(pd->fd_in, pd->fn_out, MPI_COMM_WORLD);
+  memcpy(vol->data[0][0],slopex[0][0],n1*n2*n3*sizeof(float));
+  mem_free3((void****)&slopex);
+  res = dump_cart_volume(fd_out_slopex,vol,hdr_buffer,MPI_COMM_WORLD);
+  if(res) ucsl_errorf("(PE: %d) Failed to write filtered output!\n",pd->mype);
+  delete fd_out_slopex;
 
-  if(pd->slowness) vol->invert();
-  ucsl_abort_if_error();
+  memcpy(vol->data[0][0],slopey[0][0],n1*n2*n3*sizeof(float));
+  mem_free3((void****)&slopey);
+  res = dump_cart_volume(fd_out_slopey,vol,hdr_buffer,MPI_COMM_WORLD);
+  if(res) ucsl_errorf("(PE: %d) Failed to write filtered output!\n",pd->mype);
+  delete fd_out_slopey;
 
-  res = dump_cart_volume(fd_out, vol, hdr_buffer, MPI_COMM_WORLD);
-  if(res) ucsl_errorf("(PE: %d) Failed to write filtered output!\n", pd->mype);
-  delete fd_out;
+  delete axs1;
+  delete axs2;
+  delete axs3;
+  free(fn_out_slopex);
+  free(fn_out_slopey);
 
   delete vol;
   if(hdr_buffer) mem_free((void **)&hdr_buffer);
-  */
 }
 
-int init_cart_volume(cart_volume ** vol_out, axis **axes_in, size_t const& naxes, 
+int init_cart_volume(
+    cart_volume ** vol_out, axis **axes_in, size_t const& naxes, 
     int h1, int h2, int h3, MPI_Comm comm) {
   axis **axes_filter = new axis*[naxes];
   int filter_hl_list[3];
@@ -250,14 +241,9 @@ int init_cart_volume(cart_volume ** vol_out, axis **axes_in, size_t const& naxes
   filter_hl_list[1] = h2;
   filter_hl_list[2] = h3;
 
-  for(size_t i(0); i < naxes; ++i)
-  {
-    axes_filter[i] = new axis(axes_in[i]->o,
-        axes_in[i]->d,
-        axes_in[i]->n,
-        filter_hl_list[i],
-        0);
-
+  for(size_t i(0); i < naxes; ++i) {
+    axes_filter[i] = new axis(
+        axes_in[i]->o,axes_in[i]->d,axes_in[i]->n,filter_hl_list[i],0);
     axes_filter[i]->set_label(axes_in[i]->label);
   }
 
@@ -267,13 +253,12 @@ int init_cart_volume(cart_volume ** vol_out, axis **axes_in, size_t const& naxes
   int const estimated_distribution =
     cart_volume::compute_n(axes_filter[2]->n, mype, npe);
 
-  if(estimated_distribution <= filter_hl_list[2])
-  {
+  if(estimated_distribution <= filter_hl_list[2]) {
     ucsl_errorf("The ghost region is too small.\n");
     return 1;
   }
 
-  (*vol_out) = new cart_volume(axes_filter[0], axes_filter[1],
-      axes_filter[2], comm);
+  (*vol_out) = new cart_volume(
+      axes_filter[0],axes_filter[1],axes_filter[2],comm);
   return 0;
 }

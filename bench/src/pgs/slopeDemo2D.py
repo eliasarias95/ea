@@ -13,7 +13,7 @@ from util import *
 T = True
 F = False
 one = T
-cm = 4.0 #colorbar limits
+paint = F
 fw = 0.8
 fh = 0.8
 PATH = "/users/elias.arias/Home/git/ea/bench/src"
@@ -21,28 +21,41 @@ PATH = "/users/elias.arias/Home/git/ea/bench/src"
 n1 = 501
 n2 = 501
 n3 = 1
-#f = Util.readImageL(n1,n2,PATH+"/pgs/data/constant2D.dat")
-#p_sdw = Util.readImageL(n1,n2,PATH+"/pgs/data/constant2D_sdw_out.dat")
-#p_sxy = Util.readImageL(n1,n2,PATH+"/pgs/data/constant2D_sxy_out_dzdx.dat")
-f = Util.readImageL(n1,n2,PATH+"/pgs/data/complex2D.dat")
-p_sdw = Util.readImageL(n1,n2,PATH+"/pgs/data/complex2D_sdw_out.dat")
-p_sxy = Util.readImageL(n1,n2,PATH+"/pgs/data/complex2D_sxy_out_dzdx.dat")
 s1 = Sampling(n1)
 s2 = Sampling(n2)
 s3 = Sampling(n3)
 
 def main(args):
-  plot2D(f,p_sdw) # sdw_c
-  plot2D(f,p_sxy) # slopexy
-  #print "mean slopexy=", sum(p_sxy)/(n1*n2)
+  #constant2D()
+  complex2D()
 
-def plot2D(f,p):
+def constant2D():
+  cm = 1.0 #colorbar limits
+  f = Util.readImageL(n1,n2,PATH+"/pgs/data/constant2D.dat")
+  p_sdw = Util.readImageL(n1,n2,PATH+"/pgs/data/constant2D_sdw_out.dat")
+  p_sxy = Util.readImageL(n1,n2,PATH+"/pgs/data/constant2D_sxy_out_dzdx.dat")
+  plot2D(f,p_sdw,cm,"constant2D_sdwc") # sdw_c
+  plot2D(f,p_sxy,cm,"constant2D_slopexy") # slopexy
+  print "mean slopexy=", sum(p_sxy)/(n1*n2)
+
+def complex2D():
+  cm = 4.0 #colorbar limits
+  f = Util.readImageL(n1,n2,PATH+"/pgs/data/complex2D.dat")
+  p_sdwc = Util.readImageL(n1,n2,PATH+"/pgs/data/complex2D_sdw_out.dat")
+  p_sdwj = Util.readImage(n1,n2,PATH+"/pgs/data/sdw_half_complex2D.dat")
+  p_sxy  = Util.readImageL(n1,n2,PATH+"/pgs/data/complex2D_sxy_out_dzdx.dat")
+  plot2D(f,p_sdwc,cm,"complex2D_sdwc") # sdwc
+  plot2D(f,p_sdwj,cm,"complex2D_sdwj") # sdwj
+  plot2D(f,p_sxy,cm,"complex2D_slopexy") # slopexy
+
+
+def plot2D(f,p,cm,ttl):
   cbl = "slope (samples/trace)" #colorbar label
   #clip, title, paint, slide, no. columns
-  Plot.plot(s1,s2,f,p,"2D plot",cbl,fw,fh,-cm,cm,T,F,F,T,one)
+  Plot.plot(s1,s2,f,p,ttl,cbl,fw,fh,-cm,cm,T,F,paint,T,one)
 
-def plot3D(f,p):
-  Plot.plot(s1,s2,s3,f,p,"slope (samples/trace)","p_panels",fw,fh,-cm,cm,F,T,
+def plot3D(f,p,cm,ttl):
+  Plot.plot(s1,s2,s3,f,p,"slope (samples/trace)",ttl,fw,fh,-cm,cm,paint,T,
       one);
 #############Run the function main on the Swing thread#############
 import sys

@@ -64,29 +64,28 @@ void sdw_slope::findSlopes(axis *axf, float ***f, float ***p2, float ***p3) {
   int n2 = _ax2->n;
   int n3 = _ax3->n;
 
-  float ***f2m   = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
+  float ***fm = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
   for (int i3=0; i3<n3; ++i3) {
-    memcpy(f2m[i3][0],f[i3][0],n1*sizeof(float));
-    memcpy(f2m[i3][n2-1],f[i3][n2-2],n1*sizeof(float));
+    memcpy(fm[i3][0],f[i3][0],n1*sizeof(float));
+    memcpy(fm[i3][n2-1],f[i3][n2-2],n1*sizeof(float));
     for (int i2=1; i2<n2-1; ++i2) {
-      memcpy(f2m[i3][i2],f[i3][i2-1],n1*sizeof(float));
+      memcpy(fm[i3][i2],f[i3][i2-1],n1*sizeof(float));
     }
   }
 
-  _sdw->findShifts(axf,f2m,axf,f,p2);
+  _sdw->findShifts(axf,fm,axf,f,p2);
   //interpolateSlopes(p2,2);
-  mem_free3((void****)&f2m);
+  memset(fm[0][0],0,n1*n2*n3*sizeof(float));
 
-  float ***f3m   = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
-  memcpy(f3m[0],f[0],n1*n2*sizeof(float));
-  memcpy(f3m[n3-1],f[n3-2],n1*n2*sizeof(float));
+  memcpy(fm[0],f[0],n1*n2*sizeof(float));
+  memcpy(fm[n3-1],f[n3-2],n1*n2*sizeof(float));
   for (int i3=1; i3<n3-1; ++i3) {
-    memcpy(f3m[i3],f[i3-1],n1*n2*sizeof(float));
+    memcpy(fm[i3],f[i3-1],n1*n2*sizeof(float));
   }
 
-  _sdw->findShifts(axf,f3m,axf,f,p3);
+  _sdw->findShifts(axf,fm,axf,f,p3);
   //interpolateSlopes(p3,3);
-  mem_free3((void****)&f3m);
+  mem_free3((void****)&fm);
 }
 
 /*****************PRIVATE*****************/

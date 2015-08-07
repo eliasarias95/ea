@@ -25,7 +25,7 @@ public class Plot {
   //private static int k3 = 90;
   private static final double _ratio = 16.0/9.0;
   private static final String _paths = 
-    System.getProperty("user.home")+"/Documents/research/figures/pgs/";
+    System.getProperty("user.home")+"/Documents/research/figures/testing/";
   private static final String _pathp = 
     System.getProperty("user.home")+"/Documents/research/figures/thesis/";
 

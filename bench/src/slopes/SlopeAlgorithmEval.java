@@ -35,7 +35,7 @@ public class SlopeAlgorithmEval {
         "not valid input");
     int n1 = 501;
     int n2 = 501;
-    float[][] f = new float[n2][n1];//2D seismic image
+    float[][] f = new float[n2][n1]; //2D seismic image
     float[][] p = new float[n2][n1]; //2D slope values
     float[][] r = new float[n2][n1]; //2D reflectivity 
     Sampling s1 = new Sampling(n1);
@@ -787,7 +787,7 @@ public class SlopeAlgorithmEval {
   private static final int norder = 15;
   private static final int k = 10;
   private static final float pmax = 9.0f;
-  private static final float noise = 0.0f;
+  private static final float noise = 0.5f;
   private static final float freq = 0.1f;
   private static final float pc2   = -0.7f;//constant slope
   private static final float pc3   = 1.3f;//constant slope

@@ -167,10 +167,10 @@ void sdw_obj::findShifts(
   int nk3 = k3s.size();
   
   ucsl_printf("findShifts: smoothing in 1st dimension ...\n");
-  float ****ek = (float****)mem_alloc4(ns,nk1,n2,n3,sizeof(float));
   float **e1 = (float**)mem_alloc2(ns,n1,sizeof(float));
   float **df = (float**)mem_alloc2(ns,n1,sizeof(float));
   float **dr = (float**)mem_alloc2(ns,n1,sizeof(float));
+  float ****ek = (float****)mem_alloc4(ns,nk1,n2,n3,sizeof(float));
   for (int i3=0; i3<n3; ++i3) {
     for (int i2=0; i2<n2; ++i2) {
       computeErrors(axf,f[i3][i2],axg,g[i3][i2],e1);
@@ -216,10 +216,10 @@ void sdw_obj::findShifts(
   interpolateShifts(_ax1,_ax2,_ax3,k1s,k2s,k3s,skk,s);
   ucsl_printf("findShifts: ... done\n");
 
-  mem_free4((void*****)&ekkk);
-  mem_free3((void****)&skk);
   mem_free2((void***)&d);
   mem_free2((void***)&m);
+  mem_free3((void****)&skk);
+  mem_free4((void*****)&ekkk);
 }
 
 /**
@@ -286,11 +286,11 @@ void sdw_obj::getMemoryCost2() {
 float BIG = 9999999999.9f;
 
 /*******************utility methods*******************/
-void sdw_obj::interp(axis *axf, float *f, axis *axs, float *fi, float shift) {
+void sdw_obj::interp(axis *axf, float *f, axis *axfi, float *fi, float shift) {
   int nf = axf->n;
-  int ns = axs->n;
+  int ns = axfi->n;
   float df = axf->d;
-  float ds = axs->d;
+  float ds = axfi->d;
   float w;
   float fsamp;
   int isamp;
@@ -388,6 +388,7 @@ void sdw_obj::smoothErrors2(double r2min, double r2max, vector<int> k2s,
   float **dr  = (float**)mem_alloc2(ns,n2,sizeof(float));// errors at index ik1
   float **es2 = (float**)mem_alloc2(ns,nk2,sizeof(float));
   for (int ik1=0; ik1<nk1; ++ik1) {
+    memset(e2[0],0,ns*n2*sizeof(float));
     for (int i2=0; i2<n2; ++i2) {
       memcpy(e2[i2],e[i2][ik1],ns*sizeof(float));
     }

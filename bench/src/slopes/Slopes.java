@@ -397,7 +397,7 @@ public class Slopes{
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     double r1 = 0.1;
-    double r2 = 0.2;
+    double r2 = 0.6;
     double h1 = 40.0;
     double h2 = 6.0;
     Sampling ss1 = new Sampling(n1);
@@ -1112,7 +1112,7 @@ public class Slopes{
     float[][] p = Util.readImage(n1,n2,PATH+"/data/"+title+"_p.dat");
     // clip, interp, title, paint, color
     String cbl = "slope (samples/trace)"; //colorbar label
-    Plot.plot(_s1,_s2,f,p,title+num,cbl,_fw,_fh,-_cmax,_cmax,_clip,_title,
+    Plot.plot(_s1,_s2,f,p,"complex2D_sdwj",cbl,_fw,_fh,-_cmax,_cmax,_clip,_title,
         _paint,_slide,one);
   }
 
@@ -1279,13 +1279,13 @@ public class Slopes{
     System.getProperty("user.home")+"/Home/git/ea/bench/src/util";
   private static final int _niter = 5;
   private static final float pi = FLT_PI;      
-  private static final float _fw = 0.75f; //fraction width for slide
-  private static final float _fh = 0.9f; //fraction height for slide
+  private static final float _fw = 0.8f; //fraction width for slide
+  private static final float _fh = 0.8f; //fraction height for slide
   private static final float _cmax = 4.0f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;
-  private static final boolean _paint = false;
+  private static final boolean _paint = true;
   private static final boolean _clip = true;
   private static final boolean _slide = true;
 
