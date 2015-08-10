@@ -1,0 +1,5 @@
+in=/users/elias.arias/Home/git/ea/bench/src/pgs/data/Santos_2D_sxy_dzdx
+out=/users/elias.arias/Home/git/ea/bench/src/pgs/data/Santos_2D_sxy_dzdx.dat
+subline_seq=5266 5266 1
+xline_seq=2000 2808 1
+z_seq=0 10000 5

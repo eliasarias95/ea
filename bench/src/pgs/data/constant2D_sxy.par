@@ -1,0 +1,6 @@
+#in=/datadb/sfrolov/synth3D.bin
+in=constant2D_sxy_dzdx
+out=constant2D_sxy_dzdx.dat
+subline_seq=1 1 1
+xline_seq=1 501 1
+z_seq=0 5000 10

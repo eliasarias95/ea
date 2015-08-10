@@ -77,10 +77,10 @@ void sdw_slope::findSlopes(axis *axf, float ***f, float ***p2, float ***p3) {
   //interpolateSlopes(p2,2);
   memset(fm[0][0],0,n1*n2*n3*sizeof(float));
 
-  memcpy(fm[0],f[0],n1*n2*sizeof(float));
-  memcpy(fm[n3-1],f[n3-2],n1*n2*sizeof(float));
+  memcpy(fm[0][0],f[0][0],n1*n2*sizeof(float));
+  memcpy(fm[n3-1][0],f[n3-2][0],n1*n2*sizeof(float));
   for (int i3=1; i3<n3-1; ++i3) {
-    memcpy(fm[i3],f[i3-1],n1*n2*sizeof(float));
+    memcpy(fm[i3][0],f[i3-1][0],n1*n2*sizeof(float));
   }
 
   _sdw->findShifts(axf,fm,axf,f,p3);

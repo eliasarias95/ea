@@ -1,0 +1,5 @@
+in=complex3D_sxy_dzdy
+out=complex3D_sxy_dzdy.dat
+subline_seq=1 103 1
+xline_seq=1 102 1
+z_seq=0 1000 10

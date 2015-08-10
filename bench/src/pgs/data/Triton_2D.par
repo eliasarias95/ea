@@ -1,0 +1,5 @@
+in=/datadb/eariasp/Triton_2D
+out=/users/elias.arias/Home/git/ea/bench/src/pgs/data/Triton_2D.dat
+subline_seq=1 1 1
+xline_seq=1760 30960 10
+z_seq=0 16000 8

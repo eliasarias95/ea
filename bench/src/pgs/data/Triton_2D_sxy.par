@@ -1,0 +1,5 @@
+in=/users/elias.arias/Home/git/ea/bench/src/pgs/data/Triton_2D_sxy_dzdx
+out=/users/elias.arias/Home/git/ea/bench/src/pgs/data/Triton_2D_sxy_dzdx.dat
+subline_seq=14200 14200 500
+xline_seq=1760 30960 10
+z_seq=0 16000 8

@@ -1,7 +1,0 @@
-#in=constant2D_sxy_out_dzdy
-#out=constant2D_sxy_out_dzdy.dat
-in=complex2D_sxy_out_dzdy
-out=complex2D_sxy_out_dzdy.dat
-subline_seq=1 1 1
-xline_seq=1 501 1
-z_seq=0 5000 10

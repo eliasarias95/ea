@@ -17,9 +17,9 @@ import javax.swing.*;
  */
 public class Plot {
 
-  private static int k1 = 5;
-  private static int k2 = 0;
-  private static int k3 = 0;
+  private static int k1 = 50;
+  private static int k2 = 50;
+  private static int k3 = 50;
   //private static int k1 = 99;
   //private static int k2 = 90;
   //private static int k3 = 90;
@@ -410,6 +410,7 @@ public class Plot {
     pp.getPixelsView13().getTile().addTiledView(pv13);
     pp.getPixelsView23().getTile().addTiledView(pv23);
     PlotFrame pf = new PlotFrame(pp);
+    pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     pf.setBackground(background);
     pp.setColorBarWidthMinimum(150);
     //pf.setFontSize(18) //for print

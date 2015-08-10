@@ -1,0 +1,5 @@
+in=/datadb/eariasp/Santos_2D
+out=/users/elias.arias/Home/git/ea/bench/src/pgs/data/Santos_2D.dat
+subline_seq=1 1 1
+xline_seq=2000 2808 1
+z_seq=0 10000 5

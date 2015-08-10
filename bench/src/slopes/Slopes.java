@@ -21,10 +21,6 @@ public class Slopes{
 
   public Slopes(
       float noise, float pmax, Sampling s1, Sampling s2, Sampling s3){
-    if (noise==0.0f)      num = 1;
-    else if (noise==0.5f) num = 2;
-    else if (noise==1.0f) num = 3;
-    else                  num = 4;
     _noise = noise;
     _s1 = s1;
     _s2 = s2;
@@ -188,6 +184,7 @@ public class Slopes{
    * Structure tensor: plots the estimated slopes, RMS error, and time.
    */
   public void estimateLSF(float[][] f, float[][] p, String title) {
+    String num;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     LocalSlopeFinder lsf = new LocalSlopeFinder(6.0f,1.0f,_pmax);
@@ -202,6 +199,7 @@ public class Slopes{
     Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
     //Util.writeBinaryL(f,PATH+"/../pgs/data/constant2D.dat");
     Util.writeBinaryL(f,PATH+"/../pgs/data/complex2D.dat");
+    //Util.writeBinaryL(p,PATH+"/../pgs/data/complex2D_p.dat");
     trace("Structure tensor:"+max(pe)+", "+min(pe));
     float error;
     if (p!=null) {
@@ -231,6 +229,9 @@ public class Slopes{
     trace("Structure tensor time = "+_sw.time());    
     Util.writeBinary(p2e,PATH+"/data/"+title+"_p2.dat");
     Util.writeBinary(p3e,PATH+"/data/"+title+"_p3.dat");
+    //Util.writeBinaryL(f,PATH+"/../pgs/data/complex3D.dat");
+    //Util.writeBinaryL(p2,PATH+"/../pgs/data/complex3D_p2.dat");
+    //Util.writeBinaryL(p3,PATH+"/../pgs/data/complex3D_p3.dat");
     trace("Structure tensor:");
     float error2,error3;
     if (p2!=null && p3!=null) {
@@ -868,7 +869,7 @@ public class Slopes{
   }
 
   /**
-   * nni = number noise images
+   * nni = _number noise images
    */
   public void testMeanCurveLSF(Sampling sn, String fileName, int nni,
       float sigma1, float sigma2) {
@@ -890,7 +891,7 @@ public class Slopes{
   }
 
   /**
-   * nni = number noise images
+   * nni = _number noise images
    */
   public void testMeanCurvePWD(Sampling sn, String fileName, int nni,
       int rect1, int rect2) {
@@ -912,7 +913,7 @@ public class Slopes{
   }
 
   /**
-   * nni = number noise images
+   * nni = _number noise images
    */
   public void testMeanCurveSDW(Sampling sn, String fileName, int nni,
       int k, double r1, double r2, double h1, double h2) {
@@ -1281,17 +1282,16 @@ public class Slopes{
   private static final float pi = FLT_PI;      
   private static final float _fw = 0.8f; //fraction width for slide
   private static final float _fh = 0.8f; //fraction height for slide
-  private static final float _cmax = 4.0f;
+  private static final float _cmax = 1.5f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;
-  private static final boolean _paint = true;
+  private static final boolean _paint = false;
   private static final boolean _clip = true;
   private static final boolean _slide = true;
 
   private Stopwatch _sw = new Stopwatch();
   private float _noise;
-  private int num;
   private float _pmax;
   private Sampling _s1;
   private Sampling _s2;

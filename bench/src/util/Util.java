@@ -319,8 +319,9 @@ public class Util {
    * @return array[n1] of floats read from file
    */
   public static float[] readImage(int n1, String fileName) {
+    ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
     try {
-      ArrayInputStream ais = new ArrayInputStream(fileName);
+      ArrayInputStream ais = new ArrayInputStream(fileName,byteOrder);
       float[] x = new float[n1];
       ais.readFloats(x);
       ais.close();
@@ -338,8 +339,9 @@ public class Util {
    * @return array[n2][n1] of floats read from file
    */
   public static float[][] readImage(int n1, int n2, String fileName) {
+    ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
     try {
-      ArrayInputStream ais = new ArrayInputStream(fileName);
+      ArrayInputStream ais = new ArrayInputStream(fileName,byteOrder);
       float[][] x = new float[n2][n1];
       ais.readFloats(x);
       ais.close();
@@ -378,8 +380,9 @@ public class Util {
    * @return array[n3][n2][n1] of floats read from file
    */
   public static float[][][] readImage(int n1, int n2, int n3, String fileName) {
+    ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
     try {
-      ArrayInputStream ais = new ArrayInputStream(fileName);
+      ArrayInputStream ais = new ArrayInputStream(fileName,byteOrder);
       float[][][] x = new float[n3][n2][n1];
       ais.readFloats(x);
       ais.close();
@@ -466,6 +469,23 @@ public class Util {
    */
   public static void writeBinary(float[][][] x, String fileName) {
     ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
+    try {
+      ArrayOutputStream aos = new ArrayOutputStream(fileName,byteOrder);
+      aos.writeFloats(x);
+      aos.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Writes seismic data to binary file.
+   * Java default byteorder is BIG_ENDIAN.
+   * @param x array[n3][n2][n1] of data to write to the binary file
+   * @param fileName name of output binary file
+   */
+  public static void writeBinaryL(float[][][] x, String fileName) {
+    ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
     try {
       ArrayOutputStream aos = new ArrayOutputStream(fileName,byteOrder);
       aos.writeFloats(x);

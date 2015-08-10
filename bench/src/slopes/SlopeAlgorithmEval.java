@@ -383,10 +383,10 @@ public class SlopeAlgorithmEval {
   private static void optimal(int method, boolean test, double lp, int np2) {
     Check.argument(method==1 || method==2 || method==3 || method==4,
         "not valid input");
-    if (noise==0.0f)      num = 1;
-    else if (noise==0.5f) num = 2;
-    else if (noise==1.0f) num = 3;
-    else                  num = 4;    
+    if (noise==0.0f)      num = "zero";
+    else if (noise==0.5f) num = "half";
+    else if (noise==1.0f) num = "one";
+    else                  num = "other";
     int n1 = 501;
     int n2 = 501;
     float[][] f = new float[n2][n1]; //2D seismic image
@@ -496,10 +496,10 @@ public class SlopeAlgorithmEval {
   private static void rmsErrorCurves2(int method, boolean test) {
     Check.argument(method==1 || method==2 || method==3 || method==4,
         "not valid input");
-    if (noise==0.0f)      num = 1;
-    else if (noise==0.5f) num = 2;
-    else if (noise==1.0f) num = 3;
-    else                  num = 4;    
+    if (noise==0.0f)      num = "zero";
+    else if (noise==0.5f) num = "half";
+    else if (noise==1.0f) num = "one";
+    else                  num = "other";
     int n1 = 501;
     int n2 = 501;
     float[][] f = new float[n2][n1];//2D seismic image
@@ -551,10 +551,10 @@ public class SlopeAlgorithmEval {
   private static void rmsErrorCurves3(int method, boolean test) {
     Check.argument(method==1 || method==2 || method==3 || method==4,
         "not valid input");
-    if (noise==0.0f)      num = 1;
-    else if (noise==0.5f) num = 2;
-    else if (noise==1.0f) num = 3;
-    else                  num = 4;    
+    if (noise==0.0f)      num = "zero";
+    else if (noise==0.5f) num = "half";
+    else if (noise==1.0f) num = "one";
+    else                  num = "other";
     int n1 = 101;
     int n2 = 102;
     int n3 = 103;
@@ -618,10 +618,10 @@ public class SlopeAlgorithmEval {
   private static void meanErrorCurves(int method, boolean test, int nni) {
     Check.argument(method==1 || method==2 || method==3 || method==4,
         "not valid input");
-    if (noise==0.0f)      num = 1;
-    else if (noise==0.5f) num = 2;
-    else if (noise==1.0f) num = 3;
-    else                  num = 4;    
+    if (noise==0.0f)      num = "zero";
+    else if (noise==0.5f) num = "half";
+    else if (noise==1.0f) num = "one";
+    else                  num = "other";
     int n1 = 501;
     int n2 = 501;
     float[][] f = new float[n2][n1];//2D seismic image
@@ -783,11 +783,11 @@ public class SlopeAlgorithmEval {
     System.out.println(s);
   }
 
-  private static int num;
+  private static String num;
   private static final int norder = 15;
   private static final int k = 10;
   private static final float pmax = 9.0f;
-  private static final float noise = 0.5f;
+  private static final float noise = 0.0f;
   private static final float freq = 0.1f;
   private static final float pc2   = -0.7f;//constant slope
   private static final float pc3   = 1.3f;//constant slope
@@ -809,9 +809,9 @@ public class SlopeAlgorithmEval {
         Slopes.makeSyntheticComplex(noise,f2D,p2D,r2D);
 
         //1=lsf  2=pwd  3=sdw  4=all
-        complex2D(3);
+        complex2D(1);
         //1=lsf  2=pwd  3=sdw  4=all
-        //complex3D(3);
+        //complex3D(1);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant2D(3);
         //1=lsf  2=pwd  3=sdw  4=all

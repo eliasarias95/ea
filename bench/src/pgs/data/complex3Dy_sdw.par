@@ -1,0 +1,5 @@
+in=/users/elias.arias/Home/git/ea/bench/src/pgs/data/complex3D_sdw_dzdy
+out=/users/elias.arias/Home/git/ea/bench/src/pgs/data/complex3D_sdw_dzdy.dat
+subline_seq=1 103 1
+xline_seq=1 102 1
+z_seq=0 1000 10
