@@ -108,10 +108,20 @@ void sdw_obj::findShifts(
   int nk1 = k1s.size();
   int nk2 = k2s.size();
   
+  float **e1(0);
+  float **df(0);
+  float **dr(0);
+  if (n1>n2) {
+    e1 = (float**)mem_alloc2(ns,n1,sizeof(float));
+    df = (float**)mem_alloc2(ns,n1,sizeof(float));
+    dr = (float**)mem_alloc2(ns,n1,sizeof(float));
+  }
+  else {
+    e1 = (float**)mem_alloc2(ns,n2,sizeof(float));
+    df = (float**)mem_alloc2(ns,n2,sizeof(float));
+    dr = (float**)mem_alloc2(ns,n2,sizeof(float));
+  }
   ucsl_printf("findShifts: smoothing in 1st dimension ...\n");
-  float **e1 = (float**)mem_alloc2(ns,n1,sizeof(float));
-  float **df = (float**)mem_alloc2(ns,n1,sizeof(float));
-  float **dr = (float**)mem_alloc2(ns,n1,sizeof(float));
   float ***ek = (float***)mem_alloc3(ns,nk1,n2,sizeof(float));
   for (int i2=0; i2<n2; ++i2) {
     computeErrors(axf,f[i2],axg,g[i2],e1);
@@ -121,14 +131,14 @@ void sdw_obj::findShifts(
 
   ucsl_printf("findShifts: smoothing in 2nd dimension ...\n");
   float ***ekk = (float***)mem_alloc3(ns,nk1,nk2,sizeof(float));
-  smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,ek,ekk);
-  normalizeErrors(ns,nk1,nk2,ekk);
+  smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,ek,e1,df,dr,ekk);
 
   mem_free2((void***)&e1);
-  mem_free2((void***)&dr);
   mem_free2((void***)&df);
+  mem_free2((void***)&dr);
   mem_free3((void****)&ek);
 
+  normalizeErrors(ns,nk1,nk2,ekk);
   for (int is=0; is<_esmooth-1; ++is) {
     smoothSubsampledErrors(_r1min,_r1max,k1s,_r2min,_r2max,k2s,
         _axs,_ax1,_ax2,ekk);
@@ -143,6 +153,8 @@ void sdw_obj::findShifts(
     findShiftsFromSubsampledErrors(
         _r1min,_r1max,k1s,_axs,_ax1,m,d,ekk[ik2],skk[ik2]);
   }
+  mem_free3((void****)&ekk);
+
   ucsl_printf("findShifts: interpolating shifts ...\n");
   interpolateShifts(_ax1,_ax2,k1s,k2s,skk,s);
   ucsl_printf("findShifts: ... done\n");
@@ -150,7 +162,6 @@ void sdw_obj::findShifts(
   mem_free2((void***)&d);
   mem_free2((void***)&m);
   mem_free2((void***)&skk);
-  mem_free3((void****)&ekk);
 }
 
 void sdw_obj::findShifts(
@@ -165,11 +176,22 @@ void sdw_obj::findShifts(
   int nk1 = k1s.size();
   int nk2 = k2s.size();
   int nk3 = k3s.size();
+
+  float **e1(0);
+  float **df(0);
+  float **dr(0);
+  if (n1>n2) {
+    e1 = (float**)mem_alloc2(ns,n1,sizeof(float));
+    df = (float**)mem_alloc2(ns,n1,sizeof(float));
+    dr = (float**)mem_alloc2(ns,n1,sizeof(float));
+  }
+  else {
+    e1 = (float**)mem_alloc2(ns,n2,sizeof(float));
+    df = (float**)mem_alloc2(ns,n2,sizeof(float));
+    dr = (float**)mem_alloc2(ns,n2,sizeof(float));
+  }
   
   ucsl_printf("findShifts: smoothing in 1st dimension ...\n");
-  float **e1 = (float**)mem_alloc2(ns,n1,sizeof(float));
-  float **df = (float**)mem_alloc2(ns,n1,sizeof(float));
-  float **dr = (float**)mem_alloc2(ns,n1,sizeof(float));
   float ****ek = (float****)mem_alloc4(ns,nk1,n2,n3,sizeof(float));
   for (int i3=0; i3<n3; ++i3) {
     for (int i2=0; i2<n2; ++i2) {
@@ -181,23 +203,23 @@ void sdw_obj::findShifts(
 
   ucsl_printf("findShifts: smoothing in 2nd dimension ...\n");
   float ****ekk = (float****)mem_alloc4(ns,nk1,nk2,n3,sizeof(float));
-  smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,n3,ek,ekk);
-  normalizeErrors(ns,nk1,nk2,n3,ekk);
+  smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,n3,ek,e1,df,dr,ekk);
 
   mem_free2((void***)&e1);
-  mem_free2((void***)&dr);
   mem_free2((void***)&df);
+  mem_free2((void***)&dr);
   mem_free4((void*****)&ek);
 
   ucsl_printf("findShifts: smoothing in 3rd dimension ...\n");
+  normalizeErrors(ns,nk1,nk2,n3,ekk);
   float ****ekkk = (float****)mem_alloc4(ns,nk1,nk2,nk3,sizeof(float));
   smoothErrors3(_r3min,_r3max,k3s,_axs,_ax3,nk1,nk2,n3,ekk,ekkk);
   mem_free4((void*****)&ekk);
-  normalizeErrors(ns,nk1,nk2,nk3,ekkk);
 
+  normalizeErrors(ns,nk1,nk2,nk3,ekkk);
   for (int is=0; is<_esmooth-1; ++is) {
-    smoothSubsampledErrors(_r1min,_r1max,k1s,_r2min,_r2max,k2s,_r3min,_r3max,k3s,
-        _axs,_ax1,_ax2,_ax3,ekkk);
+    smoothSubsampledErrors(_r1min,_r1max,k1s,_r2min,_r2max,k2s,_r3min,_r3max,
+        k3s,_axs,_ax1,_ax2,_ax3,ekkk);
     normalizeErrors(ns,nk1,nk2,nk3,ekkk);
   }
 
@@ -211,15 +233,14 @@ void sdw_obj::findShifts(
           _r1min,_r1max,k1s,_axs,_ax1,m,d,ekkk[ik3][ik2],skk[ik3][ik2]);
     }
   }
+  mem_free2((void***)&d);
+  mem_free2((void***)&m);
+  mem_free4((void*****)&ekkk);
 
   ucsl_printf("findShifts: interpolating shifts ...\n");
   interpolateShifts(_ax1,_ax2,_ax3,k1s,k2s,k3s,skk,s);
   ucsl_printf("findShifts: ... done\n");
-
-  mem_free2((void***)&d);
-  mem_free2((void***)&m);
   mem_free3((void****)&skk);
-  mem_free4((void*****)&ekkk);
 }
 
 /**
@@ -262,24 +283,48 @@ void sdw_obj::normalizeErrors(int n1, int n2, float **e) {
 }
 
 void sdw_obj::getMemoryCost2() {
-  int ns = _axs->n; int n1 = _ax1->n; int n2 = _ax2->n;
-  int nk1 = 1+(n1-1)/_k1min; int nk2 = 1+(n2-1)/_k2min;
-  /****allocated and freed once****/
-  float data = n1*n2*4.0f, sdata = n1*n2*4.0f, slopes = n1*n2*4.0f;
-  float ek = ns*nk1*n2*4.0f; float ekk = ns*nk1*nk2*4.0f;
-  float e1 = ns*n1*4.0f; float e2 = ns*n2*4.0f; float es2 = ns*nk2*4.0f;
-  float df1 = ns*n1*4.0f, dr1 = ns*n1*4.0f;
-  float df2 = ns*n2*4.0f, dr2 = ns*n2*4.0f;
-  float dprev = ns*4.0f; float m = ns*nk1*4.0f, d = ns*nk1*4.0f;
-  float skk = nk1*nk2*4.0f;
-  float sum = data+sdata+slopes+ek+ekk+e1+e2+es2+df1+df2+dr1+dr2+dprev+m+d+skk;
-  cout << "size of data in Kb: " << data/1024.0f << ", ";
-  cout << "Mb: " << data/1024.0f/1024.0f << ", ";
-  cout << "Gb: " << data/1024.0f/1024.0f/1024.0f << "\n";
-  cout << "memory cost in Kb: " << sum/1024.0f << ", ";
-  cout << "Mb: " << sum/1024.0f/1024.0f << ", ";
-  cout << "Gb: " << sum/1024.0f/1024.0f/1024.0f << "\n";
-  cout << "Will cost " << sum/data << " times input data size in memory.\n";
+int ns = _axs->n; int n1 = _ax1->n; int n2 = _ax2->n;
+int nk1 = 1+(n1-1)/_k1min; int nk2 = 1+(n2-1)/_k2min;
+/****allocated and freed once****/
+float data = n1*n2*4.0f, sdata = n1*n2*4.0f, slopes = n1*n2*4.0f;
+float ek = ns*nk1*n2*4.0f; float ekk = ns*nk1*nk2*4.0f;
+float e1, df, dr;
+if (n1>n2) e1 = ns*n1*4.0f, df = ns*n1*4.0f, dr = ns*n1*4.0f;
+else e1 = ns*n2*4.0f, df = ns*n2*4.0f, dr = ns*n2*4.0f;
+float es2 = ns*nk2*4.0f;
+float dprev = ns*4.0f; float m = ns*nk1*4.0f, d = ns*nk1*4.0f;
+float skk = nk1*nk2*4.0f;
+float sum = data+sdata+slopes+ek+ekk+e1+es2+df+dr+dprev+m+d+skk;
+cout << "size of data in Kb: " << data/1024.0f << ", ";
+cout << "Mb: " << data/1024.0f/1024.0f << ", ";
+cout << "Gb: " << data/1024.0f/1024.0f/1024.0f << "\n";
+cout << "memory cost in Kb: " << sum/1024.0f << ", ";
+cout << "Mb: " << sum/1024.0f/1024.0f << ", ";
+cout << "Gb: " << sum/1024.0f/1024.0f/1024.0f << "\n";
+cout << "Will cost " << sum/data << " times input data size in memory.\n";
+}
+
+void sdw_obj::getMemoryCost3() {
+int ns = _axs->n; int n1 = _ax1->n; int n2 = _ax2->n; int n3 = _ax3->n;
+int nk1 = 1+(n1-1)/_k1min; int nk2 = 1+(n2-1)/_k2min; int nk3 = 1+(n3-1)/_k3min;
+/****allocated and freed once****/
+float data = n1*n2*n3*4.0f, sdata = n1*n2*n3*4.0f, slopes = 2.0f*n1*n2*n3*4.0f;
+float ek = ns*nk1*n2*n3*4.0f; float ekk = ns*nk1*nk2*n3*4.0f;
+float ekkk = ns*nk1*nk2*nk3*4.0f;
+float e1, df, dr;
+if (n1>n2) e1 = ns*n1*4.0f, df = ns*n1*4.0f, dr = ns*n1*4.0f;
+else e1 = ns*n2*4.0f, df = ns*n2*4.0f, dr = ns*n2*4.0f;
+float es2 = ns*nk2*4.0f;
+float dprev = ns*4.0f; float m = ns*nk1*4.0f, d = ns*nk1*4.0f;
+float skk = nk1*nk2*nk3*4.0f;
+float sum = data+sdata+slopes+ek+ekk+ekkk+e1+es2+df+dr+dprev+m+d+skk;
+cout << "size of data in Kb: " << data/1024.0f << ", ";
+cout << "Mb: " << data/1024.0f/1024.0f << ", ";
+cout << "Gb: " << data/1024.0f/1024.0f/1024.0f << "\n";
+cout << "memory cost in Kb: " << sum/1024.0f << ", ";
+cout << "Mb: " << sum/1024.0f/1024.0f << ", ";
+cout << "Gb: " << sum/1024.0f/1024.0f/1024.0f << "\n";
+cout << "Will cost " << sum/data << " times input data size in memory.\n";
 }
 
 /***********************************PRIVATE***********************************/
@@ -380,12 +425,10 @@ void sdw_obj::shiftAndScale(
 
 /*******************smooth errors*******************/
 void sdw_obj::smoothErrors2(double r2min, double r2max, vector<int> k2s,
-    axis *axs, axis *axe, int nk1, int n2, float ***e, float ***es) {
+    axis *axs, axis *axe, int nk1, int n2, float ***e, float **e2, float **df,
+    float **dr, float ***es) {
   int ns = axs->n;
   int nk2 = k2s.size();
-  float **e2  = (float**)mem_alloc2(ns,n2,sizeof(float));// errors at index ik1
-  float **df  = (float**)mem_alloc2(ns,n2,sizeof(float));// errors at index ik1
-  float **dr  = (float**)mem_alloc2(ns,n2,sizeof(float));// errors at index ik1
   float **es2 = (float**)mem_alloc2(ns,nk2,sizeof(float));
   for (int ik1=0; ik1<nk1; ++ik1) {
     memset(e2[0],0,ns*n2*sizeof(float));
@@ -396,17 +439,15 @@ void sdw_obj::smoothErrors2(double r2min, double r2max, vector<int> k2s,
     for (int ik2=0; ik2<nk2; ++ik2)
       memcpy(es[ik2][ik1],es2[ik2],ns*sizeof(float));
   }
-  mem_free2((void***)&dr);
-  mem_free2((void***)&df);
-  mem_free2((void***)&e2);
   mem_free2((void***)&es2);
 }
 
 void sdw_obj::smoothErrors2(
     double r2min, double r2max, vector<int> k2s,
-    axis *axs, axis *axe, int nk1, int n2, int n3, float ****e, float ****es) {
+    axis *axs, axis *axe, int nk1, int n2, int n3, float ****e, float **e2,
+    float **df, float **dr, float ****es) {
   for (int i3=0; i3<n3; ++i3)
-    smoothErrors2(r2min,r2max,k2s,axs,axe,nk1,n2,e[i3],es[i3]);
+    smoothErrors2(r2min,r2max,k2s,axs,axe,nk1,n2,e[i3],e2,df,dr,es[i3]);
 }
 
 void sdw_obj::smoothErrors3(
@@ -414,7 +455,8 @@ void sdw_obj::smoothErrors3(
     axis *axs, axis *axe, int nk1, int nk2, int n3, float ****e, float ****es) {
   int ns = axs->n;
   int nk3 = k3s.size();
-  float **e3  = (float**)mem_alloc2(ns,n3,sizeof(float));//smooth errors at i1,i2
+  //smooth errors at i1,i2
+  float **e3  = (float**)mem_alloc2(ns,n3,sizeof(float));
   float **df  = (float**)mem_alloc2(ns,n3,sizeof(float));
   float **dr  = (float**)mem_alloc2(ns,n3,sizeof(float));
   float **es3 = (float**)mem_alloc2(ns,nk3,sizeof(float));

@@ -15,9 +15,13 @@ char *usage[] = {
   " in=",
   " out=",
   " q:=",
+  " pmax=4.0",
   " h1=2",
   " h2=2",
   " h3=2",
+  " r1=0.1",
+  " r2=0.3",
+  " r3=0.3",
   " niter=1",
   " nthread=number of cores",
   " mask_val=1",
@@ -32,15 +36,19 @@ typedef struct {
   char *mask_option;
   file_trace *fd_in;
   axis **axes_in;
-  int h1;
-  int h2;
-  int h3;
+  int h1; // subsample factor in depth dimension
+  int h2; // subsample factor in xline dimension
+  int h3; // subsample factor in inline/subline dimension
   int pad3;
   int mype;
   int niter; 
   int naxes;
   int nthread;
   int verbose;
+  double r1; // max strain in depth dimension
+  double r2; // max strain in xline dimension
+  double r3; // max strain in inline/subline dimension
+  double pmax; //max slope (samples/trace)
   float mask_val;
 } prog_data;
 
@@ -65,9 +73,13 @@ int main (int argc, char *argv[]) {
   par->get_string_req("out",&(pd->fn_out));
   pd->fn_qc = NULL;
   par->get_string("qc", &(pd->fn_qc));
+  par->get_double_def("pmax",&(pd->pmax),4.0);
   par->get_int_def("h1",&(pd->h1),2);
   par->get_int_def("h2",&(pd->h2),2);
   par->get_int_def("h3",&(pd->h3),2);
+  par->get_double_def("r1",&(pd->r1),0.1);
+  par->get_double_def("r2",&(pd->r2),0.3);
+  par->get_double_def("r3",&(pd->r3),0.3);
   //add checks for positive h values and also check pad against size of
   //total model
   par->get_int_def("pad_subline",&(pd->pad3),pd->h3);
@@ -139,11 +151,8 @@ void do_filter2d(prog_data *pd, parlist *par) {
 
   //Smooth dynamic warping routine
   int k = 10; //shifts are tested in increments of 1/k
-  double pmax = 6.0; //max slope in (samples/trace)
-  //max strain in 1st and 2nd dimensions
-  double r1 = 0.1, r2 = 0.4; //e.g. 0.1 = 10% max stretch or squeeze
-
-  sdw_slope *sdws = new sdw_slope(k,pmax,pd->h1,pd->h2,r1,r2,axs1,axs2);
+  sdw_slope *sdws = new sdw_slope(k,pd->pmax,pd->h1,pd->h2,pd->r1,pd->r2,
+      axs1,axs2);
   sdws->setErrorSmoothing(1);
   sdws->findSlopes(axs1,data,slopes);
 
@@ -190,9 +199,6 @@ void do_filter3d(prog_data *pd, parlist *par) {
 
   //Smooth dynamic warping routine
   int k = 10; //shifts are tested in increments of 1/k
-  double pmax = 6.0; //max slope (samples/trace)
-  //max strain in 1st, 2nd, and 3rd dimensions
-  double r1 = 0.1, r2 = 0.6, r3 = 0.6; //e.g. 0.1 = 10% max stretch or squeeze
   ax1 = vol->ax1;
   ax2 = vol->ax2;
   ax3 = vol->ax3;
@@ -205,8 +211,8 @@ void do_filter3d(prog_data *pd, parlist *par) {
 
   slopex = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
   slopey = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
-  sdw_slope *sdws = new sdw_slope(k,pmax,pd->h1,pd->h2,pd->h3,r1,r2,r3,
-      axs1,axs2,axs3);
+  sdw_slope *sdws = new sdw_slope(k,pd->pmax,pd->h1,pd->h2,pd->h3,
+      pd->r1,pd->r2,pd->r3,axs1,axs2,axs3);
   sdws->setErrorSmoothing(1);
   sdws->findSlopes(axs1,vol->data,slopex,slopey);
 

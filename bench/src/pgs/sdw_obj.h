@@ -68,10 +68,12 @@ class sdw_obj {
 /*******************smooth errors*******************/
     static void smoothErrors2(
         double r2min, double r2max, vector<int> k2s,axis *axs, axis *axe, 
-        int nk1, int n2, float ***e, float ***es);
+        int nk1, int n2, float ***e, float **e2, float **df,
+        float **dr, float ***es);
     static void smoothErrors2(
         double r2min, double r2max, vector<int> k2s, axis *axs, axis *axe, 
-        int nk1, int n2, int n3, float ****e, float ****es);
+        int nk1, int n2, int n3, float ****e, float **e2, float **df,
+        float **dr, float ****es);
     static void smoothErrors3(
         double r3min, double r3max, vector<int> k3s, axis *axs, axis *axe, 
         int nk1, int nk2, int n3, float ****e, float ****es);

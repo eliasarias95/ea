@@ -31,7 +31,8 @@ void sdw_slope::init(int k, double pmax, double h1, double h2, double h3,
   _sdw = new sdw_obj(k,-pmax,pmax,ax1,ax2,ax3);
   _sdw->setSmoothness(h1,h2,h3);
   _sdw->setStrainLimits(-r1,r1,-r2,r2,-r3,r3);
-  _sdw->getMemoryCost2();
+  if (_ax3 == NULL) _sdw->getMemoryCost2();
+  else _sdw->getMemoryCost3();
 }
 
 //Functions
