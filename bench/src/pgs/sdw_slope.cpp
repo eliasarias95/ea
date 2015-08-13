@@ -49,14 +49,16 @@ void sdw_slope::findSlopes(axis *axf, float **f, float **p) {
   int n2 = _ax2->n;
   float **fm   = (float**)mem_alloc2(n1,n2,sizeof(float));
 
-  memcpy(fm[0],f[0],n1*sizeof(float));
-  memcpy(fm[n2-1],f[n2-2],n1*sizeof(float));
+  //to save memory, use p as 1 trace shifted version of f
+  //to fins
+  memcpy(p[0],f[0],n1*sizeof(float));
+  memcpy(p[n2-1],f[n2-2],n1*sizeof(float));
   for (int i2=1; i2<n2-1; ++i2) {
-    memcpy(fm[i2],f[i2-1],n1*sizeof(float));
+    memcpy(p[i2],f[i2-1],n1*sizeof(float));
   }
 
-  _sdw->findShifts(axf,fm,axf,f,p);
-  //interpolateSlopes(p);
+  _sdw->findShifts(axf,p,axf,f,fm);
+  interpolateSlopes(fm,p);
   mem_free2((void***)&fm);
 }
 
@@ -90,19 +92,19 @@ void sdw_slope::findSlopes(axis *axf, float ***f, float ***p2, float ***p3) {
 }
 
 /*****************PRIVATE*****************/
-void sdw_slope::interpolateSlopes(float **p) {
+void sdw_slope::interpolateSlopes(float **p, float **pi) {
   int n1 = _ax1->n;
   int n2 = _ax2->n;
-  //float **pi   = (float**)mem_alloc2(n1,n2,sizeof(float));
-  float *x1   = (float*)mem_alloc(n1,sizeof(float));
-  float *x2   = (float*)mem_alloc(n2,sizeof(float));
-  for (int i1=0; i1<n1; ++i1)
-    x1[i1] = i1;
-  for (int i2=0; i2<n2; ++i2)
-    x2[i2] = i2-0.5f;
-
-  //BilinearInterpolator2 bc = new BilinearInterpolator2(x1,x2,p);
-  //p = bc.interpolate00(_ax1,_ax2);
-  mem_free((void**)&x1);
-  mem_free((void**)&x2);
+  // Interpolate.
+  float w2;
+  int i2p;
+  int i2m;
+  for (int i2=0; i2<n2; ++i2) {
+    if ((i2+1)>=n2) {i2p = n2-1;}
+    else {i2p = i2+1;}
+    w2 = 0.5f;
+    for (int i1=0; i1<n1; ++i1) {
+      pi[i2][i1] = w2*p[i2][i1] + w2*p[i2p][i1];
+    }
+  }
 }

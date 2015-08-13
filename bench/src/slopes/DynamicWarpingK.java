@@ -1118,10 +1118,11 @@ public class DynamicWarpingK {
       xk2[jk2] = (float)s2.getValue(k2s[jk2]);
 
     // Interpolate.
-    BicubicInterpolator2 bc = new BicubicInterpolator2(
-      BicubicInterpolator2.Method.MONOTONIC,
-      BicubicInterpolator2.Method.SPLINE,
-      xk1,xk2,ukk);
+    BilinearInterpolator2 bc = new BilinearInterpolator2(xk1,xk2,ukk);
+    //BicubicInterpolator2 bc = new BicubicInterpolator2(
+    //  BicubicInterpolator2.Method.MONOTONIC,
+    //  BicubicInterpolator2.Method.SPLINE,
+    //  xk1,xk2,ukk);
     float[][] u = new float[n2][n1];
     for (int j2=0; j2<n2; ++j2) {
       float x2 = (float)s2.getValue(j2);

@@ -6,6 +6,8 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <omp.h>
+#include <time.h>
 
 class sdw_obj {
   public:
@@ -66,17 +68,15 @@ class sdw_obj {
         float emin, float emax, int n1, int n2, int n3, int n4, float ****e);
 
 /*******************smooth errors*******************/
-    static void smoothErrors2(
+    static float ***smoothErrors2(
         double r2min, double r2max, vector<int> k2s,axis *axs, axis *axe, 
-        int nk1, int n2, float ***e, float **e2, float **df,
-        float **dr, float ***es);
-    static void smoothErrors2(
+        int nk1, int n2, float ***e);
+    static float ****smoothErrors2(
         double r2min, double r2max, vector<int> k2s, axis *axs, axis *axe, 
-        int nk1, int n2, int n3, float ****e, float **e2, float **df,
-        float **dr, float ****es);
-    static void smoothErrors3(
+        int nk1, int n2, int n3, float ****e);
+    static float ****smoothErrors3(
         double r3min, double r3max, vector<int> k3s, axis *axs, axis *axe, 
-        int nk1, int nk2, int n3, float ****e, float ****es);
+        int nk1, int nk2, int n3, float ****e);
 
 /*******************smooth subsampled errors*******************/
     static void smoothSubsampledErrors(
@@ -127,7 +127,7 @@ class sdw_obj {
 
 /*******************other private methods*******************/
     static void subsampleErrors(double rmin, double rmax, vector<int> kes,
-        axis *axs, axis *axe, float **e, float **df, float **dr, float **d);
+        axis *axs, axis *axe, float **e, float **d);
     static void backtrackForShifts(vector<int> kes, axis *axs, axis *axe,
         float *d, int **m, float* ske);    
     static void updateSumsOfErrors(int ie, int je, int ms, float **e, 

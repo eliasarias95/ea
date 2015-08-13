@@ -93,7 +93,9 @@ void sdw_obj::findShifts(float **e, float *s) {
 }
 
 void sdw_obj::findShifts(axis *axf, float *f, axis *axg, float *g, float *s) {
-  float **e = (float**)mem_alloc2(_axs->n,_ax1->n,sizeof(float));
+  int ns = _axs->n;
+  int n1 = _ax1->n;
+  float **e = (float**)mem_alloc2(ns,n1,sizeof(float));
   computeErrors(axf,f,axg,g,e);
   findShifts(e,s);
 }
@@ -107,35 +109,33 @@ void sdw_obj::findShifts(
   vector<int> k2s = subsample(n2,_k2min);
   int nk1 = k1s.size();
   int nk2 = k2s.size();
-  
-  float **e1(0);
-  float **df(0);
-  float **dr(0);
-  if (n1>n2) {
-    e1 = (float**)mem_alloc2(ns,n1,sizeof(float));
-    df = (float**)mem_alloc2(ns,n1,sizeof(float));
-    dr = (float**)mem_alloc2(ns,n1,sizeof(float));
+
+  int nthread = 1;
+#ifdef _USE_OMP
+#pragma omp parallel 
+  {
+    nthread = omp_get_num_threads();
   }
-  else {
-    e1 = (float**)mem_alloc2(ns,n2,sizeof(float));
-    df = (float**)mem_alloc2(ns,n2,sizeof(float));
-    dr = (float**)mem_alloc2(ns,n2,sizeof(float));
-  }
+  omp_set_num_threads(nthread);
+#endif
+
   ucsl_printf("findShifts: smoothing in 1st dimension ...\n");
+  float ***e1 = (float***)mem_alloc3(ns,n1,nthread,sizeof(float));
   float ***ek = (float***)mem_alloc3(ns,nk1,n2,sizeof(float));
+  int ithread;
+#ifdef _USE_OMP
+#pragma omp parallel for private(ithread)
+#endif
   for (int i2=0; i2<n2; ++i2) {
-    computeErrors(axf,f[i2],axg,g[i2],e1);
-    subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,df,dr,ek[i2]);
+    ithread = omp_get_thread_num();
+    computeErrors(axf,f[i2],axg,g[i2],e1[ithread]);
+    subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1[ithread],ek[i2]);
   }
+  mem_free3((void****)&e1);
   normalizeErrors(ns,nk1,n2,ek);
 
   ucsl_printf("findShifts: smoothing in 2nd dimension ...\n");
-  float ***ekk = (float***)mem_alloc3(ns,nk1,nk2,sizeof(float));
-  smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,ek,e1,df,dr,ekk);
-
-  mem_free2((void***)&e1);
-  mem_free2((void***)&df);
-  mem_free2((void***)&dr);
+  float ***ekk = smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,ek);
   mem_free3((void****)&ek);
 
   normalizeErrors(ns,nk1,nk2,ekk);
@@ -153,14 +153,13 @@ void sdw_obj::findShifts(
     findShiftsFromSubsampledErrors(
         _r1min,_r1max,k1s,_axs,_ax1,m,d,ekk[ik2],skk[ik2]);
   }
+  mem_free2((void***)&d);
+  mem_free2((void***)&m);
   mem_free3((void****)&ekk);
 
   ucsl_printf("findShifts: interpolating shifts ...\n");
   interpolateShifts(_ax1,_ax2,k1s,k2s,skk,s);
   ucsl_printf("findShifts: ... done\n");
-
-  mem_free2((void***)&d);
-  mem_free2((void***)&m);
   mem_free2((void***)&skk);
 }
 
@@ -177,43 +176,41 @@ void sdw_obj::findShifts(
   int nk2 = k2s.size();
   int nk3 = k3s.size();
 
-  float **e1(0);
-  float **df(0);
-  float **dr(0);
-  if (n1>n2) {
-    e1 = (float**)mem_alloc2(ns,n1,sizeof(float));
-    df = (float**)mem_alloc2(ns,n1,sizeof(float));
-    dr = (float**)mem_alloc2(ns,n1,sizeof(float));
+  int nthread = 1;
+#ifdef _USE_OMP
+#pragma omp parallel 
+  {
+    nthread = omp_get_num_threads();
   }
-  else {
-    e1 = (float**)mem_alloc2(ns,n2,sizeof(float));
-    df = (float**)mem_alloc2(ns,n2,sizeof(float));
-    dr = (float**)mem_alloc2(ns,n2,sizeof(float));
-  }
-  
+  omp_set_num_threads(nthread);
+#endif
+
   ucsl_printf("findShifts: smoothing in 1st dimension ...\n");
+  float ***e1 = (float***)mem_alloc3(ns,n1,nthread,sizeof(float));
   float ****ek = (float****)mem_alloc4(ns,nk1,n2,n3,sizeof(float));
-  for (int i3=0; i3<n3; ++i3) {
-    for (int i2=0; i2<n2; ++i2) {
-      computeErrors(axf,f[i3][i2],axg,g[i3][i2],e1);
-      subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1,df,dr,ek[i3][i2]);
-    }
+  int n23 = n2*n3;
+  int ithread;
+#ifdef _USE_OMP
+#pragma omp parallel for private(ithread)
+#endif
+  for (int i23=0; i23<n23; ++i23) {
+    ithread = omp_get_thread_num();
+    int i2 = i23%n2;
+    int i3 = i23/n2;
+    computeErrors(axf,f[i3][i2],axg,g[i3][i2],e1[ithread]);
+    subsampleErrors(_r1min,_r1max,k1s,_axs,_ax1,e1[ithread],ek[i3][i2]);
   }
+
+  mem_free3((void****)&e1);
   normalizeErrors(ns,nk1,n2,n3,ek);
-
   ucsl_printf("findShifts: smoothing in 2nd dimension ...\n");
-  float ****ekk = (float****)mem_alloc4(ns,nk1,nk2,n3,sizeof(float));
-  smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,n3,ek,e1,df,dr,ekk);
+  float ****ekk = smoothErrors2(_r2min,_r2max,k2s,_axs,_ax2,nk1,n2,n3,ek);
 
-  mem_free2((void***)&e1);
-  mem_free2((void***)&df);
-  mem_free2((void***)&dr);
   mem_free4((void*****)&ek);
 
   ucsl_printf("findShifts: smoothing in 3rd dimension ...\n");
   normalizeErrors(ns,nk1,nk2,n3,ekk);
-  float ****ekkk = (float****)mem_alloc4(ns,nk1,nk2,nk3,sizeof(float));
-  smoothErrors3(_r3min,_r3max,k3s,_axs,_ax3,nk1,nk2,n3,ekk,ekkk);
+  float ****ekkk = smoothErrors3(_r3min,_r3max,k3s,_axs,_ax3,nk1,nk2,n3,ekk);
   mem_free4((void*****)&ekk);
 
   normalizeErrors(ns,nk1,nk2,nk3,ekkk);
@@ -224,17 +221,23 @@ void sdw_obj::findShifts(
   }
 
   ucsl_printf("findShifts: finding shifts ...\n");
-  int **m = (int**)mem_alloc2(ns,nk1,sizeof(int));
-  float **d   = (float**)mem_alloc2(ns,nk1,sizeof(float));
+  int ***m = (int***)mem_alloc3(ns,nk1,nthread,sizeof(int));
+  float ***d   = (float***)mem_alloc3(ns,nk1,nthread,sizeof(float));
   float ***skk = (float***)mem_alloc3(nk1,nk2,nk3,sizeof(float));
-  for (int ik3=0; ik3<nk3; ++ik3) {
-    for (int ik2=0; ik2<nk2; ++ik2) {
-      findShiftsFromSubsampledErrors(
-          _r1min,_r1max,k1s,_axs,_ax1,m,d,ekkk[ik3][ik2],skk[ik3][ik2]);
-    }
+  int nk23 = nk2*nk3;
+#ifdef _USE_OMP
+#pragma omp parallel for private(ithread)
+#endif
+  for (int ik23=0; ik23<nk23; ++ik23) {
+    ithread = omp_get_thread_num();
+    int ik2 = ik23%nk2;
+    int ik3 = ik23/nk2;
+    findShiftsFromSubsampledErrors(
+        _r1min,_r1max,k1s,_axs,_ax1,m[ithread],d[ithread],
+        ekkk[ik3][ik2],skk[ik3][ik2]);
   }
-  mem_free2((void***)&d);
-  mem_free2((void***)&m);
+  mem_free3((void****)&d);
+  mem_free3((void****)&m);
   mem_free4((void*****)&ekkk);
 
   ucsl_printf("findShifts: interpolating shifts ...\n");
@@ -254,6 +257,7 @@ void sdw_obj::findShifts(
  */
 void sdw_obj::computeErrors(
     axis *axf, float *f, axis *axg, float *g, float **e) {
+  int ie;
   int ns = _axs->n;
   int ne = _ax1->n;
   float *fi = (float*)mem_alloc(ne,sizeof(float));
@@ -261,7 +265,7 @@ void sdw_obj::computeErrors(
   interp(axf,f,_ax1,fi,0.0f);
   for (int is=0; is<ns; ++is) {
     interp(axg,g,_ax1,gi,_axs->get_val(is));
-    for (int ie=0; ie<ne; ++ie) {
+    for (ie=0; ie<ne; ++ie) {
       e[ie][is] = error(fi[ie],gi[ie]);
     }
   }
@@ -294,7 +298,7 @@ else e1 = ns*n2*4.0f, df = ns*n2*4.0f, dr = ns*n2*4.0f;
 float es2 = ns*nk2*4.0f;
 float dprev = ns*4.0f; float m = ns*nk1*4.0f, d = ns*nk1*4.0f;
 float skk = nk1*nk2*4.0f;
-float sum = data+sdata+slopes+ek+ekk+e1+es2+df+dr+dprev+m+d+skk;
+float sum = 2.0f*data+sdata+slopes+ek+ekk+e1+es2+df+dr+dprev+m+d+skk;
 cout << "size of data in Kb: " << data/1024.0f << ", ";
 cout << "Mb: " << data/1024.0f/1024.0f << ", ";
 cout << "Gb: " << data/1024.0f/1024.0f/1024.0f << "\n";
@@ -317,7 +321,7 @@ else e1 = ns*n2*4.0f, df = ns*n2*4.0f, dr = ns*n2*4.0f;
 float es2 = ns*nk2*4.0f;
 float dprev = ns*4.0f; float m = ns*nk1*4.0f, d = ns*nk1*4.0f;
 float skk = nk1*nk2*nk3*4.0f;
-float sum = data+sdata+slopes+ek+ekk+ekkk+e1+es2+df+dr+dprev+m+d+skk;
+float sum = 2.0f*data+sdata+slopes+ek+ekk+ekkk+e1+es2+df+dr+dprev+m+d+skk;
 cout << "size of data in Kb: " << data/1024.0f << ", ";
 cout << "Mb: " << data/1024.0f/1024.0f << ", ";
 cout << "Gb: " << data/1024.0f/1024.0f/1024.0f << "\n";
@@ -332,22 +336,23 @@ float BIG = 9999999999.9f;
 
 /*******************utility methods*******************/
 void sdw_obj::interp(axis *axf, float *f, axis *axfi, float *fi, float shift) {
+
   int nf = axf->n;
-  int ns = axfi->n;
+  int nfi = axfi->n;
   float df = axf->d;
-  float ds = axfi->d;
-  float w;
-  float fsamp;
-  int isamp;
-  for (int is=0; is<ns; ++is) {
-    isamp = fsamp = (is*ds)/df + shift;
-    w = fsamp - isamp;
-    if (fsamp<0)
-      fi[is] = f[0];
-    else if (fsamp>=0 && (fsamp+1)<ns)
-      fi[is] = (1.0f-w)*f[isamp] + w*f[isamp+1];
+  float dfi = axfi->d;
+  float w1;
+  float x1;
+  int isamp1, ii;
+  for (ii=0; ii<nfi; ++ii) {
+    isamp1 = x1 = (ii*dfi)/df + shift;
+    w1 = x1 - isamp1;
+    if (x1<0)
+      fi[ii] = f[0];
+    else if (x1>=0 && (x1+1)<nfi)
+      fi[ii] = (1.0f-w1)*f[isamp1] + w1*f[isamp1+1];
     else
-      fi[is] = f[ns-1];
+      fi[ii] = f[nfi-1];
   }
 }
 
@@ -399,6 +404,9 @@ void sdw_obj::shiftAndScale(
     float emin, float emax, int n1, int n2, int n3, float ***e) {
   float eshift = emin;
   float escale = (emax>emin)?1.0f/(emax-emin):1.0f;
+#ifdef _USE_OMP
+#pragma omp parallel for
+#endif
   for (int i3=0; i3<n3; ++i3) {
     for (int i2=0; i2<n2; ++i2) {
       for (int i1=0; i1<n1; ++i1) {
@@ -412,6 +420,9 @@ void sdw_obj::shiftAndScale(
     float emin, float emax, int n1, int n2, int n3, int n4, float ****e) {
   float eshift = emin;
   float escale = (emax>emin)?1.0f/(emax-emin):1.0f;
+#ifdef _USE_OMP
+#pragma omp parallel for
+#endif
   for (int i4=0; i4<n4; ++i4) {
     for (int i3=0; i3<n3; ++i3) {
       for (int i2=0; i2<n2; ++i2) {
@@ -424,55 +435,78 @@ void sdw_obj::shiftAndScale(
 }
 
 /*******************smooth errors*******************/
-void sdw_obj::smoothErrors2(double r2min, double r2max, vector<int> k2s,
-    axis *axs, axis *axe, int nk1, int n2, float ***e, float **e2, float **df,
-    float **dr, float ***es) {
+float ***sdw_obj::smoothErrors2(double r2min, double r2max, vector<int> k2s,
+    axis *axs, axis *axe, int nk1, int n2, float ***e) {
+  int nthread = 1;
+#pragma omp parallel
+  {
+    nthread = omp_get_num_threads();
+  }
   int ns = axs->n;
   int nk2 = k2s.size();
-  float **es2 = (float**)mem_alloc2(ns,nk2,sizeof(float));
+  int ithread;
+  float ***es  = (float***)mem_alloc3(ns,nk1,nk2,sizeof(float));
+  float ***e2  = (float***)mem_alloc3(ns,n2,nthread,sizeof(float));
+  float ***es2 = (float***)mem_alloc3(ns,nk2,nthread,sizeof(float));
+#ifdef _USE_OMP
+#pragma omp parallel for private(ithread)
+#endif
   for (int ik1=0; ik1<nk1; ++ik1) {
-    memset(e2[0],0,ns*n2*sizeof(float));
+    ithread = omp_get_thread_num();
     for (int i2=0; i2<n2; ++i2) {
-      memcpy(e2[i2],e[i2][ik1],ns*sizeof(float));
+      memcpy(e2[ithread][i2],e[i2][ik1],ns*sizeof(float));
     }
-    subsampleErrors(r2min,r2max,k2s,axs,axe,e2,df,dr,es2);
+    subsampleErrors(r2min,r2max,k2s,axs,axe,e2[ithread],es2[ithread]);
     for (int ik2=0; ik2<nk2; ++ik2)
-      memcpy(es[ik2][ik1],es2[ik2],ns*sizeof(float));
+      memcpy(es[ik2][ik1],es2[ithread][ik2],ns*sizeof(float));
   }
-  mem_free2((void***)&es2);
+  mem_free3((void****)&e2);
+  mem_free3((void****)&es2);
+  return es;
 }
 
-void sdw_obj::smoothErrors2(
+float ****sdw_obj::smoothErrors2(
     double r2min, double r2max, vector<int> k2s,
-    axis *axs, axis *axe, int nk1, int n2, int n3, float ****e, float **e2,
-    float **df, float **dr, float ****es) {
+    axis *axs, axis *axe, int nk1, int n2, int n3, float ****e) {
+  int ns = axs->n;
+  int nk2 = k2s.size();
+  float ****es = (float****)mem_alloc4(ns,nk1,nk2,n3,sizeof(float));
   for (int i3=0; i3<n3; ++i3)
-    smoothErrors2(r2min,r2max,k2s,axs,axe,nk1,n2,e[i3],e2,df,dr,es[i3]);
+    es[i3] = smoothErrors2(r2min,r2max,k2s,axs,axe,nk1,n2,e[i3]);
+  return es;
 }
 
-void sdw_obj::smoothErrors3(
+float ****sdw_obj::smoothErrors3(
     double r3min, double r3max, vector<int> k3s,
-    axis *axs, axis *axe, int nk1, int nk2, int n3, float ****e, float ****es) {
+    axis *axs, axis *axe, int nk1, int nk2, int n3, float ****e) {
+  int nthread = 1;
+#pragma omp parallel
+  {
+    nthread = omp_get_num_threads();
+  }
   int ns = axs->n;
   int nk3 = k3s.size();
   //smooth errors at i1,i2
-  float **e3  = (float**)mem_alloc2(ns,n3,sizeof(float));
-  float **df  = (float**)mem_alloc2(ns,n3,sizeof(float));
-  float **dr  = (float**)mem_alloc2(ns,n3,sizeof(float));
-  float **es3 = (float**)mem_alloc2(ns,nk3,sizeof(float));
+  int ithread;
+  float ***e3  = (float***)mem_alloc3(ns,n3,nthread,sizeof(float));
+  float ***es3 = (float***)mem_alloc3(ns,nk3,nthread,sizeof(float));
+  float ****es = (float****)mem_alloc4(ns,nk1,nk2,nk3,sizeof(float));
+#ifdef _USE_OMP
+#pragma omp parallel for private(ithread)
+#endif
   for (int ik1=0; ik1<nk1; ++ik1) {
+    ithread = omp_get_thread_num();
     for (int ik2=0; ik2<nk2; ++ik2) {
       for (int i3=0; i3<n3; ++i3)
-        memcpy(e3[i3],e[i3][ik2][ik1],ns*sizeof(float));
-      subsampleErrors(r3min,r3max,k3s,axs,axe,e3,df,dr,es3);
+        memcpy(e3[ithread][i3],e[i3][ik2][ik1],ns*sizeof(float));
+      subsampleErrors(r3min,r3max,k3s,axs,axe,e3[ithread],es3[ithread]);
       for (int ik3=0; ik3<nk3; ++ik3)
-        memcpy(es[ik3][ik2][ik1],es3[ik3],ns*sizeof(float));
+        memcpy(es[ik3][ik2][ik1],es3[ithread][ik3],ns*sizeof(float));
     }
   }
-  mem_free2((void***)&dr);
-  mem_free2((void***)&df);
-  mem_free2((void***)&e3);
-  mem_free2((void***)&es3);
+  mem_free3((void****)&e3);
+  mem_free3((void****)&es3);
+  return es;
 }
 
 /*******************smooth subsampled errors*******************/
@@ -545,6 +579,7 @@ void sdw_obj::smoothSubsampledErrors(
 void sdw_obj::normalizeErrors(int n1, int n2, int n3, float ***e) {
   float emin = BIG;
   float emax = -1.0f*BIG;
+#pragma omp parallel for reduction(max:emax) reduction(min:emin)
   for (int i3=0; i3<n3; ++i3) {
     for (int i2=0; i2<n2; ++i2) {
       for (int i1=0; i1<n1; ++i1) {
@@ -560,6 +595,7 @@ void sdw_obj::normalizeErrors(int n1, int n2, int n3, float ***e) {
 void sdw_obj::normalizeErrors(int n1, int n2, int n3, int n4, float ****e) {
   float emin = BIG;
   float emax = -1.0f*BIG;
+#pragma omp parallel for reduction(max:emax) reduction(min:emin)
   for (int i4=0; i4<n4; ++i4) {
     for (int i3=0; i3<n3; ++i3) {
       for (int i2=0; i2<n2; ++i2) {
@@ -601,8 +637,7 @@ void sdw_obj::accumulate(
   int iee = dir>0?ne:-1;
   for (int is=0; is<ns; ++is)
     d[ieb][is] = e[ieb][is];
-  static float *dprev = NULL;
-  if (!dprev) dprev = (float*)mem_alloc(ns,sizeof(float));
+  float *dprev = (float*)mem_alloc(ns,sizeof(float));
   
   for (int ie=ieb+ied; ie!=iee; ie+=ied) {
     int je = fmax(0,fmin(ne-1,ie-dir*me));
@@ -624,6 +659,7 @@ void sdw_obj::accumulate(
       updateSumsOfErrors(ie,je,ms,e,dprev,d[ie],NULL,ns);
     }
   }
+  mem_free((void**)&dprev);
 }
 
 /**
@@ -651,8 +687,7 @@ void sdw_obj::accumulate(
   int ikee = dir>0?nke:-1;
   for (int is=0; is<ns; ++is)
     d[ikeb][is] = e[kes[ikeb]][is];
-  static float *dprev = NULL;
-  if (!dprev) dprev = (float*)mem_alloc(ns,sizeof(float));
+  float *dprev = (float*)mem_alloc(ns,sizeof(float));
 
   for (int ike=ikeb+iked; ike!=ikee; ike+=iked) {
     int je = kes[ike-iked];
@@ -672,10 +707,11 @@ void sdw_obj::accumulate(
     }
     assert(msmin<=msmax);
     fill(BIG,d[ike],ns);
-    for (int ms=msmin; ms<=msmax; ++ms) {
-      int islo = fmax(0,-ms);
-      int ishi = fmin(ns,ns-ms);
-      for (int is=islo; is<ishi; ++is)
+    int ms, is, islo, ishi;
+    for (ms=msmin; ms<=msmax; ++ms) {
+      islo = fmax(0,-ms);
+      ishi = fmin(ns,ns-ms);
+      for (is=islo; is<ishi; ++is)
         dprev[is] = d[ike-iked][is+ms];
       if (m!=NULL) {
         updateSumsOfErrors(ie,je,ms,e,dprev,d[ike],m[ike],ns);
@@ -685,6 +721,7 @@ void sdw_obj::accumulate(
       }
     }
   }
+  mem_free((void**)&dprev);
 }
 
 /**
@@ -712,8 +749,7 @@ void sdw_obj::accumulateSubsampled(
   int ikee = dir>0?nke:-1;
   for (int is=0; is<ns; ++is)
     d[ikeb][is] = e[ikeb][is];
-  static float *dprev = NULL;
-  if (!dprev) dprev = (float*)mem_alloc(ns,sizeof(float));  
+  float *dprev = (float*)mem_alloc(ns,sizeof(float));  
 
   for (int ike=ikeb+iked; ike!=ikee; ike+=iked) {
     memcpy(dprev,d[ike-iked],ns*sizeof(float));
@@ -745,6 +781,7 @@ void sdw_obj::accumulateSubsampled(
       }
     }
   }
+  mem_free((void**)&dprev);
 }
 
 /*******************find shifts from errors*******************/
@@ -774,10 +811,9 @@ void sdw_obj::interpolateShifts(
     axis *ax1, vector<int> k1s, float *sk, float *s) {
   int n1 = ax1->n;
   int nk1 = k1s.size();
-  double d1 = ax1->d;
-  double dk1 = k1s[1] - k1s[0];
-  float w1;
-  float x1;
+  float d1 = ax1->d;
+  float dk1 = k1s[1] - k1s[0];
+  float w1, x1;
   int isamp1, isamp1p;
   for (int i1=0; i1<n1; ++i1) {
     isamp1 = x1 = i1*d1/dk1;
@@ -792,12 +828,12 @@ void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, vector<int> k1s,
     vector<int> k2s, float **skk, float **s) {
   int n1 = ax1->n;
   int n2 = ax2->n;
-  double d1 = ax1->d;
-  double d2 = ax2->d;
+  float d1 = ax1->d;
+  float d2 = ax2->d;
   int nk1 = k1s.size();
   int nk2 = k2s.size();
-  double dk1 = k1s[1] - k1s[0];
-  double dk2 = k2s[1] - k2s[0];
+  float dk1 = k1s[1] - k1s[0];
+  float dk2 = k2s[1] - k2s[0];
 
   // Interpolate.
   float w1, w2;
@@ -824,30 +860,50 @@ void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, vector<int> k1s,
 void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, axis *ax3, 
     vector<int> k1s, vector<int> k2s, vector<int> k3s,
     float ***skk, float ***s) {
+  int n1 = ax1->n;
   int n2 = ax2->n;
   int n3 = ax3->n;
+  float d1 = ax1->d;
+  float d2 = ax2->d;
+  float d3 = ax3->d;
   int nk1 = k1s.size();
   int nk2 = k2s.size();
   int nk3 = k3s.size();
+  float dk1 = k1s[1] - k1s[0];
+  float dk2 = k2s[1] - k2s[0];
+  float dk3 = k3s[1] - k3s[0];
 
-  float **sk23 = (float**)mem_alloc2(nk2,nk3,sizeof(float));
-  float ***s23 = (float***)mem_alloc3(nk1,n2,n3,sizeof(float));
-  for (int ik1=0; ik1<nk1; ++ik1) {
-    for (int ik3=0; ik3<nk3; ++ik3) {
-      for (int ik2=0; ik2<nk2; ++ik2) {
-        sk23[ik3][ik2] = skk[ik3][ik2][ik1];
+  // Interpolate.
+  float w1, w2, w3;
+  float x1, x2, x3;
+  int isamp1, isamp1p, isamp2, isamp2p, isamp3, isamp3p;
+  for (int i3=0; i3<n3; ++i3) {
+    isamp3 = x3 = i3*d3/dk3;
+    if (x3<0 || (x3+1)>=nk3) {isamp3p = isamp3;}
+    else {isamp3p = isamp3+1;}
+    w3 = x3 - isamp3;
+    for (int i2=0; i2<n2; ++i2) {
+      isamp2 = x2 = i2*d2/dk2;
+      if (x2<0 || (x2+1)>=nk2) {isamp2p = isamp2;}
+      else {isamp2p = isamp2+1;}
+      w2 = x2 - isamp2;
+      for (int i1=0; i1<n1; ++i1) {
+        isamp1 = x1 = i1*d1/dk1;
+        if (x1<0 || (x1+1)>=nk1) {isamp1p = isamp1;}
+        else {isamp1p = isamp1+1;}
+        w1 = x1 - isamp1;
+        s[i3][i2][i1] = 
+          (1.0f-w3)*(1.0f-w2)*(1.0f-w1)*skk[isamp3 ][isamp2 ][isamp1 ] + 
+                 w3*(1.0f-w2)*(1.0f-w1)*skk[isamp3p][isamp2 ][isamp1 ] + 
+                        w3*w2*(1.0f-w1)*skk[isamp3p][isamp2p][isamp1 ] + 
+                               w3*w2*w1*skk[isamp3p][isamp2p][isamp1p] + 
+                 (1.0f-w3)*w2*(1.0f-w1)*skk[isamp3 ][isamp2p][isamp1 ] + 
+                        (1.0f-w3)*w2*w1*skk[isamp3 ][isamp2p][isamp1p] + 
+                 (1.0f-w3)*(1.0f-w2)*w1*skk[isamp3 ][isamp2 ][isamp1p] + 
+                        w3*(1.0f-w2)*w1*skk[isamp3p][isamp2 ][isamp1p];
       }
     }
-    interpolateShifts(ax2,ax3,k2s,k3s,sk23,s23[ik1]);
   }
-
-  for (int i3=0; i3<n3; ++i3) {
-    for (int i2=0; i2<n2; ++i2) {
-      interpolateShifts(ax1,k1s,s23[i3][i2],s[i3][i2]);
-    }
-  }
-  mem_free2((void***)&sk23);
-  mem_free3((void****)&s23);
 }
 
 /*******************other private methods*******************/
@@ -867,10 +923,12 @@ void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, axis *ax3,
  */
 void sdw_obj::subsampleErrors(
     double rmin, double rmax, vector<int> kes, axis *axs, axis *axe,
-    float **e, float **df, float **dr, float **d) {
+    float **e, float **d) {
   int ns =  axs->n;
   int ne =  axe->n;
   int nke = kes.size();
+  float **df = (float**)mem_alloc2(ns,nke,sizeof(float));
+  float **dr = (float**)mem_alloc2(ns,nke,sizeof(float));
   accumulate( 1,rmin,rmax,kes,axs,axe,e,df,NULL);
   accumulate(-1,rmin,rmax,kes,axs,axe,e,dr,NULL);
   float scale = 1.0f/ne;
@@ -880,6 +938,8 @@ void sdw_obj::subsampleErrors(
       d[ike][is] = scale*(df[ike][is]+dr[ike][is]-e[ke][is]);
     }
   }
+  mem_free2((void***)&df);
+  mem_free2((void***)&dr);
 }
 
 /**
@@ -934,33 +994,36 @@ void sdw_obj::backtrackForShifts(
  */
 void sdw_obj::updateSumsOfErrors(int ie, int je, int ms, float **e, 
     float *d, float *dmin, int *mmin, int ns) {
+  int ke, is, ks, ksa, ksb;
+  float sk, wsa, wsb;
   int islo = fmax(0,-ms); // update only for is >= islo
   int ishi = fmin(ns,ns-ms); // update only for is < ishi
-  for (int is=islo; is<ishi; ++is)
+  for (is=islo; is<ishi; ++is)
     d[is] += e[ie][is];
   int me = ie-je;
   int de = me>0?-1:1;
   if (ms==0) { // if no shift, no interpolation required
-    for (int ke=ie+de; ke!=je; ke+=de) {
-      for (int is=islo; is<ishi; ++is) {
+    for (ke=ie+de; ke!=je; ke+=de) {
+      for (is=islo; is<ishi; ++is) {
         d[is] += e[ke][is];
       }
     }
-  } else { // else, use linear interpolation of errors
+  } 
+  else { // else, use linear interpolation of errors
     float r = static_cast<float>(ms)/static_cast<float>(me); // strain
-    for (int ke=ie+de; ke!=je; ke+=de) {
-      float sk = r*(ie-ke);
-      int ks = (int)sk;
+    for (ke=ie+de; ke!=je; ke+=de) {
+      sk = r*(ie-ke);
+      ks = (int)sk;
       if (sk<0.0f) --ks;
-      int ksa = ks+1;
-      int ksb = ks;
-      float wsa = sk-ks;
-      float wsb = 1.0f-wsa;
-      for (int is=islo; is<ishi; ++is)
+      ksa = ks+1;
+      ksb = ks;
+      wsa = sk-ks;
+      wsb = 1.0f-wsa;
+      for (is=islo; is<ishi; ++is)
         d[is] += wsa*e[ke][is+ksa]+wsb*e[ke][is+ksb];
     }
   }
-  for (int is=islo; is<ishi; ++is) {
+  for (is=islo; is<ishi; ++is) {
     if (d[is]<dmin[is]) {
       dmin[is] = d[is];
       if (mmin!=NULL)

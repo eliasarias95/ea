@@ -399,8 +399,8 @@ public class Slopes{
     int n2 = _s2.getCount();
     double r1 = 0.1;
     double r2 = 0.6;
-    double h1 = 40.0;
-    double h2 = 6.0;
+    double h1 = 10.0;
+    double h2 = 10.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,r1,r2,
@@ -1282,7 +1282,7 @@ public class Slopes{
   private static final float pi = FLT_PI;      
   private static final float _fw = 0.8f; //fraction width for slide
   private static final float _fh = 0.8f; //fraction height for slide
-  private static final float _cmax = 1.5f;
+  private static final float _cmax = 4.0f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;

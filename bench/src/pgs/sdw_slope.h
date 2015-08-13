@@ -26,6 +26,6 @@ class sdw_slope {
     double _pmax,_h1,_h2,_h3,_r1,_r2,_r3;
     axis *_ax1, *_ax2, *_ax3;
     sdw_obj *_sdw;
-    void interpolateSlopes(float **p);
+    void interpolateSlopes(float **p, float **pi);
 };
 #endif

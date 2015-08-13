@@ -199,12 +199,8 @@ public class DynamicWarpingSlopes {
     for (int i2=0; i2<n2; ++i2)
       x2[i2] = i2-0.5f;
 
-    //BicubicInterpolator2 bc = new BicubicInterpolator2(
-    //  BicubicInterpolator2.Method.MONOTONIC,
-    //  BicubicInterpolator2.Method.SPLINE,
-    //  x1,x2,p);
-    BilinearInterpolator2 bc = new BilinearInterpolator2(x1,x2,p);
-    pi = bc.interpolate00(_s1,_s2);
+    BilinearInterpolator2 bl = new BilinearInterpolator2(x1,x2,p);
+    pi = bl.interpolate00(_s1,_s2);
     return pi;
   }
 
@@ -231,16 +227,8 @@ public class DynamicWarpingSlopes {
         x3[i3] = i3-0.5f;
     }
 
-    //trace("before making tricubic interpolator");
-    //TricubicInterpolator3 tc = new TricubicInterpolator3(
-    //  TricubicInterpolator3.Method.MONOTONIC,
-    //  TricubicInterpolator3.Method.MONOTONIC,
-    //  TricubicInterpolator3.Method.MONOTONIC,
-    //  x1,x2,x3,p);
-    //trace("after making tricubic interpolator");
     TrilinearInterpolator3 tc = new TrilinearInterpolator3(x1,x2,x3,p);
     pi = tc.interpolate000(_s1,_s2,_s3);
-    //trace("after using tricubic interpolator");
     for (int i3=0; i3<n3; ++i3) {
       for (int i2=0; i2<n2; ++i2) {
         for (int i1=0; i1<n1; ++i1) {

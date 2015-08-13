@@ -786,7 +786,7 @@ public class SlopeAlgorithmEval {
   private static String num;
   private static final int norder = 15;
   private static final int k = 10;
-  private static final float pmax = 9.0f;
+  private static final float pmax = 5.0f;
   private static final float noise = 0.0f;
   private static final float freq = 0.1f;
   private static final float pc2   = -0.7f;//constant slope
@@ -809,7 +809,7 @@ public class SlopeAlgorithmEval {
         Slopes.makeSyntheticComplex(noise,f2D,p2D,r2D);
 
         //1=lsf  2=pwd  3=sdw  4=all
-        complex2D(1);
+        complex2D(3);
         //1=lsf  2=pwd  3=sdw  4=all
         //complex3D(1);
         //1=lsf  2=pwd  3=sdw  4=all

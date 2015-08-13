@@ -12,7 +12,7 @@ from util import *
 
 T = True
 F = False
-paint = T
+paint = F
 fw = 0.8
 fh = 0.8
 PATH = "/users/elias.arias/Home/git/ea/bench/src"
@@ -43,15 +43,18 @@ def complex2D():
   f = Util.readImageL(n1,n2,PATH+"/pgs/data/complex2D.dat")
   p = Util.readImageL(n1,n2,PATH+"/pgs/data/complex2D_p.dat")
   p_sdwc = Util.readImageL(n1,n2,PATH+"/pgs/data/complex2D_sdw.dat")
-  p_sdwj = Util.readImage(n1,n2,PATH+"/pgs/data/sdw_zero_complex2D.dat")
+  #p_sdwj = Util.readImage(n1,n2,PATH+"/pgs/data/sdw_zero_complex2D.dat")
+  p_sdwj = Util.readImage(n1,n2,PATH+"/util/data/sdw_complex2D_p.dat")
   p_sxy  = Util.readImageL(n1,n2,PATH+"/pgs/data/complex2D_sxy_dzdx.dat")
 
+  print "SDW C++ & SDW Java RMS error:"
+  e_sdw = Util.rmsError(p_sdwc,p_sdwj,T)
   print "SDW C++ RMS error:"
   e_sdwc = Util.rmsError(p_sdwc,p,T)
-  print "SDW Java RMS error:"
-  e_sdwj = Util.rmsError(p_sdwj,p,T)
-  print "Slopexy RMS error:"
-  e_sxy = Util.rmsError(p_sxy,p,T)
+  #print "SDW Java RMS error:"
+  #e_sdwj = Util.rmsError(p_sdwj,p,T)
+  #print "Slopexy RMS error:"
+  #e_sxy = Util.rmsError(p_sxy,p,T)
 
   plot2D(n1,n2,f,p_sdwc,cm,"complex2D_sdwc") # sdwc
   #plot2D(n1,n2,f,p_sdwj,cm,"complex2D_sdwj") # sdwj
@@ -59,16 +62,16 @@ def complex2D():
 
 def santos2D():
   n1 = 2001
-  n2 = 809
+  n2 = 3809
   cm = 4.0 #colorbar limits
   f = Util.readImageL(n1,n2,PATH+"/pgs/data/Santos_2D.dat")
-  #p_sdwc = Util.readImageL(n1,n2,PATH+"/pgs/data/Santos_2D_sdw.dat")
+  p_sdwc = Util.readImageL(n1,n2,PATH+"/pgs/data/Santos_2D_sdw.dat")
   #p_sdwj = Util.readImage(n1,n2,PATH+"/pgs/data/Santos_2D_java.dat")
   p_sxy  = Util.readImageL(n1,n2,PATH+"/pgs/data/Santos_2D_sxy_dzdx.dat")
 
-  #plot2D(n1,n2,f,p_sdwc,cm,"santos2D_sdwc") # sdwc
+  plot2D(n1,n2,f,p_sdwc,cm,"santos2D_sdwc") # sdwc
   #plot2D(n1,n2,f,p_sdwj,cm,"santos2D_sdwj") # sdwj
-  plot2D(n1,n2,f,p_sxy,cm,"santos2D_slopexy") # slopexy
+  #plot2D(n1,n2,f,p_sxy,cm,"santos2D_slopexy") # slopexy
 
 def triton2D():
   n1 = 2001
@@ -77,7 +80,7 @@ def triton2D():
   f = Util.readImageL(n1,n2,PATH+"/pgs/data/Triton_2D.dat")
   p_sdwc = Util.readImageL(n1,n2,PATH+"/pgs/data/Triton_2D_sdw.dat")
   #p_sdwj = Util.readImage(n1,n2,PATH+"/pgs/data/Triton_2D_java.dat")
-  p_sxy  = Util.readImageL(n1,n2,PATH+"/pgs/data/Triton_2D_sxy_dzdx.dat")
+  #p_sxy  = Util.readImageL(n1,n2,PATH+"/pgs/data/Triton_2D_sxy_dzdx.dat")
 
   plot2D(n1,n2,f,p_sdwc,cm,"triton2D_sdwc") # sdwc
   #plot2D(n1,n2,f,p_sdwj,cm,"triton2D_sdwj") # sdwj
@@ -117,7 +120,7 @@ def complex3D():
 
   plot3D(n1,n2,n3,f,p2_sdwc,p3_sdwc,cm,"complex3D_sdwc") # sdwc
   #plot3D(n1,n2,n3,f,p2_sdwj,p3_sdwj,cm,"complex3D_sdwj") # sdwj
-  plot3D(n1,n2,n3,f,p2_sxy,p3_sxy,cm,"complex3D_sxy") # slopexy
+  #plot3D(n1,n2,n3,f,p2_sxy,p3_sxy,cm,"complex3D_sxy") # slopexy
 
 def plot2D(n1,n2,f,p,cm,ttl):
   s1 = Sampling(n1)

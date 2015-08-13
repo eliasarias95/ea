@@ -15,6 +15,7 @@ char *usage[] = {
   " in=",
   " out=",
   " q:=",
+  " k=10",
   " pmax=4.0",
   " h1=2",
   " h2=2",
@@ -36,6 +37,7 @@ typedef struct {
   char *mask_option;
   file_trace *fd_in;
   axis **axes_in;
+  int k;  // slope values are computed in increments of 1/k
   int h1; // subsample factor in depth dimension
   int h2; // subsample factor in xline dimension
   int h3; // subsample factor in inline/subline dimension
@@ -74,6 +76,7 @@ int main (int argc, char *argv[]) {
   pd->fn_qc = NULL;
   par->get_string("qc", &(pd->fn_qc));
   par->get_double_def("pmax",&(pd->pmax),4.0);
+  par->get_int_def("k",&(pd->k),10);
   par->get_int_def("h1",&(pd->h1),2);
   par->get_int_def("h2",&(pd->h2),2);
   par->get_int_def("h3",&(pd->h3),2);
@@ -150,20 +153,16 @@ void do_filter2d(prog_data *pd, parlist *par) {
   }
 
   //Smooth dynamic warping routine
-  int k = 10; //shifts are tested in increments of 1/k
-  sdw_slope *sdws = new sdw_slope(k,pd->pmax,pd->h1,pd->h2,pd->r1,pd->r2,
+  sdw_slope *sdws = new sdw_slope(pd->k,pd->pmax,pd->h1,pd->h2,pd->r1,pd->r2,
       axs1,axs2);
   sdws->setErrorSmoothing(1);
   sdws->findSlopes(axs1,data,slopes);
 
-  float sum = 0.0f;
   for(j=0; j<n2; ++j) {
     for(i=0; i<n1; ++i) {
-      sum += slopes[j][i];
       dbuf[j][i] = slopes[j][i];
     }
   }
-  std::cout << "mean slope= " << sum/(n1*n2) << "\n";
   fd_out = new file_trace(pd->fd_in,pd->fn_out,NULL);
   fd_out->write_traces(tbuf[0],n2,0);
   delete fd_out;
@@ -198,7 +197,6 @@ void do_filter3d(prog_data *pd, parlist *par) {
   fd_out_slopey = new file_trace(pd->fd_in,fn_out_slopey,MPI_COMM_WORLD);
 
   //Smooth dynamic warping routine
-  int k = 10; //shifts are tested in increments of 1/k
   ax1 = vol->ax1;
   ax2 = vol->ax2;
   ax3 = vol->ax3;
@@ -211,7 +209,7 @@ void do_filter3d(prog_data *pd, parlist *par) {
 
   slopex = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
   slopey = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
-  sdw_slope *sdws = new sdw_slope(k,pd->pmax,pd->h1,pd->h2,pd->h3,
+  sdw_slope *sdws = new sdw_slope(pd->k,pd->pmax,pd->h1,pd->h2,pd->h3,
       pd->r1,pd->r2,pd->r3,axs1,axs2,axs3);
   sdws->setErrorSmoothing(1);
   sdws->findSlopes(axs1,vol->data,slopex,slopey);

@@ -18,8 +18,8 @@ import javax.swing.*;
 public class Plot {
 
   private static int k1 = 50;
-  private static int k2 = 50;
-  private static int k3 = 50;
+  private static int k2 = 51;
+  private static int k3 = 51;
   //private static int k1 = 99;
   //private static int k2 = 90;
   //private static int k3 = 90;
@@ -233,7 +233,7 @@ public class Plot {
     PixelsView pv1 = pp.addPixels(s1,s2,f);
     PixelsView pv2 = pp.addPixels(s1,s2,g);
     pv1.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
-    //pv1.setClips(-2000,2000);
+    //pv1.setClips(-50,50);
     pv2.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
     pv2.setColorModel(ColorMap.setAlpha(ColorMap.JET,0.4));
     pv1.setInterpolation(PixelsView.Interpolation.NEAREST);
@@ -244,8 +244,8 @@ public class Plot {
     pp.setVLabel("Samples");
     pp.addColorBar(cbl);
     pp.setColorBarWidthMinimum(150);
-    pp.setHInterval(100);
-    pp.setVInterval(100);
+    pp.setHInterval(1000);
+    pp.setVInterval(500);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     //pf.setSize(fwi,fhi);
