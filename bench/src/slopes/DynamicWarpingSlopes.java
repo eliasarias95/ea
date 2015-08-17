@@ -81,19 +81,15 @@ public class DynamicWarpingSlopes {
     int n2 = f.length;
     int n1 = f[0].length;
     float[][] fm   = new float[n2][n1];
-    float[][] temp = new float[n2][n1];
 
-    fm[0]    = f[0];
-    fm[n2-1] = f[n2-2];
+    copy(f[0],p[0]);
+    copy(f[n2-2],p[n2-1]);
     for (int i2=1; i2<n2-1; ++i2) {
-      fm[i2] = f[i2-1];
+      copy(f[i2-1],p[i2]);
     }
 
-    temp = _dwk.findShifts(sf,fm,sf,f);
-    temp = interpolateSlopes(temp);
-    for (int i2=0; i2<n2; ++i2)
-      for (int i1=0; i1<n1; ++i1)
-        p[i2][i1] = temp[i2][i1];
+    fm = _dwk.findShifts(sf,p,sf,f);
+    interpolateSlopes(fm,p);
   }
 
   public void findSmoothSlopes(Sampling sf, float[][][] f, 
@@ -101,38 +97,27 @@ public class DynamicWarpingSlopes {
     int n3 = f.length;
     int n2 = f[0].length;
     int n1 = f[0][0].length;
-    float[][][] f2m  = new float[n3][n2][n1];
-    float[][][] f3m  = new float[n3][n2][n1];
-    float[][][] temp2  = new float[n3][n2][n1];
-    float[][][] temp3  = new float[n3][n2][n1];
+    float[][][] fm  = new float[n3][n2][n1];
 
     for (int i3=0; i3<n3; ++i3) {
-      f2m[i3][0]    = f[i3][0];
-      f2m[i3][n2-1] = f[i3][n2-2];
+      copy(f[i3][0],p2[i3][0]);
+      copy(f[i3][n2-2],p2[i3][n2-1]);
       for (int i2=1; i2<n2-1; ++i2) {
-        f2m[i3][i2] = f[i3][i2-1];
+        copy(f[i3][i2-1],p2[i3][i2]);
       }
     }
 
-    f3m[0]    = f[0];
-    f3m[n3-1] = f[n3-2];
+    fm = _dwk.findShifts(sf,p2,sf,f);
+    interpolateSlopes(true,fm,p2);
+
+    copy(f[0],p3[0]);
+    copy(f[n3-2],p3[n3-1]);
     for (int i3=1; i3<n3-1; ++i3) {
-      f3m[i3] = f[i3-1];
+      copy(f[i3-1],p3[i3]);
     }
 
-    temp2 = _dwk.findShifts(sf,f2m,sf,f);
-    temp2 = interpolateSlopes(temp2,2);
-    temp3 = _dwk.findShifts(sf,f3m,sf,f);
-    temp3 = interpolateSlopes(temp3,3);
-
-    for (int i3=0; i3<n3; ++i3) {
-      for (int i2=0; i2<n2; ++i2) {
-        for (int i1=0; i1<n1; ++i1) {
-          p2[i3][i2][i1] = temp2[i3][i2][i1];
-          p3[i3][i2][i1] = temp3[i3][i2][i1];
-        }
-      }
-    }
+    fm = _dwk.findShifts(sf,p3,sf,f);
+    interpolateSlopes(false,fm,p3);
   }
 
 /////////////////////////PRIVATE/////////////////////////
@@ -188,10 +173,9 @@ public class DynamicWarpingSlopes {
     return g;
   }
 
-  private float[][] interpolateSlopes(float[][] p) {
-    int n2 = p.length;
+  private void interpolateSlopes(float[][] p, float[][] pi) {
     int n1 = p[0].length;
-    float[][] pi = new float[n2][n1];
+    int n2 = p.length;
     float[] x1 = new float[n1];
     float[] x2 = new float[n2];
     for (int i1=0; i1<n1; ++i1)
@@ -200,42 +184,44 @@ public class DynamicWarpingSlopes {
       x2[i2] = i2-0.5f;
 
     BilinearInterpolator2 bl = new BilinearInterpolator2(x1,x2,p);
-    pi = bl.interpolate00(_s1,_s2);
-    return pi;
+    for (int i2=0; i2<n2; ++i2) {
+      for (int i1=0; i1<n1; ++i1) {
+        pi[i2][i1] = bl.interpolate00(x1[i1],x2[i2]);
+      }
+    }
   }
 
-  private float[][][] interpolateSlopes(float[][][] p, int twoOrThree) {
-    int n3 = p.length;
-    int n2 = p[0].length;
+  private void interpolateSlopes(boolean p2, float[][][] p, float[][][] pi) {
     int n1 = p[0][0].length;
-    float[][][] pi = new float[n3][][];
+    int n2 = p[0].length;
+    int n3 = p.length;
     float[] x1 = new float[n1];
     float[] x2 = new float[n2];
     float[] x3 = new float[n3];
+
     for (int i1=0; i1<n1; ++i1)
       x1[i1] = i1;
-    if (twoOrThree == 2) {
+    if (p2) {
       for (int i2=0; i2<n2; ++i2)
         x2[i2] = i2-0.5f;
       for (int i3=0; i3<n3; ++i3)
         x3[i3] = i3;
     }
+
     else {
-      for (int i2=0; i2<n2; ++i2)
+     for (int i2=0; i2<n2; ++i2)
         x2[i2] = i2;
       for (int i3=0; i3<n3; ++i3)
         x3[i3] = i3-0.5f;
     }
 
-    TrilinearInterpolator3 tc = new TrilinearInterpolator3(x1,x2,x3,p);
-    pi = tc.interpolate000(_s1,_s2,_s3);
+    TrilinearInterpolator3 tl = new TrilinearInterpolator3(x1,x2,x3,p);
     for (int i3=0; i3<n3; ++i3) {
       for (int i2=0; i2<n2; ++i2) {
         for (int i1=0; i1<n1; ++i1) {
-          p[i3][i2][i1] = pi[i3][i2][i1];
+          pi[i3][i2][i1] = tl.interpolate000(x1[i1],x2[i2],x3[i3]);
         }
       }
     }
-    return p;
   }
 }

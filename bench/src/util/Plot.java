@@ -337,7 +337,7 @@ public class Plot {
     int n3 = s3.getCount();
     SimpleFrame sf = new SimpleFrame(AxesOrientation.XRIGHT_YIN_ZDOWN);
     ImagePanelGroup2 ipg = new ImagePanelGroup2(s1,s2,s3,f,g);
-    ipg.setClips1(-4,4);
+    ipg.setClips1(-50,50);
     //ipg.setClips1(-2000,2000);
     ipg.setClips2(cmin,cmax);
     ipg.setColorModel2(ColorMap.setAlpha(ColorMap.JET,0.4));

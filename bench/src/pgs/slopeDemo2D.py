@@ -20,9 +20,9 @@ PATH = "/users/elias.arias/Home/git/ea/bench/src"
 def main(args):
   #constant2D()
   #complex2D()
-  santos2D()
+  #santos2D()
   #triton2D()
-  #complex3D()
+  complex3D()
 
 def constant2D():
   n1 = 501

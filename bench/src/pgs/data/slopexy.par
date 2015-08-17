@@ -1,8 +1,8 @@
 #in=/users/elias.arias/Home/git/ea/bench/src/pgs/data/constant2D.mdvd
 #in=/users/elias.arias/Home/git/ea/bench/src/pgs/data/complex2D.mdvd
 #in=/users/elias.arias/Home/git/ea/bench/src/pgs/data/complex3D.mdvd
-in=/datadb/eariasp/Santos_2D
-#in=/datadb/eariasp/Triton_2D
+in=/datadb/eariasp/data/Santos_2D
+#in=/datadb/eariasp/data/Triton_2D
 project=eliasp
 in_type=mdvd
 #grid=3504ctx

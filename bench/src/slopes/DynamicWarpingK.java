@@ -62,7 +62,7 @@ public class DynamicWarpingK {
    * Constructs a dynamic warping.
    * If this warping is used for 2D or 3D images, then default unit samplings
    * are assumed for 2nd and 3rd dimensions.
-   * @param k discretization value for shift sampling interval.
+   * @param k shift sampling interval becomes 1/k.
    * @param smin lower bound on shift.
    * @param smax upper bound on shift.
    * @param s1 sampling of shifts for 1st dimension.
@@ -75,7 +75,7 @@ public class DynamicWarpingK {
    * Constructs a dynamic warping.
    * If this warping is used for 3D images, then default unit samplings
    * are assumed for the 3rd dimensions.
-   * @param k discretization value for shift sampling interval.
+   * @param k shift sampling interval becomes 1/k.
    * @param smin lower bound on shift.
    * @param smax upper bound on shift.
    * @param s1 sampling of shifts for 1st dimension.
@@ -88,7 +88,7 @@ public class DynamicWarpingK {
 
   /**
    * Constructs a dynamic warping.
-   * @param k discretization value for shift sampling interval.
+   * @param k shift sampling interval becomes 1/k.
    * @param smin lower bound on shift.
    * @param smax upper bound on shift.
    * @param s1 sampling of shifts for 1st dimension.
@@ -336,7 +336,7 @@ public class DynamicWarpingK {
   }
 
   /**
-   * Returns shifts computed for specified 2D images.
+   * Returns shifts computed for specified 3D images.
    * @param sf sampling of 1st dimension for the image f.
    * @param f array of values for image f.
    * @param sg sampling of 1st dimension for the image g.
@@ -388,9 +388,8 @@ public class DynamicWarpingK {
       smoothSubsampledErrors(_r1min,_r1max,k1s,
                                    _r2min,_r2max,k2s,
                                    _r3min,_r3max,k3s,ss,s1,s2,s3,ekkk);
-      normalizeErrors(ekkk);
     }
-    final float[][][][] e = ekkk;
+    normalizeErrors(ekkk);
 
     trace("findShifts: finding shifts ...");
     final float[][][] ukk = new float[nk3][nk2][];
@@ -400,7 +399,7 @@ public class DynamicWarpingK {
       int ik2 = ik23%nk2;
       int ik3 = ik23/nk2;
       ukk[ik3][ik2] = findShiftsFromSubsampledErrors(
-        _r1min,_r1max,k1s,ss,s1,e[ik3][ik2]);
+        _r1min,_r1max,k1s,ss,s1,ekkk[ik3][ik2]);
     }});
 
     trace("findShifts: interpolating shifts ...");
@@ -578,24 +577,6 @@ public class DynamicWarpingK {
   }
   private static void main(String[] args) {
     subsampleTest();
-  }
-
-  /**
-   * Shifts and scales alignment errors to be in range [0,1].
-   * @param emin minimum alignment error before normalizing.
-   * @param emax maximum alignment error before normalizing.
-   * @param e input/output array of alignment errors.
-   */
-  private static void shiftAndScale(float emin, float emax, float[][] e) {
-    int nl = e[0].length;
-    int n1 = e.length;
-    float eshift = emin;
-    float escale = (emax>emin)?1.0f/(emax-emin):1.0f;
-    for (int i1=0; i1<n1; ++i1) {
-      for (int il=0; il<nl; ++il) {
-        e[i1][il] = (e[i1][il]-eshift)*escale;
-      }
-    }
   }
 
   /**
@@ -1085,7 +1066,7 @@ public class DynamicWarpingK {
   }
 
   private static float[] interpolateShifts(
-    Sampling s1, int[] k1s, float[] uk) 
+      Sampling s1, int[] k1s, float[] uk) 
   {
     int n1 = s1.getCount();
     int nk1 = k1s.length;
@@ -1102,7 +1083,7 @@ public class DynamicWarpingK {
   }
   
   private static float[][] interpolateShifts(
-    Sampling s1, Sampling s2, int[] k1s, int[] k2s, float[][] ukk) 
+      Sampling s1, Sampling s2, int[] k1s, int[] k2s, float[][] ukk) 
   {
     int n1 = s1.getCount();
     int n2 = s2.getCount();
@@ -1118,11 +1099,10 @@ public class DynamicWarpingK {
       xk2[jk2] = (float)s2.getValue(k2s[jk2]);
 
     // Interpolate.
-    BilinearInterpolator2 bc = new BilinearInterpolator2(xk1,xk2,ukk);
-    //BicubicInterpolator2 bc = new BicubicInterpolator2(
-    //  BicubicInterpolator2.Method.MONOTONIC,
-    //  BicubicInterpolator2.Method.SPLINE,
-    //  xk1,xk2,ukk);
+    BicubicInterpolator2 bc = new BicubicInterpolator2(
+      BicubicInterpolator2.Method.MONOTONIC,
+      BicubicInterpolator2.Method.SPLINE,
+      xk1,xk2,ukk);
     float[][] u = new float[n2][n1];
     for (int j2=0; j2<n2; ++j2) {
       float x2 = (float)s2.getValue(j2);
@@ -1134,10 +1114,6 @@ public class DynamicWarpingK {
     return u;
   }
 
-  /**
-   * Added by Elias Arias, slightly modified from DynamicWarpingC 
-   * by Stefan Compton.
-   */
   private static float[][][] interpolateShifts(
       Sampling s1, Sampling s2, Sampling s3,
       int[] k1s, int[] k2s, int[] k3s, float[][][] ukk)
@@ -1292,6 +1268,24 @@ public class DynamicWarpingK {
         this.emax = emax;
       }
     }
+
+  /**
+   * Shifts and scales alignment errors to be in range [0,1].
+   * @param emin minimum alignment error before normalizing.
+   * @param emax maximum alignment error before normalizing.
+   * @param e input/output array of alignment errors.
+   */
+  private static void shiftAndScale(float emin, float emax, float[][] e) {
+    int nl = e[0].length;
+    int n1 = e.length;
+    float eshift = emin;
+    float escale = (emax>emin)?1.0f/(emax-emin):1.0f;
+    for (int i1=0; i1<n1; ++i1) {
+      for (int il=0; il<nl; ++il) {
+        e[i1][il] = (e[i1][il]-eshift)*escale;
+      }
+    }
+  }
 
   /**
    * Shifts and scales alignment errors to be in range [0,1].

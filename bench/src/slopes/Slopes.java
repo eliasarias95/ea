@@ -429,8 +429,8 @@ public class Slopes{
     int n2 = _s2.getCount();
     int n3 = _s3.getCount();
     double r1 = 0.1;
-    double r2 = 0.7;
-    double r3 = 0.7;
+    double r2 = 0.6;
+    double r3 = 0.6;
     double h1 = 20.0;
     double h2 =  9.0;
     double h3 =  9.0;
@@ -439,7 +439,7 @@ public class Slopes{
     Sampling ss3 = new Sampling(n3);
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,h3,
                                        r1,r2,r3,ss1,ss2,ss3);
-    dws.setErrorSmoothing(2);
+    dws.setErrorSmoothing(1);
     float[][][] p2e = new float[n3][n2][n1];
     float[][][] p3e = new float[n3][n2][n1];
     ZeroMask zm = new ZeroMask(f);
@@ -1282,7 +1282,7 @@ public class Slopes{
   private static final float pi = FLT_PI;      
   private static final float _fw = 0.8f; //fraction width for slide
   private static final float _fh = 0.8f; //fraction height for slide
-  private static final float _cmax = 4.0f;
+  private static final float _cmax = 1.5f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;
