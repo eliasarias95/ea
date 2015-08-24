@@ -49,8 +49,9 @@ void sdw_slope::findSlopes(axis *axf, float **f, float **p) {
   int n2 = _ax2->n;
   float **fm   = (float**)mem_alloc2(n1,n2,sizeof(float));
 
-  //to save memory, use p as 1 trace shifted version of f
-  //to fins
+  //to save memory, use p as trace shifted version of f
+  //to find slopes (fm) then place interpolated fm slopes
+  //into p
   memcpy(p[0],f[0],n1*sizeof(float));
   memcpy(p[n2-1],f[n2-2],n1*sizeof(float));
   for (int i2=1; i2<n2-1; ++i2) {
@@ -63,9 +64,9 @@ void sdw_slope::findSlopes(axis *axf, float **f, float **p) {
 }
 
 void sdw_slope::findSlopes(axis *axf, float ***f, float ***p2, float ***p3) {
-  int n1 = _ax1->n;
-  int n2 = _ax2->n;
-  int n3 = _ax3->n;
+  size_t n1 = _ax1->n;
+  size_t n2 = _ax2->n;
+  size_t n3 = _ax3->n;
 
   float ***fm = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
   for (int i3=0; i3<n3; ++i3) {

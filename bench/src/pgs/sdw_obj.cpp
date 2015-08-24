@@ -242,8 +242,8 @@ void sdw_obj::findShifts(
 
   ucsl_printf("findShifts: interpolating shifts ...\n");
   interpolateShifts(_ax1,_ax2,_ax3,k1s,k2s,k3s,skk,s);
-  ucsl_printf("findShifts: ... done\n");
   mem_free3((void****)&skk);
+  ucsl_printf("findShifts: ... done\n");
 }
 
 /**
@@ -309,25 +309,26 @@ cout << "Will cost " << sum/data << " times input data size in memory.\n";
 }
 
 void sdw_obj::getMemoryCost3() {
-int ns = _axs->n; int n1 = _ax1->n; int n2 = _ax2->n; int n3 = _ax3->n;
-int nk1 = 1+(n1-1)/_k1min; int nk2 = 1+(n2-1)/_k2min; int nk3 = 1+(n3-1)/_k3min;
+size_t ns = _axs->n; size_t n1 = _ax1->n; size_t n2 = _ax2->n; 
+size_t n3 = _ax3->n; size_t nk1 = 1+(n1-1)/_k1min; 
+size_t nk2 = 1+(n2-1)/_k2min; size_t nk3 = 1+(n3-1)/_k3min;
 /****allocated and freed once****/
-float data = n1*n2*n3*4.0f, sdata = n1*n2*n3*4.0f, slopes = 2.0f*n1*n2*n3*4.0f;
-float ek = ns*nk1*n2*n3*4.0f; float ekk = ns*nk1*nk2*n3*4.0f;
-float ekkk = ns*nk1*nk2*nk3*4.0f;
-float e1, df, dr;
-if (n1>n2) e1 = ns*n1*4.0f, df = ns*n1*4.0f, dr = ns*n1*4.0f;
-else e1 = ns*n2*4.0f, df = ns*n2*4.0f, dr = ns*n2*4.0f;
-float es2 = ns*nk2*4.0f;
-float dprev = ns*4.0f; float m = ns*nk1*4.0f, d = ns*nk1*4.0f;
-float skk = nk1*nk2*nk3*4.0f;
-float sum = 2.0f*data+sdata+slopes+ek+ekk+ekkk+e1+es2+df+dr+dprev+m+d+skk;
-cout << "size of data in Kb: " << data/1024.0f << ", ";
-cout << "Mb: " << data/1024.0f/1024.0f << ", ";
-cout << "Gb: " << data/1024.0f/1024.0f/1024.0f << "\n";
-cout << "memory cost in Kb: " << sum/1024.0f << ", ";
-cout << "Mb: " << sum/1024.0f/1024.0f << ", ";
-cout << "Gb: " << sum/1024.0f/1024.0f/1024.0f << "\n";
+double data = n1*n2*n3*4.0, sdata = n1*n2*n3*4.0, slopes = 2.0*n1*n2*n3*4.0;
+double ek = ns*nk1*n2*n3*4.0; double ekk = ns*nk1*nk2*n3*4.0;
+double ekkk = ns*nk1*nk2*nk3*4.0;
+double e1, df, dr;
+if (n1>n2) e1 = ns*n1*4.0, df = ns*n1*4.0, dr = ns*n1*4.0;
+else e1 = ns*n2*4.0, df = ns*n2*4.0, dr = ns*n2*4.0;
+double es2 = ns*nk2*4.0;
+double dprev = ns*4.0; double m = ns*nk1*4.0, d = ns*nk1*4.0;
+double skk = nk1*nk2*nk3*4.0;
+double sum = 2.0*data+sdata+slopes+ek+ekk+ekkk+e1+es2+df+dr+dprev+m+d+skk;
+cout << "size of data in Kb: " << data/1024.0 << ", ";
+cout << "Mb: " << data/1024.0/1024.0 << ", ";
+cout << "Gb: " << data/1024.0/1024.0/1024.0 << "\n";
+cout << "memory cost in Kb: " << sum/1024.0 << ", ";
+cout << "Mb: " << sum/1024.0/1024.0 << ", ";
+cout << "Gb: " << sum/1024.0/1024.0/1024.0 << "\n";
 cout << "Will cost " << sum/data << " times input data size in memory.\n";
 }
 
@@ -836,19 +837,23 @@ void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, vector<int> k1s,
   float dk2 = k2s[1] - k2s[0];
 
   // Interpolate.
-  float w1, w2;
-  float x1, x2;
-  int isamp1, isamp1p, isamp2, isamp2p;
+#ifdef _USE_OMP
+#pragma omp parallel for
+#endif
   for (int i2=0; i2<n2; ++i2) {
-    isamp2 = x2 = i2*d2/dk2;
+    float x2 = i2*d2/dk2;
+    int isamp2 = x2;
+    int isamp2p;
     if (x2<0 || (x2+1)>=nk2) {isamp2p = isamp2;}
     else {isamp2p = isamp2+1;}
-    w2 = x2 - isamp2;
+    float w2 = x2 - isamp2;
     for (int i1=0; i1<n1; ++i1) {
-      isamp1 = x1 = i1*d1/dk1;
+      float x1 = i1*d1/dk1;
+      int isamp1 = x1;
+      int isamp1p;
       if (x1<0 || (x1+1)>=nk1) {isamp1p = isamp1;}
       else {isamp1p = isamp1+1;}
-      w1 = x1 - isamp1;
+      float w1 = x1 - isamp1;
       s[i2][i1] = (1.0f-w2)*(1.0f-w1)*skk[isamp2 ][isamp1 ] + 
                          w2*(1.0f-w1)*skk[isamp2p][isamp1 ] +
                          (1.0f-w2)*w1*skk[isamp2 ][isamp1p] +
@@ -877,21 +882,30 @@ void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, axis *ax3,
   float w1, w2, w3;
   float x1, x2, x3;
   int isamp1, isamp1p, isamp2, isamp2p, isamp3, isamp3p;
+#ifdef _USE_OMP
+#pragma omp parallel for
+#endif
   for (int i3=0; i3<n3; ++i3) {
-    isamp3 = x3 = i3*d3/dk3;
+    float x3 = i3*d3/dk3;
+    int isamp3 = x3;
+    int isamp3p;
     if (x3<0 || (x3+1)>=nk3) {isamp3p = isamp3;}
     else {isamp3p = isamp3+1;}
-    w3 = x3 - isamp3;
+    float w3 = x3 - isamp3;
     for (int i2=0; i2<n2; ++i2) {
-      isamp2 = x2 = i2*d2/dk2;
+      float x2 = i2*d2/dk2;
+      int isamp2 = x2;
+      int isamp2p;
       if (x2<0 || (x2+1)>=nk2) {isamp2p = isamp2;}
       else {isamp2p = isamp2+1;}
-      w2 = x2 - isamp2;
+      float w2 = x2 - isamp2;
       for (int i1=0; i1<n1; ++i1) {
-        isamp1 = x1 = i1*d1/dk1;
+        float x1 = i1*d1/dk1;
+        int isamp1 = x1;
+        int isamp1p;
         if (x1<0 || (x1+1)>=nk1) {isamp1p = isamp1;}
         else {isamp1p = isamp1+1;}
-        w1 = x1 - isamp1;
+        float w1 = x1 - isamp1;
         s[i3][i2][i1] = 
           (1.0f-w3)*(1.0f-w2)*(1.0f-w1)*skk[isamp3 ][isamp2 ][isamp1 ] + 
                  w3*(1.0f-w2)*(1.0f-w1)*skk[isamp3p][isamp2 ][isamp1 ] + 

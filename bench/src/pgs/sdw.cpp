@@ -200,12 +200,12 @@ void do_filter3d(prog_data *pd, parlist *par) {
   ax1 = vol->ax1;
   ax2 = vol->ax2;
   ax3 = vol->ax3;
-  int n1 = ax1->ntot;
-  int n2 = ax2->ntot;
-  int n3 = ax3->ntot;
-  axs1 = new axis(0.0f,1.0f,n1);
-  axs2 = new axis(0.0f,1.0f,n2);
-  axs3 = new axis(0.0f,1.0f,n3);
+  size_t n1 = ax1->ntot;
+  size_t n2 = ax2->ntot;
+  size_t n3 = ax3->ntot;
+  axs1 = new axis(0.0f,1.0f,static_cast<int>(n1));
+  axs2 = new axis(0.0f,1.0f,static_cast<int>(n2));
+  axs3 = new axis(0.0f,1.0f,static_cast<int>(n3));
 
   slopex = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
   slopey = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
