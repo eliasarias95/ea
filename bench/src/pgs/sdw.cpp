@@ -56,8 +56,8 @@ typedef struct {
 
 int init_cart_volume(cart_volume **vol_out, axis **axes_in, 
     size_t const& naxes, int h1, int h2, int h3, MPI_Comm comm);
-void do_filter3d(prog_data *pd, parlist *par); 
 void do_filter2d(prog_data *pd, parlist *par); 
+void do_filter3d(prog_data *pd, parlist *par); 
 
 int main (int argc, char *argv[]) {
   double global_time_start, global_time_end;
@@ -76,23 +76,49 @@ int main (int argc, char *argv[]) {
   pd->fn_qc = NULL;
   par->get_string("qc", &(pd->fn_qc));
   par->get_double_def("pmax",&(pd->pmax),4.0);
+  if (pd->pmax <= 0.0f) {
+    ucsl_errorf("ERROR: pmax must be positive, read %f.\n",pd->pmax);
+  }
   par->get_int_def("k",&(pd->k),10);
+  if (pd->k <= 0) {
+    ucsl_errorf("ERROR: k must be positive, read %d.\n",pd->k);
+  }
   par->get_int_def("h1",&(pd->h1),2);
+  if (pd->h1 <= 1) {
+    ucsl_errorf("ERROR: h1 must be greater than 1, read %d.\n",pd->h1);
+  }
   par->get_int_def("h2",&(pd->h2),2);
+  if (pd->h2 <= 1) {
+    ucsl_errorf("ERROR: h2 must be greater than 1, read %d.\n",pd->h2);
+  }
   par->get_int_def("h3",&(pd->h3),2);
+  if (pd->h3 <= 1) {
+    ucsl_errorf("ERROR: h3 must be greater than 1, read %d.\n",pd->h3);
+  }
   par->get_double_def("r1",&(pd->r1),0.1);
+  if (pd->r1 <= 0.0f) {
+    ucsl_errorf("ERROR: r1 must be positive, read %f.\n",pd->r1);
+  }
   par->get_double_def("r2",&(pd->r2),0.3);
+  if (pd->r2 <= 0.0f) {
+    ucsl_errorf("ERROR: r2 must be positive, read %f.\n",pd->r2);
+  }
   par->get_double_def("r3",&(pd->r3),0.3);
-  //add checks for positive h values and also check pad against size of
-  //total model
-  par->get_int_def("pad_subline",&(pd->pad3),pd->h3);
+  if (pd->r3 <= 0.0f) {
+    ucsl_errorf("ERROR: r3 must be positive, read %f.\n",pd->r3);
+  }
+  par->get_int_def("pad_subline_multiplier",&(pd->pad3),1);
+  if (pd->pad3 <= 0) {
+    ucsl_errorf("ERROR: pad3 must be positive, read %d.\n",pd->pad3);
+  }
+  pd->pad3 *= pd->h3;
   par->get_int_def("nthread",&(pd->nthread),ucsl_get_n_cores());
   par->get_int_def("verbose",&(pd->verbose),1); 
   par->get_string_def("mask_option",&(pd->mask_option),"eq");
   par->get_float_def("mask_val",&(pd->mask_val),1.0f);
   if(pd->verbose && !pd->mype) {
     ucsl_print("**********************************************************\n");
-    ucsl_printf("ufilter version %s\n",_UCSL_VERSION);
+    ucsl_printf("sdw version %s\n",_UCSL_VERSION);
     par->print(_UCSL_LOG);
     ucsl_printf("using %d threads\n",pd->nthread);
     ucsl_print("**********************************************************\n");
@@ -101,7 +127,7 @@ int main (int argc, char *argv[]) {
   omp_set_num_threads(pd->nthread);
 #endif 
   ucsl_abort_if_error();
-  pd->fd_in = new file_trace(pd->fn_in, _FILE_READ | _FILE_WRITE);
+  pd->fd_in = new file_trace(pd->fn_in, _FILE_READ);
   ucsl_abort_if_error();
   pd->naxes = pd->fd_in->get_axes(&(pd->axes_in));
 
@@ -130,8 +156,6 @@ void do_filter2d(prog_data *pd, parlist *par) {
   int bytes_trace = pd->fd_in->get_bytes_trace();
   int n1 = pd->axes_in[0]->n;
   int n2 = pd->axes_in[1]->n;
-  float d1 = pd->axes_in[0]->d;
-  float o1 = pd->axes_in[0]->o;
 
   axs1 = new axis(0.0f,1.0f,n1); // axis for shifts in 1st dimension
   axs2 = new axis(0.0f,1.0f,n2); // axis for shifts in 2nd dimension
@@ -181,13 +205,16 @@ void do_filter3d(prog_data *pd, parlist *par) {
   axis *axs1, *axs2, *axs3;
   float ***slopex, ***slopey;
 
-  res = init_cart_volume(&vol,pd->axes_in,pd->naxes,0,0,pd->h3,MPI_COMM_WORLD);
+  res = init_cart_volume(&vol,pd->axes_in,pd->naxes,0,0,pd->pad3,MPI_COMM_WORLD);
   if(res) ucsl_errorf("(me: %d) Failed to initialize cart_volume\n",pd->mype);
   ucsl_abort_if_error();
 
   res = fill_cart_volume(vol,&hdr_buffer,pd->fd_in,MPI_COMM_WORLD);
   if(res) ucsl_errorf("(me: %d) Failed to read input\n",pd->mype);
   ucsl_abort_if_error();
+
+  vol->extend_axes();
+  vol->update_edges();
 
   fn_out_slopex = (char*)calloc(strlen(pd->fn_out)+6,sizeof(char));
   fn_out_slopey = (char*)calloc(strlen(pd->fn_out)+6,sizeof(char));
@@ -196,19 +223,20 @@ void do_filter3d(prog_data *pd, parlist *par) {
   fd_out_slopex = new file_trace(pd->fd_in,fn_out_slopex,MPI_COMM_WORLD);
   fd_out_slopey = new file_trace(pd->fd_in,fn_out_slopey,MPI_COMM_WORLD);
 
-  //Smooth dynamic warping routine
   ax1 = vol->ax1;
   ax2 = vol->ax2;
   ax3 = vol->ax3;
   size_t n1 = ax1->ntot;
   size_t n2 = ax2->ntot;
   size_t n3 = ax3->ntot;
+  ucsl_printf("n1=%ld %ld %ld\n",n1,n2,n3);
   axs1 = new axis(0.0f,1.0f,static_cast<int>(n1));
   axs2 = new axis(0.0f,1.0f,static_cast<int>(n2));
   axs3 = new axis(0.0f,1.0f,static_cast<int>(n3));
-
   slopex = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
   slopey = (float***)mem_alloc3(n1,n2,n3,sizeof(float));
+
+  //Smooth dynamic warping routine
   sdw_slope *sdws = new sdw_slope(pd->k,pd->pmax,pd->h1,pd->h2,pd->h3,
       pd->r1,pd->r2,pd->r3,axs1,axs2,axs3);
   sdws->setErrorSmoothing(1);

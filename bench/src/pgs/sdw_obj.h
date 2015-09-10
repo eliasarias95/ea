@@ -1,3 +1,39 @@
+/********************************************************************
+ * Dynamic warping to find shifts between two sequences or images.
+ * For 1D sequences f(x) and g(x), dynamic warping computes shifts s(x) such
+ * that f(x) ~ g(x+s(x)). For 2D images f(x1,x2) and g(x1,x2), it finds shifts
+ * u(x1,x2) such that f(x1,x2) ~ g(x1+s(x1,x2),x2). Note that the shifts
+ * u(x1,x2,...) are computed for only the first dimension of multi-dimensional
+ * images. For example, if the 1st dimension of an image is time, then only
+ * time shifts are computed.
+ *
+ * Constraints are placed on strains, the rates at which shifts change in any
+ * dimension. For example, strain r1 = du/d1 is the derivative of shift
+ * s(x1,x2,...) with respect to the x1 coordinate, and is constrained to lie
+ * between lower and upper bounds r1min and r1max. Default bounds are 
+ * r1min = -1.0 and r1max = 1.0.
+ *
+ * In many applications of warping, strains derived from estimated shifts may
+ * be an important by-product. However, when computing shifts, only a finite
+ * number of strains are permitted, and this quantization may yield
+ * unrealistic estimates of strain. To address this problem, this dynamic
+ * warping provides control over the sampling of strains, in the form of a
+ * smoothness value. The number of strains sampled is proportional to this
+ * value.
+ *
+ * Smoothness values represent approximate intervals for a quasi-uniform
+ * subsampling grid on which shifts are computed. For example, for a time
+ * sampling interval of 4 ms, one might specify a smoothness of 200 ms, so
+ * that shifts are computed on a grid that is 50 times more coarse than the 4
+ * ms sampling grid. However, strains on this coarse grid would be sampled 50
+ * times more finely. After initially computing shifts on the coarse grid,
+ * shifts are interpolated onto the finer grid.
+ *
+ * Author: Elias Arias and Sergey Frolov
+ * Version: 09.09.2015
+ * Adapted from Java code written by Dave Hale and Elias Arias.
+ ********************************************************************/
+
 #ifndef SDW_H
 #define SDW_H
 #include <ucsl.h>

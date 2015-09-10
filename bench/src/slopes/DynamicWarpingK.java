@@ -73,8 +73,8 @@ public class DynamicWarpingK {
 
   /**
    * Constructs a dynamic warping.
-   * If this warping is used for 3D images, then default unit samplings
-   * are assumed for the 3rd dimensions.
+   * If this warping is used for 3D images, then a default unit sampling
+   * is assumed for the 3rd dimension.
    * @param k shift sampling interval becomes 1/k.
    * @param smin lower bound on shift.
    * @param smax upper bound on shift.
@@ -647,7 +647,7 @@ public class DynamicWarpingK {
   /**
    * Returns alignment errors smoothed in the second dimension.
    * Returned errors are sparse in the second dimension, and
-   * unchanged in the first dimension and third dimension.
+   * unchanged in the first and third dimensions.
    * @param r2Min minimum strain in the second dimension.
    * @param r2Max maximum strain in the second dimension.
    * @param k2s second dimension sparse grid indices.
@@ -670,7 +670,7 @@ public class DynamicWarpingK {
   /**
    * Returns alignment errors smoothed in the third dimension.
    * Returned errors are sparse in the third dimension, and
-   * unchanged in the first and second dimension.
+   * unchanged in the first and second dimensions.
    * @param r3Min minimum strain in the third dimension.
    * @param r3Max maximum strain in the third dimension.
    * @param k3s third dimension sparse grid indices.

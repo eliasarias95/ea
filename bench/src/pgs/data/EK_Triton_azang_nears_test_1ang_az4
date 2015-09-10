@@ -1,0 +1,283 @@
+dds_history{= tmpDict_out3:
+dds_history{= tmpDict_out2:
+dds_history{= EK_Triton_azang_nears_test_1ang
+dds_history{= tmpDict_out3:
+dds_history{= tmpDict_out2:
+dds_history{= EK_Triton_azang_nears_test
+dds_history{= tmpDict_out3:
+dds_history{= tmpDict_out2:
+dds_history{= /datadb/3473pgs/mde/ACC_72j02_sedfld3_tti_25_18Hz_faz_near_azang_mrg_SL14258-16280
+data=/cfs/3473pgs/ACC_72j02_sedfld3_tti_25_18Hz_faz_near_azang_mrg_SL14258-16280_@
+format= fcubex
+axis= z angle az XLINE SUBLINE
+size.z=1601
+delta.z=10.000000
+origin.z=0.000000
+step.z=10.000000
+base.z=0.000000
+size.angle=46
+delta.angle=2.000000
+origin.angle=0.000000
+step.angle=2.000000
+base.angle=0.000000
+size.az=6
+delta.az=30.000000
+origin.az=0.000000
+step.az=30.000000
+base.az=0.000000
+size.XLINE=4952
+delta.XLINE=6.000000
+origin.XLINE=1463.000000
+step.XLINE=6.000000
+base.XLINE=1463.000000
+size.SUBLINE=338
+delta.SUBLINE=6.000000
+origin.SUBLINE=14258.000000
+step.SUBLINE=6.000000
+base.SUBLINE=14258.000000
+dds_history}= /datadb/3473pgs/mde/ACC_72j02_sedfld3_tti_25_18Hz_faz_near_azang_mrg_SL14258-16280
+dds_history{= tmpDict_in1:
+DDS_SENTRY= $Revision: 120.3 $ $Date: 2011/08/24 19:59:00 $
+********************************************
+******************* TITLE ******************
+********************************************
+cmd_title=  "editd: general seismic editting program"
+cmd_name= /pgs/mde/mde130/dist/Linux/2.6/mbs/prod/x86_64/editd
+cmd_rev= <cmd_rev>
+cmd_user= elena_k
+cmd_date= Wed Aug  5 11:44:46 2015
+cmd_host= hdipb010
+cmd_cwd= /group03/eklochikp/mde
+cmd_pid= 21677
+compile_root= /pgsdev/mde/mde130
+run_time_root= /pgs/mde/mde130
+alias:sep_in= in
+$size=
+$origin=
+$delta=
+$units=
+dds_history{= par:
+cmd_args= 
+in=/datadb/3473pgs/mde/ACC_72j02_sedfld3_tti_25_18Hz_faz_near_azang_mrg_SL14258-16280
+out=EK_Triton_azang_nears_test
+out_data=/cfs/eklochikp/EK_Triton_azang_nears_test_@
+SUBLINEs=15146
+SUBLINEe=15146
+dds_history}= par:
+
+fmt:SAMPLE_TYPE= typedef float4x SAMPLE_TYPE;
+
+fmt:FCUBEX_TRACE= typedef struct {SAMPLE_TYPE Samples[axis_size(1)];} 
+   FCUBEX_TRACE;
+
+fmt:SEQUENCE= typedef FCUBEX_TRACE SEQUENCE;
+
+fmt:fcubex=   typedef FCUBEX_TRACE SEQUENCE;
+io_rank= 2
+units.z= ?
+sort.z= ?
+units.angle= ?
+sort.angle= ?
+units.az= ?
+sort.az= ?
+units.XLINE= ?
+sort.XLINE= ?
+units.SUBLINE= ?
+sort.SUBLINE= ?
+dds_history}= tmpDict_in1:
+$old_format=format
+ibuf_fmt=asp
+$format= ibuf_fmt
+data= buffer(tmpDict_out2:):
+
+fmt:ASP_TRACE= typedef struct {SAMPLE_TYPE Samples[axis_size(1)];} 
+   ASP_TRACE;
+
+fmt:SEQUENCE= typedef ASP_TRACE SEQUENCE;
+
+fmt:asp=   typedef ASP_TRACE SEQUENCE;
+dds_history}= tmpDict_out2:
+size.z=1601
+origin.z=0.000000
+delta.z=10.000000
+base.z=0.000000
+step.z=10.000000
+size.angle=46
+origin.angle=0.000000
+delta.angle=2.000000
+base.angle=0.000000
+step.angle=2.000000
+size.az=6
+origin.az=0.000000
+delta.az=30.000000
+base.az=0.000000
+step.az=30.000000
+size.XLINE=4952
+origin.XLINE=1463.000000
+delta.XLINE=6.000000
+base.XLINE=1463.000000
+step.XLINE=6.000000
+size.SUBLINE=1
+origin.SUBLINE=15146.000000
+delta.SUBLINE=6.000000
+base.SUBLINE=15146.000000
+step.SUBLINE=6.000000
+obuf_fmt=asp
+$format= obuf_fmt
+data= buffer(tmpDict_out3:):
+
+dds_history}= tmpDict_out3:
+$data= out_data
+format=fcubex
+
+fmt:SEQUENCE= typedef FCUBEX_TRACE SEQUENCE;
+
+dds_history}= EK_Triton_azang_nears_test
+dds_history{= tmpDict_in1:
+DDS_SENTRY= $Revision: 120.3 $ $Date: 2011/08/24 19:59:00 $
+********************************************
+******************* TITLE ******************
+********************************************
+cmd_title=  "editd: general seismic editting program"
+cmd_name= /pgs/mde/mde130/dist/Linux/2.6/mbs/prod/x86_64/editd
+cmd_rev= <cmd_rev>
+cmd_user= elena_k
+cmd_date= Tue Sep  8 10:25:53 2015
+cmd_host= hdipb004
+cmd_cwd= /group03/eklochikp/mde
+cmd_pid= 29052
+compile_root= /pgsdev/mde/mde130
+run_time_root= /pgs/mde/mde130
+alias:sep_in= in
+$size=
+$origin=
+$delta=
+$units=
+dds_history{= par:
+cmd_args= 
+in=EK_Triton_azang_nears_test
+out=EK_Triton_azang_nears_test_1ang
+out_data=/cfs/eklochikp/EK_Triton_azang_nears_test_1ang_@
+4s=2421
+4e=2421
+dds_history}= par:
+
+dds_history}= tmpDict_in1:
+$old_format=format
+ibuf_fmt=asp
+$format= ibuf_fmt
+data= buffer(tmpDict_out2:):
+
+fmt:SEQUENCE= typedef ASP_TRACE SEQUENCE;
+
+dds_history}= tmpDict_out2:
+size.z=1601
+origin.z=0.000000
+delta.z=10.000000
+base.z=0.000000
+step.z=10.000000
+size.angle=46
+origin.angle=0.000000
+delta.angle=2.000000
+base.angle=0.000000
+step.angle=2.000000
+size.az=6
+origin.az=0.000000
+delta.az=30.000000
+base.az=0.000000
+step.az=30.000000
+size.XLINE=1
+origin.XLINE=15983.000000
+delta.XLINE=6.000000
+base.XLINE=15983.000000
+step.XLINE=6.000000
+size.SUBLINE=1
+origin.SUBLINE=15146.000000
+delta.SUBLINE=6.000000
+base.SUBLINE=15146.000000
+step.SUBLINE=6.000000
+obuf_fmt=asp
+$format= obuf_fmt
+data= buffer(tmpDict_out3:):
+
+dds_history}= tmpDict_out3:
+$data= out_data
+format=fcubex
+
+fmt:SEQUENCE= typedef FCUBEX_TRACE SEQUENCE;
+
+dds_history}= EK_Triton_azang_nears_test_1ang
+dds_history{= tmpDict_in1:
+DDS_SENTRY= $Revision: 120.3 $ $Date: 2011/08/24 19:59:00 $
+********************************************
+******************* TITLE ******************
+********************************************
+cmd_title=  "editd: general seismic editting program"
+cmd_name= /pgs/mde/mde130/dist/Linux/2.6/mbs/prod/x86_64/editd
+cmd_rev= <cmd_rev>
+cmd_user= elena_k
+cmd_date= Tue Sep  8 10:26:27 2015
+cmd_host= hdipb004
+cmd_cwd= /group03/eklochikp/mde
+cmd_pid= 29428
+compile_root= /pgsdev/mde/mde130
+run_time_root= /pgs/mde/mde130
+alias:sep_in= in
+$size=
+$origin=
+$delta=
+$units=
+dds_history{= par:
+cmd_args= 
+in=EK_Triton_azang_nears_test_1ang
+out=EK_Triton_azang_nears_test_1ang_az4
+out_data=/cfs/eklochikp/EK_Triton_azang_nears_test_1ang_az4_@
+3s=4
+3e=4
+dds_history}= par:
+
+dds_history}= tmpDict_in1:
+$old_format=format
+ibuf_fmt=asp
+$format= ibuf_fmt
+data= buffer(tmpDict_out2:):
+
+fmt:SEQUENCE= typedef ASP_TRACE SEQUENCE;
+
+dds_history}= tmpDict_out2:
+size.z=1601
+origin.z=0.000000
+delta.z=10.000000
+base.z=0.000000
+step.z=10.000000
+size.angle=46
+origin.angle=0.000000
+delta.angle=2.000000
+base.angle=0.000000
+step.angle=2.000000
+size.az=1
+origin.az=90.000000
+delta.az=30.000000
+base.az=90.000000
+step.az=30.000000
+size.XLINE=1
+origin.XLINE=15983.000000
+delta.XLINE=6.000000
+base.XLINE=15983.000000
+step.XLINE=6.000000
+size.SUBLINE=1
+origin.SUBLINE=15146.000000
+delta.SUBLINE=6.000000
+base.SUBLINE=15146.000000
+step.SUBLINE=6.000000
+obuf_fmt=asp
+$format= obuf_fmt
+data= buffer(tmpDict_out3:):
+
+dds_history}= tmpDict_out3:
+$data= out_data
+format=fcubex
+
+fmt:SEQUENCE= typedef FCUBEX_TRACE SEQUENCE;
+
+axis=z angle XLINE SUBLINE

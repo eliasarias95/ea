@@ -1,0 +1,5 @@
+in=/datadb/eariasp/data/offset_gather_Triton
+out=/datadb/eariasp/data/offset_gather_Triton.dat
+subline_seq=13600 13600 1
+xline_seq=15215 15400 5
+z_seq=0 16000 8

@@ -1,6 +1,53 @@
+/********************************************************************
+ * Dynamic warping to find shifts between two sequences or images.
+ * For 1D sequences f(x) and g(x), dynamic warping computes shifts s(x) such
+ * that f(x) ~ g(x+s(x)). For 2D images f(x1,x2) and g(x1,x2), it finds shifts
+ * u(x1,x2) such that f(x1,x2) ~ g(x1+s(x1,x2),x2). Note that the shifts
+ * u(x1,x2,...) are computed for only the first dimension of multi-dimensional
+ * images. For example, if the 1st dimension of an image is time, then only
+ * time shifts are computed.
+ *
+ * Constraints are placed on strains, the rates at which shifts change in any
+ * dimension. For example, strain r1 = du/d1 is the derivative of shift
+ * s(x1,x2,...) with respect to the x1 coordinate, and is constrained to lie
+ * between lower and upper bounds r1min and r1max. Default bounds are 
+ * r1min = -1.0 and r1max = 1.0.
+ *
+ * In many applications of warping, strains derived from estimated shifts may
+ * be an important by-product. However, when computing shifts, only a finite
+ * number of strains are permitted, and this quantization may yield
+ * unrealistic estimates of strain. To address this problem, this dynamic
+ * warping provides control over the sampling of strains, in the form of a
+ * smoothness value. The number of strains sampled is proportional to this
+ * value.
+ *
+ * Smoothness values represent approximate intervals for a quasi-uniform
+ * subsampling grid on which shifts are computed. For example, for a time
+ * sampling interval of 4 ms, one might specify a smoothness of 200 ms, so
+ * that shifts are computed on a grid that is 50 times more coarse than the 4
+ * ms sampling grid. However, strains on this coarse grid would be sampled 50
+ * times more finely. After initially computing shifts on the coarse grid,
+ * shifts are interpolated onto the finer grid.
+ *
+ * Author: Elias Arias and Sergey Frolov
+ * Version: 09.09.2015
+ * Adapted from Java code written by Dave Hale and Elias Arias.
+ ********************************************************************/
+
 #include <sdw_obj.h>
 
 /***********************************PUBLIC***********************************/
+
+/**
+ * Initializes private members of this class.
+ * 
+ * @param k shift sampling interval becomes 1/k.
+ * @param smin lower bound on shift.
+ * @param smax upper bound on shift.
+ * @param ax1 axis object of shifts for 1st dimension.
+ * @param ax2 axis object of shifts for 2nd dimension.
+ * @param ax3 axis object of shifts for 3rd dimension.
+ */
 void sdw_obj::init(int k, double smin, double smax, 
     axis *ax1, axis *ax2, axis *ax3) {
   double ds = 1.0/k;
@@ -24,31 +71,91 @@ void sdw_obj::init(int k, double smin, double smax,
 }
 
 /*******************constructors*******************/
+
+/**
+ * Constructs an sdw_obj.
+ * If this warping is used for 2D or 3D images, then default unit axes
+ * are assumed for 2nd and 3rd dimensions.
+ * 
+ * @param k shift sampling interval becomes 1/k.
+ * @param smin lower bound on shift.
+ * @param smax upper bound on shift.
+ * @param ax1 axis object of shifts for 1st dimension.
+ */
 sdw_obj::sdw_obj(int k, double smin, double smax,
     axis *ax1) {
   init(k,smin,smax,ax1,NULL,NULL);
 }
 
+/**
+ * Constructs an sdw_obj.
+ * If this warping is used for 2D or 3D images, then a default unit axis
+ * is assumed for the 3rd dimension.
+ * 
+ * @param k shift sampling interval becomes 1/k.
+ * @param smin lower bound on shift.
+ * @param smax upper bound on shift.
+ * @param ax1 axis object of shifts for 1st dimension.
+ * @param ax2 axis object of shifts for 2nd dimension.
+ */
 sdw_obj::sdw_obj(int k, double smin, double smax,
     axis *ax1, axis *ax2) {
   init(k,smin,smax,ax1,ax2,NULL);
 }
 
+/**
+ * Constructs an sdw_obj.
+ * 
+ * @param k shift sampling interval becomes 1/k.
+ * @param smin lower bound on shift.
+ * @param smax upper bound on shift.
+ * @param ax1 axis object of shifts for 1st dimension.
+ * @param ax2 axis object of shifts for 2nd dimension.
+ * @param ax3 axis object of shifts for 3rd dimension.
+ */
 sdw_obj::sdw_obj(int k, double smin, double smax, 
     axis *ax1, axis *ax2, axis *ax3) {
   init(k,smin,smax,ax1,ax2,ax3);
 }
 
 /*******************setter methods*******************/
+
+/**
+ * Sets bounds on strains for this sdw_obj.
+ * Default lower and upper bounds are -1.0 and 1.0, respectively.
+ *
+ * @param r1min lower bound on strain in 1st dimension.
+ * @param r1max upper bound on strain in 1st dimension.
+ */
 void sdw_obj::setStrainLimits(double r1min, double r1max) {
   setStrainLimits(r1min,r1max,-1.0,1.0,-1.0,1.0);  
 }
 
+/**
+ * Sets bounds on strains for this sdw_obj.
+ * Default lower and upper bounds are -1.0 and 1.0, respectively.
+ *
+ * @param r1min lower bound on strain in 1st dimension.
+ * @param r1max upper bound on strain in 1st dimension.
+ * @param r2min lower bound on strain in 2nd dimension.
+ * @param r2max upper bound on strain in 2nd dimension.
+ */
 void sdw_obj::setStrainLimits(double r1min, double r1max,
                               double r2min, double r2max) {
   setStrainLimits(r1min,r1max,r2min,r2max,-1.0,1.0);  
 }
 
+/**
+ * Sets bounds on strains for this sdw_obj.
+ * Default lower and upper bounds are -1.0 and 1.0, respectively.
+ *
+ * @param r1min lower bound on strain in 1st dimension.
+ * @param r1max upper bound on strain in 1st dimension.
+ * @param r2min lower bound on strain in 2nd dimension.
+ * @param r2max upper bound on strain in 2nd dimension.
+ * @param r3min lower bound on strain in 3rd dimension.
+ * @param r3max upper bound on strain in 3rd dimension.
+ */
 void sdw_obj::setStrainLimits(double r1min, double r1max,
                               double r2min, double r2max,
                               double r3min, double r3max) {
@@ -57,20 +164,62 @@ void sdw_obj::setStrainLimits(double r1min, double r1max,
   _r3min = r3min; _r3max = r3max;
 }
 
+/**
+ * Sets the number of nonlinear smoothings of alignment errors.
+ * In dynamic warping, alignment errors are smoothed the specified 
+ * number of times, along all dimensions (in order 1, 2, ...), 
+ * before estimating shifts by accumulating and backtracking along 
+ * only the 1st dimension. 
+ *
+ * The default number of smoothings is zero, which is best for 1D
+ * sequences. For 2D and 3D images, two smoothings are recommended.
+ *
+ * @param esmooth number of nonlinear smoothings.
+ */
 void sdw_obj::setErrorSmoothing(int esmooth) {
   _esmooth = esmooth;
 }
 
+/**
+ * Sets the smoothness of shifts computed by this sdw_obj.
+ * Units of smoothness are the same as those used in corresponding
+ * axis of the 1st dimension.
+ * Default smoothness values are 10 times the sampling intervals for
+ * corresponding dimensions.
+ *
+ * @param d1min smoothness in 1st dimension.
+ */
 void sdw_obj::setSmoothness(double d1min) {
   double d2 = (_ax2!=NULL)?_ax2->d:1.0;
   setSmoothness(d1min,10.0*d2);
 }
 
+/**
+ * Sets the smoothness of shifts computed by this sdw_obj.
+ * Units of smoothness are the same as those used in corresponding
+ * axes of 1st and 2nd dimensions.
+ * Default smoothness values are 10 times the sampling intervals for
+ * corresponding dimensions.
+ *
+ * @param d1min smoothness in 1st dimension.
+ * @param d2min smoothness in 2nd dimension.
+ */
 void sdw_obj::setSmoothness(double d1min, double d2min) {
   double d3 = (_ax3!=NULL)?_ax3->d:1.0;
   setSmoothness(d1min,d2min,10.0*d3);
 }
 
+/**
+ * Sets the smoothness of shifts computed by this sdw_obj.
+ * Units of smoothness are the same as those used in corresponding
+ * axes of 1st, 2nd and 3rd dimensions.
+ * Default smoothness values are 10 times the sampling intervals for
+ * corresponding dimensions.
+ *
+ * @param d1min smoothness in 1st dimension.
+ * @param d2min smoothness in 2nd dimension.
+ * @param d3min smoothness in 3rd dimension.
+ */
 void sdw_obj::setSmoothness(double d1min, double d2min, double d3min) {
   double d1 = (_ax1!=NULL)?_ax1->d:1.0;
   double d2 = (_ax2!=NULL)?_ax2->d:1.0;
@@ -81,6 +230,13 @@ void sdw_obj::setSmoothness(double d1min, double d2min, double d3min) {
 }
 
 /*******************other public methods*******************/
+
+/**
+ * Returns shifts estimated for specified alignment errors.
+ *
+ * @param e array[n1][ns] of alignment errors.
+ * @param s array[n1] of shifts.
+ */
 void sdw_obj::findShifts(float **e, float *s) {
   int ns = _axs->n;
   int n1 = _ax1->n;
@@ -92,6 +248,15 @@ void sdw_obj::findShifts(float **e, float *s) {
   findShiftsFromErrors(_r1min,_r1max,i1k,_axs,_ax1,e,s);
 }
 
+/**
+ * Returns shifts computed for specified 1D sequences.
+ *
+ * @param axf axis object of 1st dimension for the sequence f.
+ * @param f array of values for sequence f.
+ * @param axg axis object of 1st dimension for the sequence g.
+ * @param g array of values for sequence g.
+ * @param s array of shifts.
+ */
 void sdw_obj::findShifts(axis *axf, float *f, axis *axg, float *g, float *s) {
   int ns = _axs->n;
   int n1 = _ax1->n;
@@ -100,6 +265,15 @@ void sdw_obj::findShifts(axis *axf, float *f, axis *axg, float *g, float *s) {
   findShifts(e,s);
 }
 
+/**
+ * Returns shifts computed for specified 2D images.
+ *
+ * @param axf axis object of 1st dimension for the image f.
+ * @param f array of values for image f.
+ * @param axg axis object of 1st dimension for the image g.
+ * @param g array of values for image g.
+ * @param s array of shifts.
+ */
 void sdw_obj::findShifts(
     axis *axf, float **f, axis *axg, float **g, float **s) {
   int ns = _axs->n;
@@ -163,6 +337,15 @@ void sdw_obj::findShifts(
   mem_free2((void***)&skk);
 }
 
+/**
+ * Returns shifts computed for specified 3D images.
+ *
+ * @param axf axis object of 1st dimension for the image f.
+ * @param f array of values for image f.
+ * @param axg axis object of 1st dimension for the image g.
+ * @param g array of values for image g.
+ * @param s array of shifts.
+ */
 void sdw_obj::findShifts(
     axis *axf, float ***f, axis *axg, float ***g, float *** s) {
   int ns = _axs->n;
@@ -264,7 +447,7 @@ void sdw_obj::computeErrors(
   float *gi = (float*)mem_alloc(ne,sizeof(float));
   interp(axf,f,_ax1,fi,0.0f);
   for (int is=0; is<ns; ++is) {
-    interp(axg,g,_ax1,gi,_axs->get_val(is));
+    interp(axg,g,_ax1,gi,_ax1->o+_axs->get_val(is));
     for (ie=0; ie<ne; ++ie) {
       e[ie][is] = error(fi[ie],gi[ie]);
     }
@@ -273,6 +456,14 @@ void sdw_obj::computeErrors(
   mem_free((void**)&gi);
 }
 
+/**
+ * Normalizes alignment errors, in place.
+ * After normalizing, minimum error = 0 and maximum error = 1.
+ *
+ * @param n1 size of error array in the 1st dimension.
+ * @param n2 size of error array in the 2nd dimension.
+ * @param e array of alignment errors.
+ */
 void sdw_obj::normalizeErrors(int n1, int n2, float **e) {
   float emin = e[0][0];
   float emax = e[0][0];
@@ -313,7 +504,7 @@ size_t ns = _axs->n; size_t n1 = _ax1->n; size_t n2 = _ax2->n;
 size_t n3 = _ax3->n; size_t nk1 = 1+(n1-1)/_k1min; 
 size_t nk2 = 1+(n2-1)/_k2min; size_t nk3 = 1+(n3-1)/_k3min;
 /****allocated and freed once****/
-double data = n1*n2*n3*4.0, sdata = n1*n2*n3*4.0, slopes = 2.0*n1*n2*n3*4.0;
+double data = n1*n2*n3*4.0, sdata = n1*n2*n3*4.0, slopes = n1*n2*n3*4.0;
 double ek = ns*nk1*n2*n3*4.0; double ekk = ns*nk1*nk2*n3*4.0;
 double ekkk = ns*nk1*nk2*nk3*4.0;
 double e1, df, dr;
@@ -391,6 +582,16 @@ float sdw_obj::error(float f, float g) {
 }
 
 /*******************shift and scale*******************/
+
+/**
+ * Shifts and scales alignment errors to be in range [0,1].
+ *
+ * @param emin minimum alignment error before normalizing.
+ * @param emax maximum alignment error before normalizing.
+ * @param n1 size of error array in the 1st dimension.
+ * @param n2 size of error array in the 2nd dimension.
+ * @param e input/output array of alignment errors.
+ */
 void sdw_obj::shiftAndScale(float emin, float emax, int n1, int n2, float **e) {
   float eshift = emin;
   float escale = (emax>emin)?1.0f/(emax-emin):1.0f;
@@ -401,6 +602,16 @@ void sdw_obj::shiftAndScale(float emin, float emax, int n1, int n2, float **e) {
   }
 }
 
+/**
+ * Shifts and scales alignment errors to be in range [0,1].
+ *
+ * @param emin minimum alignment error before normalizing.
+ * @param emax maximum alignment error before normalizing.
+ * @param n1 size of error array in the 1st dimension.
+ * @param n2 size of error array in the 2nd dimension.
+ * @param n3 size of error array in the 3rd dimension.
+ * @param e input/output array of alignment errors.
+ */
 void sdw_obj::shiftAndScale(
     float emin, float emax, int n1, int n2, int n3, float ***e) {
   float eshift = emin;
@@ -417,6 +628,17 @@ void sdw_obj::shiftAndScale(
   }
 }
 
+/**
+ * Shifts and scales alignment errors to be in range [0,1].
+ *
+ * @param emin minimum alignment error before normalizing.
+ * @param emax maximum alignment error before normalizing.
+ * @param n1 size of error array in the 1st dimension.
+ * @param n2 size of error array in the 2nd dimension.
+ * @param n3 size of error array in the 3rd dimension.
+ * @param n4 size of error array in the 4th dimension.
+ * @param e input/output array of alignment errors.
+ */
 void sdw_obj::shiftAndScale(
     float emin, float emax, int n1, int n2, int n3, int n4, float ****e) {
   float eshift = emin;
@@ -436,6 +658,22 @@ void sdw_obj::shiftAndScale(
 }
 
 /*******************smooth errors*******************/
+
+/**
+ * Returns alignment errors smoothed in the second dimension.
+ * Returned errors are sparse in the second dimension, and
+ * unchanged in the first dimension.
+ *
+ * @param r2min minimum strain the second dimension.
+ * @param r2max maximum strain in the second dimension.
+ * @param k2s second dimension sparse grid indices.
+ * @param axs uniform axis object of ns shifts.
+ * @param axe uniform axis object of ne errors.
+ * @param nk1 size of error array in the 1st dimension.
+ * @param n2  size of error array in the 2nd dimension.
+ * @param e alignment errors.
+ * @return smoothed alignment errors.
+ */
 float ***sdw_obj::smoothErrors2(double r2min, double r2max, vector<int> k2s,
     axis *axs, axis *axe, int nk1, int n2, float ***e) {
   int nthread = 1;
@@ -466,6 +704,22 @@ float ***sdw_obj::smoothErrors2(double r2min, double r2max, vector<int> k2s,
   return es;
 }
 
+/**
+ * Returns alignment errors smoothed in the second dimension.
+ * Returned errors are sparse in the second dimension, and
+ * unchanged in the first and third dimensions.
+ *
+ * @param r2min minimum strain the second dimension.
+ * @param r2max maximum strain in the second dimension.
+ * @param k2s second dimension sparse grid indices.
+ * @param axs uniform axis object of ns shifts.
+ * @param axe uniform axis object of ne errors.
+ * @param nk1 size of error array in the 1st dimension.
+ * @param n2  size of error array in the 2nd dimension.
+ * @param n3  size of error array in the 3rd dimension.
+ * @param e alignment errors.
+ * @return smoothed alignment errors.
+ */
 float ****sdw_obj::smoothErrors2(
     double r2min, double r2max, vector<int> k2s,
     axis *axs, axis *axe, int nk1, int n2, int n3, float ****e) {
@@ -477,6 +731,22 @@ float ****sdw_obj::smoothErrors2(
   return es;
 }
 
+/**
+ * Returns alignment errors smoothed in the third dimension.
+ * Returned errors are sparse in the third dimension, and
+ * unchanged in the first and second dimensions.
+ *
+ * @param r3min minimum strain the second dimension.
+ * @param r3max maximum strain in the second dimension.
+ * @param k3s second dimension sparse grid indices.
+ * @param axs uniform axis object of ns shifts.
+ * @param axe uniform axis object of ne errors.
+ * @param nk1 size of error array in the 1st dimension.
+ * @param nk2  size of error array in the 2nd dimension.
+ * @param n3  size of error array in the 3rd dimension.
+ * @param e alignment errors.
+ * @return smoothed alignment errors.
+ */
 float ****sdw_obj::smoothErrors3(
     double r3min, double r3max, vector<int> k3s,
     axis *axs, axis *axe, int nk1, int nk2, int n3, float ****e) {
@@ -577,6 +847,15 @@ void sdw_obj::smoothSubsampledErrors(
 }
 
 /*******************normalization*******************/
+
+/**
+ * Normalizes alignment errors to be in range [0,1].
+ *
+ * @param n1 size of error array in the 1st dimension.
+ * @param n2 size of error array in the 2nd dimension.
+ * @param n3 size of error array in the 3rd dimension.
+ * @param e input/output array of alignment errors.
+ */
 void sdw_obj::normalizeErrors(int n1, int n2, int n3, float ***e) {
   float emin = BIG;
   float emax = -1.0f*BIG;
@@ -593,6 +872,15 @@ void sdw_obj::normalizeErrors(int n1, int n2, int n3, float ***e) {
   shiftAndScale(emin,emax,n1,n2,n3,e);
 }
 
+/**
+ * Normalizes alignment errors to be in range [0,1].
+ *
+ * @param n1 size of error array in the 1st dimension.
+ * @param n2 size of error array in the 2nd dimension.
+ * @param n3 size of error array in the 3rd dimension.
+ * @param n4 size of error array in the 4th dimension.
+ * @param e input/output array of alignment errors.
+ */
 void sdw_obj::normalizeErrors(int n1, int n2, int n3, int n4, float ****e) {
   float emin = BIG;
   float emax = -1.0f*BIG;
@@ -786,6 +1074,18 @@ void sdw_obj::accumulateSubsampled(
 }
 
 /*******************find shifts from errors*******************/
+
+/**
+ * Finds shifts from alignment errors.
+ *
+ * @param rmin lower bound on strain.
+ * @param rmax upper bound on strain.
+ * @param kes array[nke] of indices for quasi-uniform subsampling.
+ * @param axs uniform axis object of ns shifts.
+ * @param axe uniform axis object of ne errors.
+ * @param e input array[ne][ns] of alignment errors.
+ * @param s array[ne] of shifts.
+ */
 void sdw_obj::findShiftsFromErrors(double rmin, double rmax, 
     vector<int> kes, axis *axs, axis *axe, float **e, float *s) {
   int nke = kes.size();
@@ -798,6 +1098,17 @@ void sdw_obj::findShiftsFromErrors(double rmin, double rmax,
   interpolateShifts(axe,kes,ske,s);
 }
 
+/**
+ * Finds shifts from subsampled alignment errors.
+ *
+ * @param rmin lower bound on strain.
+ * @param rmax upper bound on strain.
+ * @param kes array[nke] of indices for quasi-uniform subsampling.
+ * @param axs uniform axis object of ns shifts.
+ * @param axe uniform axis object of ne errors.
+ * @param e array[nke][ns] of subsampled alignment errors.
+ * @param s array[ne] of shifts.
+ */
 void sdw_obj::findShiftsFromSubsampledErrors(
     double rmin, double rmax, vector<int> kes, axis *axs, axis *axe, int **m, 
     float **d, float **e, float *s) {
@@ -879,9 +1190,6 @@ void sdw_obj::interpolateShifts(axis *ax1, axis *ax2, axis *ax3,
   float dk3 = k3s[1] - k3s[0];
 
   // Interpolate.
-  float w1, w2, w3;
-  float x1, x2, x3;
-  int isamp1, isamp1p, isamp2, isamp2p, isamp3, isamp3p;
 #ifdef _USE_OMP
 #pragma omp parallel for
 #endif

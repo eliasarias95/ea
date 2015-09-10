@@ -1,0 +1,179 @@
+####################################################################
+#flow
+######################################################################
+:language = C
+:parallel = true
+:suggested number of nodes = 1
+:cloneable = false
+:will share node = true
+:number of arguments = 1
+:argument 0 =
+:argument 0:data structure = twhdr
+:argument 0:effect on context = none
+:system type = standalone
+:standalone {
+ application type = MPI
+ will share node = no 
+ number of tasks per node = 1
+ user log filter = HYPERBEAM_LOG_FILTER
+}
+
+######################################################################
+#actions
+######################################################################
+
+
+######################################################################
+#introduction
+######################################################################
+Slope estimation using a modified smooth dynamic warping algorithm.
+For 2D inputs, 1 file of output slope values is produced.
+For 3D inputs, 2 files of output slope values are produced (1 for xline
+slope estimates and 1 for subline slope estimates). Computational speed,
+memory, and slope estimate accuracy are all highly dependent on the
+parameters chosen. 
+######################################################################
+#names etc.
+######################################################################
+:in
+ type = $STRING
+ domain =
+ default =
+ count = 1 1
+ bind =
+ constraint = 
+ text = Specify full path to input file. MDVD or FCUBE format.
+
+:out
+ type = $STRING
+ domain =
+ default =
+ count = 1 1
+ bind =
+ constraint = 
+ text = Specify full path to output file. Will be written in the same\
+        format as the input.
+ 
+:k
+ type = $INTEGER
+ domain =
+ default = 10
+ count = 0 1
+ bind =
+ constraint = 
+ text = Slope sampling interval (e.g. for k=10, slope accuracy will be\
+        up to 0.1 samples/trace).
+
+:pmax
+ type = $FLOAT
+ domain =
+ default = 4.0
+ count = 1 1
+ bind =
+ constraint = 
+ text = Maximum slope that can be estimated (in samples/trace).
+ 
+:h1
+ type = $INTEGER
+ domain =
+ default = 2
+ count = 1 1
+ bind =
+ constraint =
+ text = Specify the number of samples computed in the VERTICAL direction\
+        (e.g. 20 means every 20th sample). Larger value yields smoother\
+        slope estimates, requires less memory, but runs slightly slower\
+        than smaller values.
+
+:h2
+ type = $INTEGER
+ domain =
+ default = 2
+ count = 1 1
+ bind =
+ constraint =
+ text = Specify the number of samples computed in the XLINE direction\
+        (e.g. 20 means every 20th sample). Larger value yields smoother\
+        slope estimates, requires less memory, but runs slightly slower\
+        than smaller values. 
+
+:h3
+ type = $INTEGER
+ domain =
+ default = 2
+ count = 1 1
+ bind =
+ constraint =
+ text = Specify the number of samples computed in the SUBLINE direction\
+        (e.g. 20 means every 20th sample). Larger value yields smoother\
+        slope estimates, requires less memory, but runs slightly slower\
+        than smaller values.
+ 
+:pad_subline_multiplier
+ type = $INTEGER
+ domain =
+ default = 1
+ count = 0 1
+ bind =
+ constraint =
+ text = Specify the amount of additional padding used for multi-node\
+        jobs. Higher value increases run time, but improves slopes.\
+        Suggestion: do not use values greater than 10.
+
+:r1
+ type = $FLOAT
+ domain =
+ default = 0.1
+ count = 1 1
+ bind =
+ constraint =
+ text = Specify the amount of stretching or squeezing you will\
+        allow in the VERTICAL direction (e.g. 0.1 allows up to\
+        10% stretch or squeeze). Suggestion: smaller values, no\
+        larger than 0.3, produce more reliable results in this\
+        direction.
+
+:r2
+ type = $FLOAT
+ domain =
+ default = 0.3
+ count = 1 1
+ bind =
+ constraint =
+ text = Specify the amount of stretching or squeezing you will\
+        allow in the XLINE direction (e.g. 0.3 allows up to\
+        30% stretch or squeeze). This parameter controls how\
+        much you will allow slope values to change from xline\
+        to xline. Suggestion: for noisier data, smaller values,\
+        no larger than 0.3, produce more reliable results. For\
+        data with high signal to noise, larger values, up to 0.8,\
+        may produce more reliable results.
+
+:r3
+ type = $FLOAT
+ domain =
+ default = 0.3
+ count = 1 1
+ bind =
+ constraint =
+ text = Specify the amount of stretching or squeezing you will\
+        allow in the SUBLINE direction (e.g. 0.3 allows up to\
+        30% stretch or squeeze). This parameter controls how\
+        much you will allow slope values to change from subline\
+        to subline. Suggestion: for noisier data, smaller values,\
+        no larger than 0.3, produce more reliable results. For\
+        data with high signal to noise, larger values, up to 0.8,\
+        may produce more reliable results.
+
+:Version
+   type = $STRING
+   domain =  $ENUMERATE "$Revision: 132.0 $"
+   default = "$Revision: 132.0 $"
+   count = 1 1
+   bind =
+   constraint =
+   text = This is the current version number of this program.
+
+######################################################################
+#global constraints
+######################################################################

@@ -17,9 +17,9 @@ import javax.swing.*;
  */
 public class Plot {
 
-  private static int k1 = 50;
-  private static int k2 = 51;
-  private static int k3 = 51;
+  private static int k1 = 500;
+  private static int k2 = 750;
+  private static int k3 = 125;
   //private static int k1 = 99;
   //private static int k2 = 90;
   //private static int k3 = 90;
@@ -183,10 +183,11 @@ public class Plot {
     pp.setHLabel("Traces");
     pp.setVLabel("Samples");
     pp.addColorBar(cbl);
-    pp.setColorBarWidthMinimum(100);
+    pp.setColorBarWidthMinimum(150);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     pf.setSize(fwi,fhi);
+    pf.setSize(900,1200);
     pf.setFontSizeForSlide(fw,fh,_ratio);
     pf.setVisible(true);
     if (clip) pv.setClips(cmin,cmax);
@@ -377,7 +378,7 @@ public class Plot {
       PlotPanelPixels3.Orientation.X1DOWN_X2RIGHT,
       PlotPanelPixels3.AxesPlacement.LEFT_BOTTOM,
       s1,s3,s2,ft);
-    pp.setClips(-4,4);
+    pp.setClips(-50,50);
     pp.setSlices(k1,k3,k2);
     pp.setLabel1("Samples");
     pp.setLabel3("Crossline");
