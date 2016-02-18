@@ -182,7 +182,7 @@ public class Sfdip {
    */
   public void findSlopes(Sampling s1, Sampling s2, Sampling s3, 
       float[][][] f, float[][][] p2, float[][][] p3) {
-    RsfFilter rf = new RsfFilter("sffdip","both="+_both,
+    RsfFilter rf = new RsfFilter("sfdip","both="+_both,
       "n4="+_n4,"niter="+_niter,"liter="+_liter,"rect1="+_rect1,
       "rect2="+_rect2,"rect3="+_rect3,"p0="+_p0,"q0="+_q0,
       "order="+_order,"nj1="+_nj1,"nj2="+_nj2,"verb="+_verb,

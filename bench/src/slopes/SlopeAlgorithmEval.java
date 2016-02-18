@@ -100,7 +100,7 @@ public class SlopeAlgorithmEval {
       s3D.plot3D(f,pwd_title);
     }
     if (method==3) {
-      s3D.estimateSDW(k,f,p2,p3,sdw_title);
+      //s3D.estimateSDW(k,f,p2,p3,sdw_title);
       s3D.plot3D(f,sdw_title);
     }
     if (method==4) {
@@ -243,11 +243,11 @@ public class SlopeAlgorithmEval {
       s2D.plot2D(f,sdw_title);
     }
     if (method==4) {
-      //s2D.estimateLSF(f,null,lsf_title);
+      s2D.estimateLSF(f,null,lsf_title);
       s2D.plot2D(f,lsf_title);
-      //s2D.estimatePWDM(f,null,pwd_title);
+      s2D.estimatePWDM(f,null,pwd_title);
       s2D.plot2D(f,pwd_title);
-      //s2D.estimateSDW(k,f,null,sdw_title);
+      s2D.estimateSDW(k,f,null,sdw_title);
       s2D.plot2D(f,sdw_title);
     }
   }
@@ -357,7 +357,7 @@ public class SlopeAlgorithmEval {
       //s2D.plot2D(Util.slice13(317,p3),"pwd_TP2D");
     }
     if (method==3) {
-      s3D.estimateSDW(k,f,null,null,sdw_title);
+      //s3D.estimateSDW(k,f,null,null,sdw_title);
       //s3D.estimateTransSDW(k,g,sdw_title+"_trans");
       s3D.plot3D(f,sdw_title);
       //s3D.retranspose(sdw_title+"_trans");
@@ -409,8 +409,8 @@ public class SlopeAlgorithmEval {
     float cmax_pwd = 0.7f;
     float cmin_sdw = 0.58f;
     float cmax_sdw = 0.7f;
-    float cmin_sdwr = 0.55f;
-    float cmax_sdwr = 0.6f;
+    float cmin_sdwr = 0.20f;
+    float cmax_sdwr = 0.8f;
     if (test) {
       if (method==1) {
         ttl = "structure_tensor_errors_"+num+".dat";
@@ -424,11 +424,11 @@ public class SlopeAlgorithmEval {
       }
       if (method==3) {
         ttl = "smooth_dynamic_warping_h_errors_"+num+".dat";
-        s2D.testOptimalSmoothSDW(ttl,k,f,p,sp1,sp2);
-        s2D.plotOptimalParameters(ttl,"h2","h1",sp1,sp2,cmin_sdw,cmax_sdw);
+        //s2D.testOptimalSmoothSDW(ttl,k,f,p,sp1,sp2);
+        //s2D.plotOptimalParameters(ttl,"h2","h1",sp1,sp2,cmin_sdw,cmax_sdw);
         dp = 0.1f; // strain sampling rate
         fp = 0.1f;
-        np1 = (int)((2.0)/dp); //# strain vals to test
+        np1 = (int)((3.0)/dp); //# strain vals to test
         sp1 = new Sampling(np1,dp,fp);
         sp2 = new Sampling(np1,dp,fp);
         ttl = "smooth_dynamic_warping_r_errors_"+num+".dat";
@@ -466,10 +466,10 @@ public class SlopeAlgorithmEval {
       }
       if (method==3) {
         ttl = "smooth_dynamic_warping_h_errors_"+num+".dat";
-        s2D.plotOptimalParameters(ttl,"h2","h1",sp1,sp2,cmin_sdw,cmax_sdw);
+        //s2D.plotOptimalParameters(ttl,"h2","h1",sp1,sp2,cmin_sdw,cmax_sdw);
         dp = 0.1f; // strain sampling rate
         fp = 0.1f;
-        np1 = (int)((2.0)/dp); //# strain vals to test
+        np1 = (int)((3.0)/dp); //# strain vals to test
         sp1 = new Sampling(np1,dp,fp);
         sp2 = new Sampling(np1,dp,fp);
         ttl = "smooth_dynamic_warping_r_errors_"+num+".dat";
@@ -484,7 +484,7 @@ public class SlopeAlgorithmEval {
         s2D.plotOptimalParameters(ttl,"h2","h1",sp1,sp2,cmin_sdw,cmax_sdw);
         dp = 0.1f; // strain sampling rate
         fp = 0.1f;
-        np1 = (int)((2.0)/dp); //# strain vals to test
+        np1 = (int)((3.0)/dp); //# strain vals to test
         sp1 = new Sampling(np1,dp,fp);
         sp2 = new Sampling(np1,dp,fp);
         ttl = "smooth_dynamic_warping_r_errors_"+num+".dat";
@@ -786,13 +786,13 @@ public class SlopeAlgorithmEval {
   private static String num;
   private static final int norder = 15;
   private static final int k = 10;
-  private static final float pmax = 5.0f;
+  private static final float pmax = 9.0f;
   private static final float noise = 0.0f;
   private static final float freq = 0.1f;
   private static final float pc2   = -0.7f;//constant slope
   private static final float pc3   = 1.3f;//constant slope
   private static final String PATH = 
-    "/users/elias.arias/Home/git/ea/bench/src/util/";
+    System.getProperty("user.home")+"/Home/git/ea/bench/src/util/";
   private static final boolean T = true;
   private static final boolean F = false;    
   public static void main(String[] args) {
@@ -811,15 +811,15 @@ public class SlopeAlgorithmEval {
         //1=lsf  2=pwd  3=sdw  4=all
         //complex2D(3);
         //1=lsf  2=pwd  3=sdw  4=all
-        complex3D(3);
+        //complex3D(3);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant2D(3);
         //1=lsf  2=pwd  3=sdw  4=all
         //constant3D(4);
         //1=lsf  2=pwd  3=sdw  4=all
-        //GOM(4);
+        //GOM(3);
         //1=lsf  2=pwd  3=sdw  4=all
-        //TP2(4);
+        //TP2(3);
         //1=lsf  2=pwd  3=sdw  4=all
         //TP3(3);
 
@@ -831,7 +831,7 @@ public class SlopeAlgorithmEval {
         //1=lsf  2=pwd  3=sdw  4=all, test?
         //meanErrorCurves(4,false,nni);
         //1=lsf  2=pwd  3=sdw  4=all, test?, n1, n2
-        //optimal(1,true,15, 3);
+        optimal(3,false,15,80);
         //1=lsf  2=pwd  3=sdw  4=all, test?
         //mean(4,false,nni);
         //1=lsf  2=pwd  3=sdw  4=all, test?

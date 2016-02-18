@@ -16,7 +16,7 @@ from edu.mines.jtk.util.ArrayMath import *
 from slopes import *
 
 #setupForSubset("subz_401_4_600")
-k1,k2,k3 = 250,0,32
+k3,k2,k1 = 67,320,210
 n1 = 251
 n2 = 357
 n3 = 161
@@ -26,12 +26,10 @@ s3 = Sampling(n3)
 PATH = "/Users/earias/Home/git/ea/bench/src/util/"
 
 efile = "data/tp/tpet.dat" # eigen-tensors
-esfile = "data/tp/tpets.dat" # eigen-tensors
 
 def main(args):
   #makeTensors()
-  display(True)
-  display(False)
+  display()
 
 def makeTensors():
   f = readImage(n1,n2,n3,"data/tp/tpst_subt_251_4_500.dat")
@@ -42,31 +40,28 @@ def makeTensors():
   mask = ZeroMask(m)
   lof = LocalOrientFilter(sigma1,sigma2,sigma3)
   e = lof.applyForTensors(f)
-  es = lof.applyForTensorsE(f)
-  mask.apply((1.0,0.0,0.0,1.0,0.0,1.0),e)
-  mask.apply((1.0,0.0,0.0,1.0,0.0,1.0),es)
+  e.invertStructure(0.0,1.0,1.0)
+  mask.apply((1.0,0.0,0.0,0.0,1.0,0.0),e)
   writeTensors(efile,e)
-  writeTensors(esfile,es)
 
-def display(smooth):
+def display():
   f = readImage(n1,n2,n3,"data/tp/tpst_subt_251_4_500.dat")
-  if smooth:
-    et = readTensors(esfile)
-  else:
-    et = readTensors(efile)
+  et = readTensors(efile)
   world = World()
   ipg = addImageToWorld(world,f)
   ipg.setClips(-5.5,5.5)
   ipg.setSlices(k1,k2,k3)
-  addTensorsInImage(ipg.getImagePanel(Axis.X),et,40)
-  addTensorsInImage(ipg.getImagePanel(Axis.Y),et,40)
-  addTensorsInImage(ipg.getImagePanel(Axis.Z),et,40)
+  addTensorsInImage(ipg.getImagePanel(Axis.X),et,30)
+  addTensorsInImage(ipg.getImagePanel(Axis.Y),et,30)
+  addTensorsInImage(ipg.getImagePanel(Axis.Z),et,30)
   frame = makeFrame(world)
-  frame.setSize(1460,980)
-  frame.orbitView.setAzimuth(240.0)
+  frame.setSize(850,700)
+  frame.orbitView.setAzimuth(220.0)
   frame.orbitView.setElevation(20.0)
+  frame.orbitView.setScale(1.2)
   background = Color(254,254,254)
   frame.viewCanvas.setBackground(background)
+  frame.paintToFile("/Users/earias/Documents/tthesis/figures/tensors3.png")
 
 def readImage(n1,n2,n3,name):
   """ 

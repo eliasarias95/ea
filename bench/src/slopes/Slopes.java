@@ -187,18 +187,18 @@ public class Slopes{
     String num;
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    LocalSlopeFinder lsf = new LocalSlopeFinder(6.0f,1.0f,_pmax);
+    LocalSlopeFinder lsf = new LocalSlopeFinder(10.0f,40.0f,_pmax);
     float[][] pe = new float[n2][n1];
-    ZeroMask zm = new ZeroMask(f);
+    //ZeroMask zm = new ZeroMask(f);
     _sw.restart();
     //lsf.findSlopesE(f,pe,null);
     lsf.findSlopes(f,pe);
     _sw.stop();
-    zm.apply(0.0f,pe);
+    //zm.apply(0.0f,pe);
     trace("Structure tensor time = "+_sw.time());    
     Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
     //Util.writeBinaryL(f,PATH+"/../pgs/data/constant2D.dat");
-    Util.writeBinaryL(f,PATH+"/../pgs/data/complex2D.dat");
+    //Util.writeBinaryL(f,PATH+"/../pgs/data/complex2D.dat");
     //Util.writeBinaryL(p,PATH+"/../pgs/data/complex2D_p.dat");
     trace("Structure tensor:"+max(pe)+", "+min(pe));
     float error;
@@ -273,7 +273,7 @@ public class Slopes{
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
     Sfdip sd = new Sfdip(-_pmax,_pmax);
-    sd.setRect(40,6);
+    sd.setRect(10,40);
     sd.setOrder(4);
     sd.setNiter(_niter);
     sd.setNj(1);
@@ -281,6 +281,7 @@ public class Slopes{
     float[][] pe = new float[n2][n1]; //pwd w/initial p=0 (Madagascar)
     _sw.restart();
     sd.findSlopes(_s1,_s2,f,pe);
+    //sd.findSlopes(_s1,_s2,f,p,pe);
     _sw.stop();
     trace("Madagascar PWD time = "+_sw.time());    
     Util.writeBinary(pe,PATH+"/data/"+title+"_p.dat");
@@ -397,10 +398,10 @@ public class Slopes{
   public void estimateSDW(int k, float[][] f, float[][] p, String title) {
     int n1 = _s1.getCount();
     int n2 = _s2.getCount();
-    double r1 = 0.1;
-    double r2 = 0.6;
-    double h1 = 10.0;
-    double h2 = 10.0;
+    double r1 = 1.1;
+    double r2 = 1.6;
+    double h1 = 30.0;
+    double h2 =  9.0;
     Sampling ss1 = new Sampling(n1);
     Sampling ss2 = new Sampling(n2);
     DynamicWarpingSlopes dws = new DynamicWarpingSlopes(k,_pmax,h1,h2,r1,r2,
@@ -1113,7 +1114,7 @@ public class Slopes{
     float[][] p = Util.readImage(n1,n2,PATH+"/data/"+title+"_p.dat");
     // clip, interp, title, paint, color
     String cbl = "slope (samples/trace)"; //colorbar label
-    Plot.plot(_s1,_s2,f,p,"complex2D_sdwj",cbl,_fw,_fh,-_cmax,_cmax,_clip,_title,
+    Plot.plot(_s1,_s2,f,p,title,cbl,_fw,_fh,-_cmax,_cmax,_clip,_title,
         _paint,_slide,one);
   }
 
@@ -1282,13 +1283,13 @@ public class Slopes{
   private static final float pi = FLT_PI;      
   private static final float _fw = 0.8f; //fraction width for slide
   private static final float _fh = 0.8f; //fraction height for slide
-  private static final float _cmax = 1.5f;
+  private static final float _cmax = 4.0f;
   private static final boolean T = true;
   private static final boolean F = false;  
   private static final boolean _title = false;
   private static final boolean _paint = false;
   private static final boolean _clip = true;
-  private static final boolean _slide = true;
+  private static final boolean _slide = false;
 
   private Stopwatch _sw = new Stopwatch();
   private float _noise;

@@ -17,12 +17,12 @@ import javax.swing.*;
  */
 public class Plot {
 
-  private static int k1 = 500;
-  private static int k2 = 750;
-  private static int k3 = 125;
-  //private static int k1 = 99;
-  //private static int k2 = 90;
-  //private static int k3 = 90;
+  //private static int k1 = 500;
+  //private static int k2 = 750;
+  //private static int k3 = 125;
+  private static int k1 = 106;
+  private static int k2 = 106;
+  private static int k3 = 106;
   private static final double _ratio = 16.0/9.0;
   private static final String _paths = 
     System.getProperty("user.home")+"/Documents/research/figures/testing/";
@@ -233,7 +233,6 @@ public class Plot {
     PlotPanel pp = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
     PixelsView pv1 = pp.addPixels(s1,s2,f);
     PixelsView pv2 = pp.addPixels(s1,s2,g);
-    pv1.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
     //pv1.setClips(-50,50);
     pv2.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
     pv2.setColorModel(ColorMap.setAlpha(ColorMap.JET,0.4));
@@ -244,12 +243,9 @@ public class Plot {
     pp.setHLabel("Traces");
     pp.setVLabel("Samples");
     pp.addColorBar(cbl);
-    pp.setColorBarWidthMinimum(150);
-    pp.setHInterval(1000);
-    pp.setVInterval(500);
+    pp.setColorBarWidthMinimum(120);
     PlotFrame pf = new PlotFrame(pp);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    //pf.setSize(fwi,fhi);
     pf.setSize(850,600);
     pf.setVisible(true);
     if (clip) pv2.setClips(cmin,cmax);
@@ -338,10 +334,10 @@ public class Plot {
     int n3 = s3.getCount();
     SimpleFrame sf = new SimpleFrame(AxesOrientation.XRIGHT_YIN_ZDOWN);
     ImagePanelGroup2 ipg = new ImagePanelGroup2(s1,s2,s3,f,g);
-    ipg.setClips1(-50,50);
+    //ipg.setClips1(-50,50);
     //ipg.setClips1(-2000,2000);
     ipg.setClips2(cmin,cmax);
-    ipg.setColorModel2(ColorMap.setAlpha(ColorMap.JET,0.4));
+    ipg.setColorModel2(ColorMap.setAlpha(ColorMap.JET,0.0));
     sf.getWorld().addChild(ipg);
     ipg.setSlices(k1,k2,k3);
     sf.setSize(985,700);   // for sch data
@@ -374,6 +370,7 @@ public class Plot {
     float[][][] gt = new float[n2][n3][n1];
     Util.transpose23(f,ft);
     Util.transpose23(g,gt);
+    PlotPanel pp2 = new PlotPanel(1,1,PlotPanel.Orientation.X1DOWN_X2RIGHT);
     PlotPanelPixels3 pp = new PlotPanelPixels3(
       PlotPanelPixels3.Orientation.X1DOWN_X2RIGHT,
       PlotPanelPixels3.AxesPlacement.LEFT_BOTTOM,
@@ -397,6 +394,7 @@ public class Plot {
     pv13.setOrientation(PixelsView.Orientation.X1DOWN_X2RIGHT);
     pv13.setInterpolation(PixelsView.Interpolation.NEAREST);
     PixelsView pv23 = new PixelsView(s3,s2,Util.slice23(k1,gt));
+    pp2.addPixels(s3,s2,Util.slice23(k1,ft));
     pv23.setOrientation(PixelsView.Orientation.X1RIGHT_X2UP);
     pv23.setInterpolation(PixelsView.Interpolation.NEAREST);
     pv12.setColorModel(ColorMap.setAlpha(ColorMap.JET,0.4));
@@ -410,7 +408,7 @@ public class Plot {
     pp.getPixelsView12().getTile().addTiledView(pv12);
     pp.getPixelsView13().getTile().addTiledView(pv13);
     pp.getPixelsView23().getTile().addTiledView(pv23);
-    PlotFrame pf = new PlotFrame(pp);
+    PlotFrame pf = new PlotFrame(pp2);
     pf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     pf.setBackground(background);
     pp.setColorBarWidthMinimum(150);
@@ -420,6 +418,8 @@ public class Plot {
     pf.setSize(1150,800);
     pp.getMosaic().setWidthElastic(1,90);
     pf.setVisible(true);
+    Util.writeBinaryL(Util.slice23(k1,ft),_paths+"tp_time_106.dat");
+    pf.paintToPng(720,(1920f*fh-1)/720,_paths+"tp_time_106.png");
     int dpi = 720;
     if (slide) {
       pf.setFontSizeForSlide(fw,fh,_ratio);
